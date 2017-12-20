@@ -28,6 +28,8 @@ def evaluate_score(predict, y_true, prob_threshold=0.5):
     predict = predict.astype(int)
     y_true = y_true > prob_threshold
     y_true = y_true.astype(int)
+    print('predict  count mean: {:.6f}, std: {:.6f}'.format(np.mean(predict), np.std(predict)))
+
     false_positive_rate, true_positive_rate, thresholds = roc_curve(y_true, predict, pos_label=2)
     auc_score = auc(false_positive_rate, true_positive_rate)
     return auc_score
@@ -56,7 +58,8 @@ def main():
     # print('feature check before modeling...')
     # feature_util.feature_check_before_modeling(train, test, df_columns)
 
-    prob_threshold = 0.5
+    scale_pos_weight = (np.sum(y_train_all == 0) / np.sum(y_train_all == 1))
+    prob_threshold = 0.6
 
     xgb_params = {
         'eta': 0.05,
@@ -65,7 +68,7 @@ def main():
         'max_depth': 8,
         'subsample': 0.9,
         'lambda': 2.0,
-        'scale_pos_weight': (1.0 * np.sum(y_train_all == 0) / np.sum(y_train_all == 1)),
+        'scale_pos_weight': scale_pos_weight,
         'eval_metric': 'logloss',
         'objective': 'binary:logistic',
         'updater': 'grow_gpu',
@@ -127,7 +130,7 @@ def main():
     submission_path = '../result/{}_submission_{}.csv'.format('xgboost',
                                                                  time.strftime('%Y_%m_%d_%H_%M_%S',
                                                                                time.localtime(time.time())))
-    df_sub.to_csv(submission_path, index=False)
+    df_sub.to_csv(submission_path, index=False, columns=['userid', 'orderType'])
     print('-------- predict and valid check  ------')
     print('test  count mean: {:.6f}, std: {:.6f}'.format(np.mean(df_sub['orderType']), np.std(df_sub['orderType'])))
     print('done.')
