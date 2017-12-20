@@ -1,0 +1,133 @@
+#!/usr/local/miniconda2/bin/python
+# _*_ coding: utf-8 _*_
+
+"""
+@author: MarkLiu
+@time  : 17-12-10 下午12:12
+"""
+from __future__ import absolute_import, division, print_function
+
+import os
+import sys
+import time
+
+module_path = os.path.abspath(os.path.join('..'))
+sys.path.append(module_path)
+
+import numpy as np
+import pandas as pd
+import xgboost as xgb
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error
+from utils import data_utils
+from conf.configure import Configure
+
+
+def main():
+    files = os.listdir(Configure.base_path + '/datasets')
+    op_scope = 0
+    for f in files:
+        if 'operate' in f:
+            op = int(f.split('_')[1])
+            if op > op_scope:
+                op_scope = op
+
+    print('load dataset from op_scope = {}'.format(op_scope))
+    train, test = data_utils.load_dataset(op_scope)
+
+    train['visitors'] = np.log1p(train['visitors'])
+    y_train_all = train['visitors']
+    id_test = test['id']
+
+    train.drop(['air_store_id', 'visit_date', 'visitors'], axis=1, inplace=True)
+    test.drop(['id', 'air_store_id', 'visit_date'], axis=1, inplace=True)
+
+    df_columns = train.columns.values
+    print('===> feature count: {}'.format(len(df_columns)))
+    # print('feature check before modeling...')
+    # feature_util.feature_check_before_modeling(train, test, df_columns)
+
+    xgb_params = {
+        'eta': 0.05,
+        'min_child_weight': 20,
+        'colsample_bytree': 0.5,
+        'max_depth': 8,
+        'subsample': 0.9,
+        'lambda': 2.0,
+
+        'eval_metric': 'rmse',
+        'objective': 'reg:linear',
+        'updater': 'grow_gpu',
+        'gpu_id': 0,
+        'nthread': -1,
+        'silent': 1,
+        'booster': 'gbtree'
+    }
+
+    X_train, X_valid, y_train, y_valid = train_test_split(train, y_train_all, test_size=0.25, random_state=42)
+    print('train: {}, valid: {}, test: {}'.format(X_train.shape[0], X_valid.shape[0], test.shape[0]))
+
+    dtrain = xgb.DMatrix(X_train, y_train, feature_names=df_columns)
+    dvalid = xgb.DMatrix(X_valid, y_valid, feature_names=df_columns)
+    dtest = xgb.DMatrix(test, feature_names=df_columns)
+
+    watchlist = [(dtrain, 'train'), (dvalid, 'valid')]
+    model = xgb.train(dict(xgb_params),
+                      dtrain,
+                      evals=watchlist,
+                      verbose_eval=50,
+                      early_stopping_rounds=100,
+                      num_boost_round=4000)
+
+    # predict train
+    predict_train = model.predict(dtrain)
+    train_rmse = np.sqrt(mean_squared_error(y_train, predict_train))
+
+    # predict validate
+    predict_valid = model.predict(dvalid)
+    valid_rmse = np.sqrt(mean_squared_error(y_valid, predict_valid))
+
+    print('train rmse = {:.7f} , valid rmse = {:.7f}\n'.format(train_rmse, valid_rmse))
+
+    print('---> training on total dataset to predict test and submit')
+    print('---> cv train to choose best_num_boost_round')
+    dtrain_all = xgb.DMatrix(train.values, y_train_all, feature_names=df_columns)
+    cv_result = xgb.cv(dict(xgb_params),
+                       dtrain_all,
+                       num_boost_round=4000,
+                       early_stopping_rounds=100,
+                       verbose_eval=100,
+                       show_stdv=False,
+                       )
+    best_num_boost_rounds = len(cv_result)
+    mean_train_rmse = cv_result.loc[best_num_boost_rounds-11 : best_num_boost_rounds-1, 'train-rmse-mean'].mean()
+    mean_test_rmse = cv_result.loc[best_num_boost_rounds-11 : best_num_boost_rounds-1, 'test-rmse-mean'].mean()
+    print('best_num_boost_rounds = {}'.format(best_num_boost_rounds))
+    print('mean_train_rmse = {:.7f} , mean_test_rmse = {:.7f}'.format(mean_train_rmse, mean_test_rmse))
+
+    model = xgb.train(dict(xgb_params),
+                      dtrain_all,
+                      num_boost_round=best_num_boost_rounds)
+    print('---> predict and submit')
+    print('---> predict submit')
+    y_pred = model.predict(dtest)
+    df_sub = pd.DataFrame({'id': id_test, 'visitors': np.expm1(y_pred)})
+    submission_path = '../result/{}_submission_{}.csv.gz'.format('xgboost',
+                                                                 time.strftime('%Y_%m_%d_%H_%M_%S',
+                                                                               time.localtime(time.time())))
+    df_sub.to_csv(submission_path, index=False, compression='gzip')
+    print('---> submit to kaggle')
+    kg_password = raw_input("kaggle password: ")
+    kg_comment = raw_input("submit comment: ")
+    cmd = "kg submit {} -u sunnymarkliu -p '{}' -c recruit-restaurant-visitor-forecasting -m '{}'".format(
+        submission_path,
+        kg_password,
+        kg_comment)
+
+    os.system(cmd)
+    print('Done.')
+
+
+if __name__ == '__main__':
+    print('========== apply xgboost model ==========')
+    main()
