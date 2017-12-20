@@ -18,9 +18,19 @@ import numpy as np
 import pandas as pd
 import xgboost as xgb
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import mean_squared_error
+from sklearn.metrics import auc, roc_curve
 from utils import data_utils
 from conf.configure import Configure
+
+
+def evaluate_score(predict, y_true, prob_threshold=0.5):
+    predict = predict > prob_threshold
+    predict = predict.astype(int)
+    y_true = y_true > prob_threshold
+    y_true = y_true.astype(int)
+    false_positive_rate, true_positive_rate, thresholds = roc_curve(y_true, predict, pos_label=2)
+    auc_score = auc(false_positive_rate, true_positive_rate)
+    return auc_score
 
 
 def main():
@@ -35,17 +45,18 @@ def main():
     print('load dataset from op_scope = {}'.format(op_scope))
     train, test = data_utils.load_dataset(op_scope)
 
-    train['visitors'] = np.log1p(train['visitors'])
-    y_train_all = train['visitors']
-    id_test = test['id']
+    y_train_all = train['orderType']
+    id_test = test['userid']
 
-    train.drop(['air_store_id', 'visit_date', 'visitors'], axis=1, inplace=True)
-    test.drop(['id', 'air_store_id', 'visit_date'], axis=1, inplace=True)
+    train.drop(['userid', 'gender', 'province', 'age', 'orderType'], axis=1, inplace=True)
+    test.drop(['userid', 'gender', 'province', 'age'], axis=1, inplace=True)
 
     df_columns = train.columns.values
     print('===> feature count: {}'.format(len(df_columns)))
     # print('feature check before modeling...')
     # feature_util.feature_check_before_modeling(train, test, df_columns)
+
+    prob_threshold = 0.5
 
     xgb_params = {
         'eta': 0.05,
@@ -54,9 +65,9 @@ def main():
         'max_depth': 8,
         'subsample': 0.9,
         'lambda': 2.0,
-
-        'eval_metric': 'rmse',
-        'objective': 'reg:linear',
+        'scale_pos_weight': (1.0 * np.sum(y_train_all == 0) / np.sum(y_train_all == 1)),
+        'eval_metric': 'logloss',
+        'objective': 'binary:logistic',
         'updater': 'grow_gpu',
         'gpu_id': 0,
         'nthread': -1,
@@ -81,13 +92,13 @@ def main():
 
     # predict train
     predict_train = model.predict(dtrain)
-    train_rmse = np.sqrt(mean_squared_error(y_train, predict_train))
+    train_auc = evaluate_score(predict_train, y_train, prob_threshold=prob_threshold)
 
     # predict validate
     predict_valid = model.predict(dvalid)
-    valid_rmse = np.sqrt(mean_squared_error(y_valid, predict_valid))
+    valid_auc = evaluate_score(predict_valid, y_valid, prob_threshold=prob_threshold)
 
-    print('train rmse = {:.7f} , valid rmse = {:.7f}\n'.format(train_rmse, valid_rmse))
+    print('train auc = {:.7f} , valid auc = {:.7f}\n'.format(train_auc, valid_auc))
 
     print('---> training on total dataset to predict test and submit')
     print('---> cv train to choose best_num_boost_round')
@@ -100,10 +111,10 @@ def main():
                        show_stdv=False,
                        )
     best_num_boost_rounds = len(cv_result)
-    mean_train_rmse = cv_result.loc[best_num_boost_rounds-11 : best_num_boost_rounds-1, 'train-rmse-mean'].mean()
-    mean_test_rmse = cv_result.loc[best_num_boost_rounds-11 : best_num_boost_rounds-1, 'test-rmse-mean'].mean()
+    mean_train_logloss = cv_result.loc[best_num_boost_rounds-11 : best_num_boost_rounds-1, 'train-logloss-mean'].mean()
+    mean_test_logloss = cv_result.loc[best_num_boost_rounds-11 : best_num_boost_rounds-1, 'test-logloss-mean'].mean()
     print('best_num_boost_rounds = {}'.format(best_num_boost_rounds))
-    print('mean_train_rmse = {:.7f} , mean_test_rmse = {:.7f}'.format(mean_train_rmse, mean_test_rmse))
+    print('mean_train_logloss = {:.7f} , mean_test_logloss = {:.7f}'.format(mean_train_logloss, mean_test_logloss))
 
     model = xgb.train(dict(xgb_params),
                       dtrain_all,
@@ -111,21 +122,15 @@ def main():
     print('---> predict and submit')
     print('---> predict submit')
     y_pred = model.predict(dtest)
-    df_sub = pd.DataFrame({'id': id_test, 'visitors': np.expm1(y_pred)})
-    submission_path = '../result/{}_submission_{}.csv.gz'.format('xgboost',
+    df_sub = pd.DataFrame({'userid': id_test, 'orderType': y_pred})
+    df_sub['orderType'] = (df_sub['orderType'] > prob_threshold).astype(int)
+    submission_path = '../result/{}_submission_{}.csv'.format('xgboost',
                                                                  time.strftime('%Y_%m_%d_%H_%M_%S',
                                                                                time.localtime(time.time())))
-    df_sub.to_csv(submission_path, index=False, compression='gzip')
-    print('---> submit to kaggle')
-    kg_password = raw_input("kaggle password: ")
-    kg_comment = raw_input("submit comment: ")
-    cmd = "kg submit {} -u sunnymarkliu -p '{}' -c recruit-restaurant-visitor-forecasting -m '{}'".format(
-        submission_path,
-        kg_password,
-        kg_comment)
-
-    os.system(cmd)
-    print('Done.')
+    df_sub.to_csv(submission_path, index=False)
+    print('-------- predict and valid check  ------')
+    print('test  count mean: {:.6f}, std: {:.6f}'.format(np.mean(df_sub['orderType']), np.std(df_sub['orderType'])))
+    print('done.')
 
 
 if __name__ == '__main__':

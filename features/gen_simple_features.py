@@ -19,50 +19,53 @@ warnings.filterwarnings('ignore')
 
 import numpy as np
 import pandas as pd
+from pypinyin import lazy_pinyin
+from sklearn.preprocessing import LabelEncoder
 from conf.configure import Configure
 from optparse import OptionParser
 from utils import data_utils
 
 
-def gen_time_features(df):
-    df['visit_date'] = pd.to_datetime(df['visit_date'])
-    # month
-    df['visit_month'] = df['visit_date'].dt.month
-    # day
-    df['visit_day'] = df['visit_date'].dt.day
-    # weekofyear
-    df['visit_weekofyear'] = df['visit_date'].dt.weekofyear
-    # weekday
-    df['visit_weekday'] = df['visit_date'].dt.weekday
-
-    date_info = pd.read_csv(Configure.base_path + '/date_info.csv')
-    df = pd.merge(df, date_info.rename(columns={'calendar_date': 'visit_date'}), how='left', on='visit_date')
-    del df['day_of_week']
-    return df
-
-
-def gen_air_reserve_features(train, test):
+def user_basic_info():
     """
-    air_reserve.csv
+    用户个人信息
     """
-    train['visit_date'] = train['visit_date'].dt.date
-    test['visit_date'] = test['visit_date'].dt.date
+    train_user = pd.read_csv(Configure.base_path + 'train/userProfile_train.csv', encoding='utf8')
+    test_user = pd.read_csv(Configure.base_path + 'test/userProfile_test.csv', encoding='utf8')
 
-    air_reserve = pd.read_csv(Configure.base_path + '/air_reserve.csv')
-    air_reserve['visit_datetime'] = pd.to_datetime(air_reserve['visit_datetime'])
-    air_reserve['visit_date'] = air_reserve['visit_datetime'].dt.date
+    def gender_convert(gender):
+        if gender == gender:
+            return 'man' if gender == u'男' else 'woman'
+        return 'None'
 
-    air_reserve_fea = air_reserve.groupby(['air_store_id', 'visit_date']).sum()['reserve_visitors'].reset_index()
-    air_reserve_fea.rename(columns={'reserve_visitors': 'reserve_visitors_sum'}, inplace=True)
-    air_reserve_fea['reserve_visitors_sum'] = np.log1p(air_reserve_fea['reserve_visitors_sum'])
+    train_user['gender'] = train_user['gender'].map(gender_convert)
+    test_user['gender'] = test_user['gender'].map(gender_convert)
+    dummies = pd.get_dummies(train_user['gender'], prefix='gender')
+    train_user[dummies.columns] = dummies
+    dummies = pd.get_dummies(test_user['gender'], prefix='gender')
+    test_user[dummies.columns] = dummies
 
-    train = pd.merge(train, air_reserve_fea, on=['air_store_id', 'visit_date'], how='left')
-    test = pd.merge(test, air_reserve_fea, on=['air_store_id', 'visit_date'], how='left')
+    def province_convert(province):
+        if province == province:
+            return '_'.join(lazy_pinyin(province))
+        return 'None'
 
-    train.fillna(0, inplace=True)
-    test.fillna(0, inplace=True)
+    train_user['province'] = train_user['province'].map(province_convert)
+    test_user['province'] = test_user['province'].map(province_convert)
 
-    return train, test
+    le = LabelEncoder()
+    le.fit(train_user['province'].values)
+    train_user['province_code'] = le.transform(train_user['province'])
+    test_user['province_code'] = le.transform(test_user['province'])
+
+    train_user['age'] = train_user['age'].map(lambda age: 'lg' + age[:2] if age == age else 'None')
+    test_user['age'] = test_user['age'].map(lambda age: 'lg' + age[:2] if age == age else 'None')
+    dummies = pd.get_dummies(train_user['age'], prefix='age')
+    train_user[dummies.columns] = dummies
+    dummies = pd.get_dummies(test_user['age'], prefix='age')
+    test_user[dummies.columns] = dummies
+
+    return train_user, test_user
 
 
 def main(op_scope):
@@ -71,19 +74,28 @@ def main(op_scope):
     #     return
 
     print("---> load datasets")
-    train = pd.read_csv(Configure.base_path + '/air_visit_data.csv')
-    test = pd.read_csv(Configure.base_path + '/sample_submission.csv')
-    test['air_store_id'] = test['id'].map(lambda x: x[:20])
-    test['visit_date'] = test['id'].map(lambda x: x[21:])
-    test.drop(['visitors'], axis=1, inplace=True)
+    # 待预测订单的数据 （原始训练集和测试集）
+    train = pd.read_csv(Configure.base_path + 'train/orderFuture_train.csv', encoding='utf8')
+    test = pd.read_csv(Configure.base_path + 'test/orderFuture_test.csv', encoding='utf8')
     print("train: {}, test: {}".format(train.shape, test.shape))
 
-    print('---> gen_time_features')
-    train = gen_time_features(train)
-    test = gen_time_features(test)
+    print('合并用户基本信息')
+    train_user, test_user = user_basic_info()
+    train = train.merge(train_user, on='userid', how='left')
+    test = test.merge(test_user, on='userid', how='left')
 
-    print('---> gen_air_reserve_features')
-    train, test = gen_air_reserve_features(train, test)
+
+    # 用户行为信息
+    action_train = pd.read_csv(Configure.base_path + 'train/action_train.csv')
+    action_test = pd.read_csv(Configure.base_path + 'test/action_test.csv')
+
+    # 用户历史订单数据
+    orderHistory_train = pd.read_csv(Configure.base_path + 'train/orderHistory_train.csv',encoding='utf8')
+    orderHistory_test = pd.read_csv(Configure.base_path + 'test/orderHistory_test.csv',encoding='utf8')
+
+    # 评论数据
+    userComment_train = pd.read_csv(Configure.base_path + 'train/userComment_train.csv', encoding='utf8')
+    userComment_test = pd.read_csv(Configure.base_path + 'test/userComment_test.csv', encoding='utf8')
 
     print("train: {}, test: {}".format(train.shape, test.shape))
     print("---> save datasets")
