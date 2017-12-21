@@ -68,20 +68,47 @@ def user_basic_info():
     return train_user, test_user
 
 
-def basic_action_info():
+def basic_action_info(action_df):
     """
     用户行为信息
     """
-    action_train = pd.read_csv(Configure.base_path + 'train/action_train.csv')
-    action_test = pd.read_csv(Configure.base_path + 'test/action_test.csv')
-    action_train['actionTime'] = pd.to_datetime(action_train['actionTime'], unit='s')
-    action_test['actionTime'] = pd.to_datetime(action_test['actionTime'], unit='s')
-    train_action_features = action_train.groupby(['userid']).count().reset_index()[['userid', 'actionTime']].rename(
-        columns={'actionTime': 'action_counts'})
-    test_action_features = action_train.groupby(['userid']).count().reset_index()[['userid', 'actionTime']].rename(
-        columns={'actionTime': 'action_counts'})
+    action_df['actionTime'] = pd.to_datetime(action_df['actionTime'], unit='s')
 
-    return train_action_features, test_action_features
+    def action_type_convert(action):
+        if action == 1:
+            return 'open_app'
+        elif 2 <= action <= 4:
+            return 'browse_product'
+        elif action == 5:
+            return 'fillin_form5'
+        elif action == 6:
+            return 'fillin_form6'
+        elif action == 7:
+            return 'fillin_form7'
+        elif action == 8:
+            return 'submit_order'
+        elif action == 9:
+            return 'pay_money'
+
+    action_df['actionType'] = action_df['actionType'].map(action_type_convert)
+
+    action_features = action_df.groupby(['userid', 'actionType']).actionTime.count().groupby(level=0).apply(lambda x: x.astype(float) / x.sum()).reset_index()
+    action_features = action_features.pivot('userid', 'actionType', 'actionTime').reset_index().fillna(0)
+
+    action_features = action_features.merge(
+        action_df.groupby(['userid']).count().reset_index()[['userid', 'actionTime']].rename(columns={'actionTime': 'action_counts'}),
+        on='userid', how='left'
+    )
+    action_features.rename(columns={'open_app': 'open_app_ratio', 'browse_product': 'browse_product_ratio',
+                                    'fillin_form5': 'fillin_form5_ratio', 'fillin_form6': 'fillin_form6_ratio',
+                                    'fillin_form7': 'fillin_form7_ratio', 'submit_order': 'submit_order_ratio',
+                                    'pay_money': 'pay_money_ratio'}, inplace=True)
+    print(action_features.columns)
+    action_features['has_pay_money'] = (action_features['pay_money_ratio'] > 0).astype(int)
+
+    feature_column = ['userid', 'open_app_ratio', 'action_counts','browse_product_ratio', 'fillin_form5_ratio',
+                      'fillin_form6_ratio', 'fillin_form7_ratio', 'submit_order_ratio', 'pay_money_ratio', 'has_pay_money']
+    return action_features[feature_column]
 
 
 def main(op_scope):
@@ -100,10 +127,14 @@ def main(op_scope):
     train = train.merge(train_user, on='userid', how='left')
     test = test.merge(test_user, on='userid', how='left')
 
-    # print('---> 合并用户行为信息')
-    # train_action_features, test_action_features = basic_action_info()
-    # train = train.merge(train_action_features, on='userid', how='left')
-    # test = test.merge(test_action_features, on='userid', how='left')
+    print('---> 合并用户行为信息')
+    action_train = pd.read_csv(Configure.base_path + 'train/action_train.csv')
+    action_test = pd.read_csv(Configure.base_path + 'test/action_test.csv')
+
+    train_action_features = basic_action_info(action_train)
+    train = train.merge(train_action_features, on='userid', how='left')
+    test_action_features = basic_action_info(action_test)
+    test = test.merge(test_action_features, on='userid', how='left')
 
     # 用户历史订单数据
     orderHistory_train = pd.read_csv(Configure.base_path + 'train/orderHistory_train.csv',encoding='utf8')
