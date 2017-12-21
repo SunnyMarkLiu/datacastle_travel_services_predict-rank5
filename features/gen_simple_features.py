@@ -68,6 +68,22 @@ def user_basic_info():
     return train_user, test_user
 
 
+def basic_action_info():
+    """
+    用户行为信息
+    """
+    action_train = pd.read_csv(Configure.base_path + 'train/action_train.csv')
+    action_test = pd.read_csv(Configure.base_path + 'test/action_test.csv')
+    action_train['actionTime'] = pd.to_datetime(action_train['actionTime'], unit='s')
+    action_test['actionTime'] = pd.to_datetime(action_test['actionTime'], unit='s')
+    train_action_features = action_train.groupby(['userid']).count().reset_index()[['userid', 'actionTime']].rename(
+        columns={'actionTime': 'action_counts'})
+    test_action_features = action_train.groupby(['userid']).count().reset_index()[['userid', 'actionTime']].rename(
+        columns={'actionTime': 'action_counts'})
+
+    return train_action_features, test_action_features
+
+
 def main(op_scope):
     op_scope = int(op_scope)
     # if os.path.exists(Configure.processed_train_path.format(op_scope)):
@@ -79,15 +95,15 @@ def main(op_scope):
     test = pd.read_csv(Configure.base_path + 'test/orderFuture_test.csv', encoding='utf8')
     print("train: {}, test: {}".format(train.shape, test.shape))
 
-    print('合并用户基本信息')
+    print('---> 合并用户基本信息')
     train_user, test_user = user_basic_info()
     train = train.merge(train_user, on='userid', how='left')
     test = test.merge(test_user, on='userid', how='left')
 
-
-    # 用户行为信息
-    action_train = pd.read_csv(Configure.base_path + 'train/action_train.csv')
-    action_test = pd.read_csv(Configure.base_path + 'test/action_test.csv')
+    # print('---> 合并用户行为信息')
+    # train_action_features, test_action_features = basic_action_info()
+    # train = train.merge(train_action_features, on='userid', how='left')
+    # test = test.merge(test_action_features, on='userid', how='left')
 
     # 用户历史订单数据
     orderHistory_train = pd.read_csv(Configure.base_path + 'train/orderHistory_train.csv',encoding='utf8')

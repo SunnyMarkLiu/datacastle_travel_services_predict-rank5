@@ -95,3 +95,4 @@ input/*.csv
 input/*.pkl
 result/*.csv
 .idea
+.~*.xlsx

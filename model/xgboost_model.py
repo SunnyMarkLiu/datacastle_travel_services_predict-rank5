@@ -30,7 +30,7 @@ def evaluate_score(predict, y_true, prob_threshold=0.5):
     y_true = y_true.astype(int)
     print('predict  count mean: {:.6f}, std: {:.6f}'.format(np.mean(predict), np.std(predict)))
 
-    false_positive_rate, true_positive_rate, thresholds = roc_curve(y_true, predict, pos_label=2)
+    false_positive_rate, true_positive_rate, thresholds = roc_curve(y_true, predict, pos_label=1)
     auc_score = auc(false_positive_rate, true_positive_rate)
     return auc_score
 
@@ -59,7 +59,7 @@ def main():
     # feature_util.feature_check_before_modeling(train, test, df_columns)
 
     scale_pos_weight = (np.sum(y_train_all == 0) / np.sum(y_train_all == 1))
-    prob_threshold = 0.6
+    prob_threshold = 0.5
 
     xgb_params = {
         'eta': 0.05,
