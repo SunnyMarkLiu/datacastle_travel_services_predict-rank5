@@ -28,7 +28,7 @@ def evaluate_score(predict, y_true, prob_threshold=0.5):
     predict = predict.astype(int)
     y_true = y_true > prob_threshold
     y_true = y_true.astype(int)
-    print('predict  count mean: {:.6f}, std: {:.6f}'.format(np.mean(predict), np.std(predict)))
+    print('predict  count mean: {:.6f} , std: {:.6f}'.format(np.mean(predict), np.std(predict)))
 
     false_positive_rate, true_positive_rate, thresholds = roc_curve(y_true, predict, pos_label=1)
     auc_score = auc(false_positive_rate, true_positive_rate)
@@ -59,6 +59,7 @@ def main():
     # feature_util.feature_check_before_modeling(train, test, df_columns)
 
     scale_pos_weight = (np.sum(y_train_all == 0) / np.sum(y_train_all == 1))
+    # TODO prob_threshold 越小 valid auc 越高
     prob_threshold = 0.5
 
     xgb_params = {
@@ -103,7 +104,6 @@ def main():
 
     print('train auc = {:.7f} , valid auc = {:.7f}\n'.format(train_auc, valid_auc))
 
-    print('---> training on total dataset to predict test and submit')
     print('---> cv train to choose best_num_boost_round')
     dtrain_all = xgb.DMatrix(train.values, y_train_all, feature_names=df_columns)
     cv_result = xgb.cv(dict(xgb_params),
@@ -117,8 +117,8 @@ def main():
     mean_train_logloss = cv_result.loc[best_num_boost_rounds-11 : best_num_boost_rounds-1, 'train-logloss-mean'].mean()
     mean_test_logloss = cv_result.loc[best_num_boost_rounds-11 : best_num_boost_rounds-1, 'test-logloss-mean'].mean()
     print('best_num_boost_rounds = {}'.format(best_num_boost_rounds))
-    print('mean_train_logloss = {:.7f} , mean_test_logloss = {:.7f}'.format(mean_train_logloss, mean_test_logloss))
-
+    print('mean_train_logloss = {:.7f} , mean_test_logloss = {:.7f}\n'.format(mean_train_logloss, mean_test_logloss))
+    print('---> training on total dataset to predict test and submit')
     model = xgb.train(dict(xgb_params),
                       dtrain_all,
                       num_boost_round=best_num_boost_rounds)
@@ -132,7 +132,7 @@ def main():
                                                                                time.localtime(time.time())))
     df_sub.to_csv(submission_path, index=False, columns=['userid', 'orderType'])
     print('-------- predict and valid check  ------')
-    print('test  count mean: {:.6f}, std: {:.6f}'.format(np.mean(df_sub['orderType']), np.std(df_sub['orderType'])))
+    print('test  count mean: {:.6f} , std: {:.6f}'.format(np.mean(df_sub['orderType']), np.std(df_sub['orderType'])))
     print('done.')
 
 
