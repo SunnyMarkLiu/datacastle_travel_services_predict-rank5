@@ -60,7 +60,7 @@ def main():
 
     scale_pos_weight = (np.sum(y_train_all == 0) / np.sum(y_train_all == 1))
     # TODO prob_threshold 越小 valid auc 越高
-    prob_threshold = 0.5
+    prob_threshold = 0.4
 
     xgb_params = {
         'eta': 0.05,

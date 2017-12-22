@@ -27,7 +27,7 @@ from utils import data_utils
 
 def user_basic_info():
     """
-    用户个人信息
+    用户个人基本信息
     """
     train_user = pd.read_csv(Configure.base_path + 'train/userProfile_train.csv', encoding='utf8')
     test_user = pd.read_csv(Configure.base_path + 'test/userProfile_test.csv', encoding='utf8')
@@ -37,6 +37,7 @@ def user_basic_info():
             return 'man' if gender == u'男' else 'woman'
         return 'None'
 
+    # 性别 dummy code
     train_user['gender'] = train_user['gender'].map(gender_convert)
     test_user['gender'] = test_user['gender'].map(gender_convert)
     dummies = pd.get_dummies(train_user['gender'], prefix='gender')
@@ -51,12 +52,13 @@ def user_basic_info():
 
     train_user['province'] = train_user['province'].map(province_convert)
     test_user['province'] = test_user['province'].map(province_convert)
-
+    # 省份进行 LabelEncoder
     le = LabelEncoder()
     le.fit(train_user['province'].values)
     train_user['province_code'] = le.transform(train_user['province'])
     test_user['province_code'] = le.transform(test_user['province'])
 
+    # 年龄段进行 dummy code
     train_user['age'] = train_user['age'].map(lambda age: 'lg' + age[:2] if age == age else 'None')
     test_user['age'] = test_user['age'].map(lambda age: 'lg' + age[:2] if age == age else 'None')
     dummies = pd.get_dummies(train_user['age'], prefix='age')
@@ -89,6 +91,7 @@ def basic_action_info(action_df):
         elif action == 9:
             return 'pay_money'
 
+    # action 操作，合并无序的浏览特征
     action_df['actionType'] = action_df['actionType'].map(action_type_convert)
 
     print('用户不同操作的购买率')
@@ -157,8 +160,8 @@ def basic_action_info(action_df):
 
 def main(op_scope):
     op_scope = int(op_scope)
-    # if os.path.exists(Configure.processed_train_path.format(op_scope)):
-    #     return
+    if os.path.exists(Configure.processed_train_path.format(op_scope)):
+        return
 
     print("---> load datasets")
     # 待预测订单的数据 （原始训练集和测试集）
