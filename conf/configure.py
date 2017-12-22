@@ -22,8 +22,9 @@ class Configure(object):
 
     # 待 merge 的特征（特征名：merge_on 的特征）
     features = {
-        'basic_user_info'            : 'userid',
-        'basic_user_action_features' : 'userid',
+        'basic_user_info'            : {'on': 'userid', 'how': 'left'},
+        'basic_user_action_features' : {'on': 'userid', 'how': 'left'},
+        'user_order_history_features': {'on': 'userid', 'how': 'left'},
     }
 
     submit_result_path = '../result/'

@@ -15,6 +15,7 @@ sys.path.append(module_path)
 
 # remove warnings
 import warnings
+
 warnings.filterwarnings('ignore')
 
 import pandas as pd
@@ -31,7 +32,11 @@ def load_train_test():
     features_merged_dict = Configure.features
     for feature_name in Configure.features:
         train_feature, test_feature = data_utils.load_features(feature_name)
-        train = train.merge(train_feature, on=features_merged_dict[feature_name])
-        test = test.merge(test_feature, on=features_merged_dict[feature_name])
+        train = train.merge(train_feature,
+                            on=features_merged_dict[feature_name]['on'],
+                            how=features_merged_dict[feature_name]['how'])
+        test = test.merge(test_feature,
+                          on=features_merged_dict[feature_name]['on'],
+                          how=features_merged_dict[feature_name]['how'])
 
     return train, test
