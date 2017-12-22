@@ -9,10 +9,12 @@ from __future__ import absolute_import, division, print_function
 
 import os
 import sys
-import time
 
 module_path = os.path.abspath(os.path.join('..'))
 sys.path.append(module_path)
+module_path = os.path.abspath(os.path.join('.'))
+sys.path.append(module_path)
+import time
 
 import numpy as np
 import pandas as pd
@@ -21,6 +23,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import auc, roc_curve
 from utils import data_utils
 from conf.configure import Configure
+from get_datasets import load_train_test
 
 
 def evaluate_score(predict, y_true, prob_threshold=0.5):
@@ -36,16 +39,8 @@ def evaluate_score(predict, y_true, prob_threshold=0.5):
 
 
 def main():
-    files = os.listdir(Configure.base_path + '/datasets')
-    op_scope = 0
-    for f in files:
-        if 'operate' in f:
-            op = int(f.split('_')[1])
-            if op > op_scope:
-                op_scope = op
-
-    print('load dataset from op_scope = {}'.format(op_scope))
-    train, test = data_utils.load_dataset(op_scope)
+    print("load train test datasets")
+    train, test = load_train_test()
 
     y_train_all = train['orderType']
     id_test = test['userid']
@@ -137,5 +132,5 @@ def main():
 
 
 if __name__ == '__main__':
-    print('========== apply xgboost model ==========')
+    print('========== xgboost 模型训练 ==========')
     main()

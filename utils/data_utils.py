@@ -11,6 +11,9 @@ import sys
 module_path = os.path.abspath(os.path.join('..'))
 sys.path.append(module_path)
 
+from os import listdir
+from os.path import isfile, join
+
 import cPickle
 from conf.configure import Configure
 
@@ -57,3 +60,9 @@ def save_features(train, test, features_name):
         test_path = Configure.features_path + 'test_' + features_name + '.pkl'
         with open(test_path, "wb") as f:
             cPickle.dump(test, f, -1)
+
+
+def is_feature_created(feature_name):
+    feature_files = [f for f in listdir(Configure.features_path) if isfile(join(Configure.features_path, f))]
+    exit_feature = sum([feature_name in feature for feature in feature_files]) > 0
+    return exit_feature
