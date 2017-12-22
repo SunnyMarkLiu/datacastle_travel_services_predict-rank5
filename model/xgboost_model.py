@@ -12,8 +12,6 @@ import sys
 
 module_path = os.path.abspath(os.path.join('..'))
 sys.path.append(module_path)
-module_path = os.path.abspath(os.path.join('.'))
-sys.path.append(module_path)
 import time
 
 import numpy as np
@@ -21,8 +19,6 @@ import pandas as pd
 import xgboost as xgb
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import auc, roc_curve
-from utils import data_utils
-from conf.configure import Configure
 from get_datasets import load_train_test
 
 
