@@ -52,8 +52,8 @@ def pre_days_order_count(uid, userid_grouped, flag, days):
         return df.shape[0]
 
 
-def pre_days_count(uid, userid_grouped, flag, days, check_name):
-    """ 往前 days 的 order 的 check_name 数量 """
+def pre_days_checkname_diff_count(uid, userid_grouped, flag, days, check_name):
+    """ 往前 days 的 order 的不同 check_name 数量 """
     if flag == 0:
         return 2
 
@@ -68,6 +68,68 @@ def pre_days_count(uid, userid_grouped, flag, days, check_name):
             return len(df[check_name].unique())
 
 
+def year_order_count(uid, userid_grouped, flag, year):
+    """ 2016年的 order 的不同 check_name 数量 """
+    if flag == 0:
+        return 2
+
+    df = userid_grouped[uid]
+    if df.shape[0] == 0:
+        return 2
+    else:
+        df = df.loc[df['order_year'] == year]
+        return df.shape[0]
+
+
+def year_checkname_diff_count(uid, userid_grouped, flag, year, check_name):
+    """ year 的 order 的不同 check_name 数量 """
+    if flag == 0:
+        return 2
+
+    df = userid_grouped[uid]
+    if df.shape[0] == 0:
+        return 2
+    else:
+        df = df.loc[df['order_year'] == year]
+        if df.shape[0] == 0:
+            return 0
+        else:
+            return len(df[check_name].unique())
+
+
+def year_order_month_count(uid, userid_grouped, flag, year):
+    """ 每年去了几个月份 """
+    if flag == 0:
+        return 2
+
+    df = userid_grouped[uid]
+    if df.shape[0] == 0:
+        return 2
+    else:
+        df = df.loc[df['order_year'] == year]
+        if df.shape[0] == 0:
+            return 0
+        else:
+            return len(df['order_month'].unique())
+
+
+def year_order_month_most(uid, userid_grouped, flag, year):
+    """ 每年一个月去的最多的次数 """
+    if flag == 0:
+        return 2
+
+    df = userid_grouped[uid]
+    if df.shape[0] == 0:
+        return 2
+    else:
+        df = df.loc[df['order_year'] == year]
+        df = df.groupby(['order_month']).count()['orderTime'].reset_index()
+        if df.shape[0] == 0:
+            return 0
+        else:
+            return df['orderTime'].max()
+
+
 def build_order_history_features(df, history):
     features = pd.DataFrame({'userid': df['userid']})
 
@@ -77,7 +139,7 @@ def build_order_history_features(df, history):
     #给trade表打标签，若id在login表中，则打标签为1，否则为0
     features['has_history_flag'] = features['userid'].map(lambda uid: uid in df_ids).astype(int)
 
-    "基本特征"
+    print("基本特征")
     # 最近的一次交易的 orderType
     features['last_time_orderType'] = features.apply(lambda row: check_last_time_order_info(row['userid'], userid_grouped, row['has_history_flag'], 'orderType'), axis=1)
     # 最近的一次交易的 days_from_now, order_year, order_month, order_day, order_weekofyear, order_weekday
@@ -91,12 +153,32 @@ def build_order_history_features(df, history):
     features['last_time_country'] = features.apply(lambda row: check_last_time_order_info(row['userid'], userid_grouped, row['has_history_flag'], 'country'), axis=1)
     features['last_time_city'] = features.apply(lambda row: check_last_time_order_info(row['userid'], userid_grouped, row['has_history_flag'], 'city'), axis=1)
 
-    "计数特征"
+    print("计数特征")
     # 往前 90days 的计数特征
     features['pre_90days_order_count'] = features.apply(lambda row: pre_days_order_count(row['userid'], userid_grouped, row['has_history_flag'], 90), axis=1)
-    features['pre_90days_order_continent_count'] = features.apply(lambda row: pre_days_count(row['userid'], userid_grouped, row['has_history_flag'], 90, 'continent'), axis=1)
-    features['pre_90days_order_country_count'] = features.apply(lambda row: pre_days_count(row['userid'], userid_grouped, row['has_history_flag'], 90, 'country'), axis=1)
-    features['pre_90days_order_city_count'] = features.apply(lambda row: pre_days_count(row['userid'], userid_grouped, row['has_history_flag'], 90, 'city'), axis=1)
+    features['pre_90days_order_continent_count'] = features.apply(lambda row: pre_days_checkname_diff_count(row['userid'], userid_grouped, row['has_history_flag'], 90, 'continent'), axis=1)
+    features['pre_90days_order_country_count'] = features.apply(lambda row: pre_days_checkname_diff_count(row['userid'], userid_grouped, row['has_history_flag'], 90, 'country'), axis=1)
+    features['pre_90days_order_city_count'] = features.apply(lambda row: pre_days_checkname_diff_count(row['userid'], userid_grouped, row['has_history_flag'], 90, 'city'), axis=1)
+
+    features['2016_order_count'] = features.apply(lambda row: year_order_count(row['userid'], userid_grouped, row['has_history_flag'], 2016), axis=1)
+    features['2017_order_count'] = features.apply(lambda row: year_order_count(row['userid'], userid_grouped, row['has_history_flag'], 2017), axis=1)
+    # features['2016_order_continent_count'] = features.apply(lambda row: year_checkname_diff_count(row['userid'], userid_grouped, row['has_history_flag'], 2016, 'continent'), axis=1)
+    # features['2016_order_country_count'] = features.apply(lambda row: year_checkname_diff_count(row['userid'], userid_grouped, row['has_history_flag'], 2016, 'country'), axis=1)
+    # features['2016_order_city_count'] = features.apply(lambda row: year_checkname_diff_count(row['userid'], userid_grouped, row['has_history_flag'], 2016, 'city'), axis=1)
+    features['2017_order_continent_count'] = features.apply(lambda row: year_checkname_diff_count(row['userid'], userid_grouped, row['has_history_flag'], 2017, 'continent'), axis=1)
+    features['2017_order_country_count'] = features.apply(lambda row: year_checkname_diff_count(row['userid'], userid_grouped, row['has_history_flag'], 2017, 'country'), axis=1)
+    features['2017_order_city_count'] = features.apply(lambda row: year_checkname_diff_count(row['userid'], userid_grouped, row['has_history_flag'], 2017, 'city'), axis=1)
+    # 是否 2016 年和 2017 年都有 order
+    features['both_year_has_order'] = features.apply(lambda row: (row['2016_order_count'] > 0) & (row['2017_order_count'] > 0), axis=1).astype(int)
+    # 每年去了几个月份
+    # features['2016_order_month_count'] = features.apply(lambda row: year_order_month_count(row['userid'], userid_grouped, row['has_history_flag'], 2016), axis=1)
+    # features['2017_order_month_count'] = features.apply(lambda row: year_order_month_count(row['userid'], userid_grouped, row['has_history_flag'], 2017), axis=1)
+
+    # 每年一个月去的最多的次数
+    features['2016_order_month_most'] = features.apply(lambda row: year_order_month_most(row['userid'], userid_grouped, row['has_history_flag'], 2016), axis=1)
+    features['2017_order_month_most'] = features.apply(lambda row: year_order_month_most(row['userid'], userid_grouped, row['has_history_flag'], 2017), axis=1)
+    # 每年去的最多的月份
+    # features['2016_most_order_month']
 
     return features
 
