@@ -30,11 +30,11 @@ from utils import data_utils
 def check_last_time_order_info(uid, userid_grouped, flag, check_name):
     """ 最近的一次交易的具体信息 check_name """
     if flag == 0:
-        return 2
+        return -1
 
     df = userid_grouped[uid]
     if df.shape[0] == 0:
-        return 2
+        return 0
     else:
         return df.iloc[-1][check_name]
 
@@ -42,11 +42,11 @@ def check_last_time_order_info(uid, userid_grouped, flag, check_name):
 def pre_days_order_count(uid, userid_grouped, flag, days):
     """ 往前 days 的 order 数量 """
     if flag == 0:
-        return 2
+        return -1
 
     df = userid_grouped[uid]
     if df.shape[0] == 0:
-        return 2
+        return 0
     else:
         df = df.loc[df['days_from_now'] < days]
         return df.shape[0]
@@ -55,11 +55,11 @@ def pre_days_order_count(uid, userid_grouped, flag, days):
 def pre_days_checkname_diff_count(uid, userid_grouped, flag, days, check_name):
     """ 往前 days 的 order 的不同 check_name 数量 """
     if flag == 0:
-        return 2
+        return -1
 
     df = userid_grouped[uid]
     if df.shape[0] == 0:
-        return 2
+        return 0
     else:
         df = df.loc[df['days_from_now'] < days]
         if df.shape[0] == 0:
@@ -71,11 +71,11 @@ def pre_days_checkname_diff_count(uid, userid_grouped, flag, days, check_name):
 def year_order_count(uid, userid_grouped, flag, year):
     """ 2016年的 order 的不同 check_name 数量 """
     if flag == 0:
-        return 2
+        return -1
 
     df = userid_grouped[uid]
     if df.shape[0] == 0:
-        return 2
+        return 0
     else:
         df = df.loc[df['order_year'] == year]
         return df.shape[0]
@@ -84,11 +84,11 @@ def year_order_count(uid, userid_grouped, flag, year):
 def year_checkname_diff_count(uid, userid_grouped, flag, year, check_name):
     """ year 的 order 的不同 check_name 数量 """
     if flag == 0:
-        return 2
+        return -1
 
     df = userid_grouped[uid]
     if df.shape[0] == 0:
-        return 2
+        return 0
     else:
         df = df.loc[df['order_year'] == year]
         if df.shape[0] == 0:
@@ -100,11 +100,11 @@ def year_checkname_diff_count(uid, userid_grouped, flag, year, check_name):
 def year_order_month_count(uid, userid_grouped, flag, year):
     """ 每年去了几个月份 """
     if flag == 0:
-        return 2
+        return -1
 
     df = userid_grouped[uid]
     if df.shape[0] == 0:
-        return 2
+        return 0
     else:
         df = df.loc[df['order_year'] == year]
         if df.shape[0] == 0:
@@ -116,11 +116,11 @@ def year_order_month_count(uid, userid_grouped, flag, year):
 def year_order_month_most(uid, userid_grouped, flag, year):
     """ 每年一个月去的最多的次数 """
     if flag == 0:
-        return 2
+        return -1
 
     df = userid_grouped[uid]
     if df.shape[0] == 0:
-        return 2
+        return 0
     else:
         df = df.loc[df['order_year'] == year]
         df = df.groupby(['order_month']).count()['orderTime'].reset_index()
@@ -128,6 +128,23 @@ def year_order_month_most(uid, userid_grouped, flag, year):
             return 0
         else:
             return df['orderTime'].max()
+
+
+def year_most_order_month(uid, userid_grouped, flag, year):
+    """ 每年去的最多次数的月份 """
+    if flag == 0:
+        return -1
+
+    df = userid_grouped[uid]
+    if df.shape[0] == 0:
+        return 0
+    else:
+        df = df.loc[df['order_year'] == year]
+        df = df.groupby(['order_month']).count()['orderTime'].reset_index()
+        if df.shape[0] == 0:
+            return 0
+        else:
+            return df.sort_values(by='orderTime', ascending=False)['order_month'].values[0]
 
 
 def build_order_history_features(df, history):
@@ -174,11 +191,12 @@ def build_order_history_features(df, history):
     # features['2016_order_month_count'] = features.apply(lambda row: year_order_month_count(row['userid'], userid_grouped, row['has_history_flag'], 2016), axis=1)
     # features['2017_order_month_count'] = features.apply(lambda row: year_order_month_count(row['userid'], userid_grouped, row['has_history_flag'], 2017), axis=1)
 
-    # 每年一个月去的最多的次数
+    # # 每年一个月去的最多的次数
     features['2016_order_month_most'] = features.apply(lambda row: year_order_month_most(row['userid'], userid_grouped, row['has_history_flag'], 2016), axis=1)
-    features['2017_order_month_most'] = features.apply(lambda row: year_order_month_most(row['userid'], userid_grouped, row['has_history_flag'], 2017), axis=1)
-    # 每年去的最多的月份
-    # features['2016_most_order_month']
+    features['2017_most_order_month'] = features.apply(lambda row: year_order_month_most(row['userid'], userid_grouped, row['has_history_flag'], 2017), axis=1)
+    # # 每年去的最多的月份
+    features['2016_most_order_month'] = features.apply(lambda row: year_most_order_month(row['userid'], userid_grouped, row['has_history_flag'], 2016), axis=1)
+    features['2017_most_order_month'] = features.apply(lambda row: year_most_order_month(row['userid'], userid_grouped, row['has_history_flag'], 2017), axis=1)
 
     return features
 
