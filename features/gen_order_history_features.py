@@ -30,11 +30,11 @@ from utils import data_utils
 def check_last_time_order_info(uid, userid_grouped, flag, check_name):
     """ 最近的一次交易的具体信息 check_name """
     if flag == 0:
-        return -1
+        return 2
 
     df = userid_grouped[uid]
     if df.shape[0] == 0:
-        return 0
+        return 2
     else:
         return df.iloc[-1][check_name]
 
@@ -42,11 +42,11 @@ def check_last_time_order_info(uid, userid_grouped, flag, check_name):
 def pre_days_order_count(uid, userid_grouped, flag, days):
     """ 往前 days 的 order 数量 """
     if flag == 0:
-        return -1
+        return 2
 
     df = userid_grouped[uid]
     if df.shape[0] == 0:
-        return 0
+        return 2
     else:
         df = df.loc[df['days_from_now'] < days]
         return df.shape[0]
@@ -55,11 +55,11 @@ def pre_days_order_count(uid, userid_grouped, flag, days):
 def pre_days_checkname_diff_count(uid, userid_grouped, flag, days, check_name):
     """ 往前 days 的 order 的不同 check_name 数量 """
     if flag == 0:
-        return -1
+        return 2
 
     df = userid_grouped[uid]
     if df.shape[0] == 0:
-        return 0
+        return 2
     else:
         df = df.loc[df['days_from_now'] < days]
         if df.shape[0] == 0:
@@ -71,11 +71,11 @@ def pre_days_checkname_diff_count(uid, userid_grouped, flag, days, check_name):
 def year_order_count(uid, userid_grouped, flag, year):
     """ 2016年的 order 的不同 check_name 数量 """
     if flag == 0:
-        return -1
+        return 2
 
     df = userid_grouped[uid]
     if df.shape[0] == 0:
-        return 0
+        return 2
     else:
         df = df.loc[df['order_year'] == year]
         return df.shape[0]
@@ -84,11 +84,11 @@ def year_order_count(uid, userid_grouped, flag, year):
 def year_checkname_diff_count(uid, userid_grouped, flag, year, check_name):
     """ year 的 order 的不同 check_name 数量 """
     if flag == 0:
-        return -1
+        return 2
 
     df = userid_grouped[uid]
     if df.shape[0] == 0:
-        return 0
+        return 2
     else:
         df = df.loc[df['order_year'] == year]
         if df.shape[0] == 0:
@@ -100,11 +100,11 @@ def year_checkname_diff_count(uid, userid_grouped, flag, year, check_name):
 def year_order_month_count(uid, userid_grouped, flag, year):
     """ 每年去了几个月份 """
     if flag == 0:
-        return -1
+        return 2
 
     df = userid_grouped[uid]
     if df.shape[0] == 0:
-        return 0
+        return 2
     else:
         df = df.loc[df['order_year'] == year]
         if df.shape[0] == 0:
@@ -116,11 +116,11 @@ def year_order_month_count(uid, userid_grouped, flag, year):
 def year_order_month_most(uid, userid_grouped, flag, year):
     """ 每年一个月去的最多的次数 """
     if flag == 0:
-        return -1
+        return 2
 
     df = userid_grouped[uid]
     if df.shape[0] == 0:
-        return 0
+        return 2
     else:
         df = df.loc[df['order_year'] == year]
         df = df.groupby(['order_month']).count()['orderTime'].reset_index()
@@ -179,6 +179,7 @@ def build_order_history_features(df, history):
 
     features['2016_order_count'] = features.apply(lambda row: year_order_count(row['userid'], userid_grouped, row['has_history_flag'], 2016), axis=1)
     features['2017_order_count'] = features.apply(lambda row: year_order_count(row['userid'], userid_grouped, row['has_history_flag'], 2017), axis=1)
+    # features['order_count_diff'] = features['2016_order_count'] - features['2017_order_count']
     # features['2016_order_continent_count'] = features.apply(lambda row: year_checkname_diff_count(row['userid'], userid_grouped, row['has_history_flag'], 2016, 'continent'), axis=1)
     # features['2016_order_country_count'] = features.apply(lambda row: year_checkname_diff_count(row['userid'], userid_grouped, row['has_history_flag'], 2016, 'country'), axis=1)
     # features['2016_order_city_count'] = features.apply(lambda row: year_checkname_diff_count(row['userid'], userid_grouped, row['has_history_flag'], 2016, 'city'), axis=1)
@@ -190,13 +191,16 @@ def build_order_history_features(df, history):
     # 每年去了几个月份
     # features['2016_order_month_count'] = features.apply(lambda row: year_order_month_count(row['userid'], userid_grouped, row['has_history_flag'], 2016), axis=1)
     # features['2017_order_month_count'] = features.apply(lambda row: year_order_month_count(row['userid'], userid_grouped, row['has_history_flag'], 2017), axis=1)
+    # 每年一个月去的最多的次数
+    # features['2016_order_month_most'] = features.apply(lambda row: year_order_month_most(row['userid'], userid_grouped, row['has_history_flag'], 2016), axis=1)
+    # features['2017_most_order_month'] = features.apply(lambda row: year_order_month_most(row['userid'], userid_grouped, row['has_history_flag'], 2017), axis=1)
+    # 每年去的最多的月份
+    # features['2016_most_order_month'] = features.apply(lambda row: year_most_order_month(row['userid'], userid_grouped, row['has_history_flag'], 2016), axis=1)
+    # features['2017_most_order_month'] = features.apply(lambda row: year_most_order_month(row['userid'], userid_grouped, row['has_history_flag'], 2017), axis=1)
 
-    # # 每年一个月去的最多的次数
-    features['2016_order_month_most'] = features.apply(lambda row: year_order_month_most(row['userid'], userid_grouped, row['has_history_flag'], 2016), axis=1)
-    features['2017_most_order_month'] = features.apply(lambda row: year_order_month_most(row['userid'], userid_grouped, row['has_history_flag'], 2017), axis=1)
-    # # 每年去的最多的月份
-    features['2016_most_order_month'] = features.apply(lambda row: year_most_order_month(row['userid'], userid_grouped, row['has_history_flag'], 2016), axis=1)
-    features['2017_most_order_month'] = features.apply(lambda row: year_most_order_month(row['userid'], userid_grouped, row['has_history_flag'], 2017), axis=1)
+    print('比率特征')
+    # 最后一次 order 的 continent 占比
+
 
     return features
 
@@ -252,7 +256,9 @@ def main():
     orderHistory_train = build_time_category_encode(orderHistory_train)
     orderHistory_test = build_time_category_encode(orderHistory_test)
 
+    print('build train features')
     train_features = build_order_history_features(train, orderHistory_train)
+    print('build test features')
     test_features = build_order_history_features(test, orderHistory_test)
 
     print('save ', feature_name)
