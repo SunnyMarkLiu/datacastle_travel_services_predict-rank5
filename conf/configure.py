@@ -15,10 +15,12 @@ sys.path.append(module_path)
 class Configure(object):
     base_path = '/d_2t/lq/competitions/data_castle/Datacastle_Travel_Services_Predict/'
 
+    # 数据清晰后的路径
+    cleaned_path = base_path + 'cleaned/'
     # 生成的特征的路径
-    features_path = base_path + '/features/'
+    features_path = base_path + 'features/'
     # 生成的模型可训练和预测的数据集
-    datasets_path = base_path + '/datasets/'
+    datasets_path = base_path + 'datasets/'
 
     # 待 merge 的特征（特征名：merge_on 的特征）
     features = {

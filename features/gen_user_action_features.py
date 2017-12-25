@@ -117,12 +117,17 @@ def main():
     if data_utils.is_feature_created(feature_name):
         return
 
-    action_train = pd.read_csv(Configure.base_path + 'train/action_train.csv')
-    action_test = pd.read_csv(Configure.base_path + 'test/action_test.csv')
+    train_action = pd.read_csv(Configure.base_path + 'train/action_train.csv')
+    test_action = pd.read_csv(Configure.base_path + 'test/action_test.csv')
 
-    train_action_features = basic_action_info(action_train)
-    test_action_features = basic_action_info(action_test)
+    print('save cleaned datasets')
+    train_action.to_csv(Configure.cleaned_path + 'cleaned_action_train.csv', index=False, columns=train_action.columns)
+    test_action.to_csv(Configure.cleaned_path + 'cleaned_action_test.csv', index=False, columns=test_action.columns)
 
+    train_action_features = basic_action_info(train_action)
+    test_action_features = basic_action_info(test_action)
+
+    print('save ', feature_name)
     data_utils.save_features(train_action_features, test_action_features, features_name=feature_name)
 
 

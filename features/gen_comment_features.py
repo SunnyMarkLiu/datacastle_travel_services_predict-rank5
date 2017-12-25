@@ -199,6 +199,10 @@ def main():
     userComment_train['rating'] = userComment_train['rating'].astype(int)
     userComment_test['rating'] = userComment_test['rating'].astype(int)
 
+    print('save cleaned datasets')
+    userComment_train.to_csv(Configure.cleaned_path + 'cleaned_userComment_train.csv', index=False, columns=userComment_train.columns, encoding='utf8')
+    userComment_test.to_csv(Configure.cleaned_path + 'cleaned_userComment_test.csv', index=False, columns=userComment_test.columns, encoding='utf8')
+
     print('build train features')
     train_features = built_comment_features(train, userComment_train)
     print('build test features')

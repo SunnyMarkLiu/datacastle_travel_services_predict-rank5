@@ -300,6 +300,10 @@ def main():
     orderHistory_train = build_time_category_encode(orderHistory_train)
     orderHistory_test = build_time_category_encode(orderHistory_test)
 
+    print('save cleaned datasets')
+    orderHistory_train.to_csv(Configure.cleaned_path + 'cleaned_orderHistory_train.csv', index=False, columns=orderHistory_train.columns)
+    orderHistory_test.to_csv(Configure.cleaned_path + 'cleaned_orderHistory_test.csv', index=False, columns=orderHistory_test.columns)
+
     print('build train features')
     train_features = build_order_history_features(train, orderHistory_train)
     print('build test features')

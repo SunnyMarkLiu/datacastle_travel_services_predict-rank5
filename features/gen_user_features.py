@@ -66,11 +66,17 @@ def main():
     # 3. 年龄段进行 dummy code
     train_user['age'] = train_user['age'].map(lambda age: 'lg' + age[:2] if age == age else 'None')
     test_user['age'] = test_user['age'].map(lambda age: 'lg' + age[:2] if age == age else 'None')
+
+    print('save cleaned datasets')
+    train_user.to_csv(Configure.cleaned_path + 'cleaned_userProfile_train.csv', index=False, columns=train_user.columns)
+    test_user.to_csv(Configure.cleaned_path + 'cleaned_userProfile_test.csv', index=False, columns=test_user.columns)
+
     dummies = pd.get_dummies(train_user['age'], prefix='age')
     train_user[dummies.columns] = dummies
     dummies = pd.get_dummies(test_user['age'], prefix='age')
     test_user[dummies.columns] = dummies
 
+    print('save ', feature_name)
     data_utils.save_features(train_user, test_user, features_name=feature_name)
 
 
