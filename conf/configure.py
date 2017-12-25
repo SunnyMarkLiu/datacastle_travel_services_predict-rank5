@@ -25,6 +25,7 @@ class Configure(object):
         'basic_user_info'            : {'on': 'userid', 'how': 'left'},
         'basic_user_action_features' : {'on': 'userid', 'how': 'left'},
         'user_order_history_features': {'on': 'userid', 'how': 'left'},
+        'user_order_comment_features': {'on': 'userid', 'how': 'left'},
     }
 
     submit_result_path = '../result/'

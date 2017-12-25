@@ -43,8 +43,8 @@ def main():
     # print('feature check before modeling...')
     # feature_util.feature_check_before_modeling(train, test, df_columns)
 
-    scale_pos_weight = (np.sum(y_train_all == 0) / np.sum(y_train_all == 1))
-    # TODO prob_threshold 越小 valid auc 越高
+    # scale_pos_weight = (np.sum(y_train_all == 0) / np.sum(y_train_all == 1)) - 1
+    # print('scale_pos_weight = ', scale_pos_weight)
 
     xgb_params = {
         'eta': 0.01,
@@ -53,7 +53,7 @@ def main():
         'max_depth': 8,
         'subsample': 0.9,
         'lambda': 2.0,
-        'scale_pos_weight': scale_pos_weight,
+        'scale_pos_weight': 1,
         'eval_metric': 'auc',
         'objective': 'binary:logistic',
         'updater': 'grow_gpu',
