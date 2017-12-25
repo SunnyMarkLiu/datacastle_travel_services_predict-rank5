@@ -22,13 +22,7 @@ from sklearn.metrics import auc, roc_curve
 from get_datasets import load_train_test
 
 
-def evaluate_score(predict, y_true, prob_threshold=0.5):
-    predict = predict > prob_threshold
-    predict = predict.astype(int)
-    y_true = y_true > prob_threshold
-    y_true = y_true.astype(int)
-    print('predict  count mean: {:.6f} , std: {:.6f}'.format(np.mean(predict), np.std(predict)))
-
+def evaluate_score(predict, y_true):
     false_positive_rate, true_positive_rate, thresholds = roc_curve(y_true, predict, pos_label=1)
     auc_score = auc(false_positive_rate, true_positive_rate)
     return auc_score
@@ -51,7 +45,6 @@ def main():
 
     scale_pos_weight = (np.sum(y_train_all == 0) / np.sum(y_train_all == 1))
     # TODO prob_threshold 越小 valid auc 越高
-    prob_threshold = 0.5
 
     xgb_params = {
         'eta': 0.01,
@@ -87,11 +80,11 @@ def main():
 
     # predict train
     predict_train = model.predict(dtrain)
-    train_auc = evaluate_score(predict_train, y_train, prob_threshold=prob_threshold)
+    train_auc = evaluate_score(predict_train, y_train)
 
     # predict validate
     predict_valid = model.predict(dvalid)
-    valid_auc = evaluate_score(predict_valid, y_valid, prob_threshold=prob_threshold)
+    valid_auc = evaluate_score(predict_valid, y_valid)
 
     print('train auc = {:.7f} , valid auc = {:.7f}\n'.format(train_auc, valid_auc))
 
@@ -118,7 +111,6 @@ def main():
     print('---> predict submit')
     y_pred = model.predict(dtest)
     df_sub = pd.DataFrame({'userid': id_test, 'orderType': y_pred})
-    df_sub['orderType'] = (df_sub['orderType'] > prob_threshold).astype(int)
     submission_path = '../result/{}_submission_{}.csv'.format('xgboost',
                                                                  time.strftime('%Y_%m_%d_%H_%M_%S',
                                                                                time.localtime(time.time())))

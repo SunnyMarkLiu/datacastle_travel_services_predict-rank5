@@ -160,6 +160,20 @@ def year_good_order_count(uid, userid_grouped, flag, year):
         return sum(df['orderType'])
 
 
+def last_time_checkname_ratio(uid, userid_grouped, flag, check_name):
+    """ 最后一次 checkname 的占比 """
+    if flag == 0:
+        return -1
+
+    df = userid_grouped[uid]
+    if df.shape[0] == 0:
+        return 0
+    else:
+        last_check_name = df.iloc[-1][check_name]
+        last_count = df[check_name].tolist().count(last_check_name)
+        return 1.0 * last_count / df.shape[0]
+
+
 def build_order_history_features(df, history):
     features = pd.DataFrame({'userid': df['userid']})
 
@@ -212,7 +226,6 @@ def build_order_history_features(df, history):
     # features['2017_most_order_month'] = features.apply(lambda row: year_most_order_month(row['userid'], userid_grouped, row['has_history_flag'], 2017), axis=1)
 
     print('比率特征')
-    # 最后一次 order 的 continent 占比
     # 用户总订单数、精品订单数、精品订单比例
     features['2016_good_order_count'] = features.apply(lambda row: year_good_order_count(row['userid'], userid_grouped, row['has_history_flag'], 2016), axis=1)
     features['2016_good_order_ratio'] = (features['2016_good_order_count'] + 1) / (features['2016_order_count'] + 2) - 0.5
@@ -223,6 +236,15 @@ def build_order_history_features(df, history):
     features['total_good_order_ratio'] = (features['total_good_order_count'] + 1) / (features['total_order_count'] + 2) - 0.5
     features.drop(['2016_good_order_count', '2017_good_order_count', 'total_order_count', 'total_good_order_count'], axis=1, inplace=True)
 
+    # 最后一次 order 的 check_name 的占比 （未测试）
+    # features['last_time_order_year_ratio'] = features.apply(lambda row: last_time_checkname_ratio(row['userid'], userid_grouped, row['has_history_flag'], 'order_year'), axis=1)
+    # features['last_time_order_month_ratio'] = features.apply(lambda row: last_time_checkname_ratio(row['userid'], userid_grouped, row['has_history_flag'], 'order_month'), axis=1)
+    # features['last_time_order_day_ratio'] = features.apply(lambda row: last_time_checkname_ratio(row['userid'], userid_grouped, row['has_history_flag'], 'order_day'), axis=1)
+    # features['last_time_order_weekofyear_ratio'] = features.apply(lambda row: last_time_checkname_ratio(row['userid'], userid_grouped, row['has_history_flag'], 'order_weekofyear'), axis=1)
+    # features['last_time_order_weekday_ratio'] = features.apply(lambda row: last_time_checkname_ratio(row['userid'], userid_grouped, row['has_history_flag'], 'order_weekday'), axis=1)
+    # features['last_time_continent_ratio'] = features.apply(lambda row: last_time_checkname_ratio(row['userid'], userid_grouped, row['has_history_flag'], 'continent'), axis=1)
+    # features['last_time_country_ratio'] = features.apply(lambda row: last_time_checkname_ratio(row['userid'], userid_grouped, row['has_history_flag'], 'country'), axis=1)
+    # features['last_time_city_ratio'] = features.apply(lambda row: last_time_checkname_ratio(row['userid'], userid_grouped, row['has_history_flag'], 'city'), axis=1)
 
     return features
 
@@ -264,8 +286,8 @@ def build_time_category_encode(history):
 
 def main():
     feature_name = 'user_order_history_features'
-    # if data_utils.is_feature_created(feature_name):
-    #     return
+    if data_utils.is_feature_created(feature_name):
+        return
 
     # 待预测订单的数据 （原始训练集和测试集）
     train = pd.read_csv(Configure.base_path + 'train/orderFuture_train.csv', encoding='utf8')
