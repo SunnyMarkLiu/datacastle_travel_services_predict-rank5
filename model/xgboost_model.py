@@ -51,20 +51,20 @@ def main():
 
     scale_pos_weight = (np.sum(y_train_all == 0) / np.sum(y_train_all == 1))
     # TODO prob_threshold 越小 valid auc 越高
-    prob_threshold = 0.4
+    prob_threshold = 0.5
 
     xgb_params = {
-        'eta': 0.05,
+        'eta': 0.01,
         'min_child_weight': 20,
         'colsample_bytree': 0.5,
         'max_depth': 8,
         'subsample': 0.9,
         'lambda': 2.0,
         'scale_pos_weight': scale_pos_weight,
-        'eval_metric': 'logloss',
+        'eval_metric': 'auc',
         'objective': 'binary:logistic',
         'updater': 'grow_gpu',
-        'gpu_id': 0,
+        'gpu_id': 1,
         'nthread': -1,
         'silent': 1,
         'booster': 'gbtree'
@@ -97,6 +97,7 @@ def main():
 
     print('---> cv train to choose best_num_boost_round')
     dtrain_all = xgb.DMatrix(train.values, y_train_all, feature_names=df_columns)
+
     cv_result = xgb.cv(dict(xgb_params),
                        dtrain_all,
                        num_boost_round=4000,
@@ -105,10 +106,10 @@ def main():
                        show_stdv=False,
                        )
     best_num_boost_rounds = len(cv_result)
-    mean_train_logloss = cv_result.loc[best_num_boost_rounds-11 : best_num_boost_rounds-1, 'train-logloss-mean'].mean()
-    mean_test_logloss = cv_result.loc[best_num_boost_rounds-11 : best_num_boost_rounds-1, 'test-logloss-mean'].mean()
+    mean_train_logloss = cv_result.loc[best_num_boost_rounds-11 : best_num_boost_rounds-1, 'train-auc-mean'].mean()
+    mean_test_logloss = cv_result.loc[best_num_boost_rounds-11 : best_num_boost_rounds-1, 'test-auc-mean'].mean()
     print('best_num_boost_rounds = {}'.format(best_num_boost_rounds))
-    print('mean_train_logloss = {:.7f} , mean_test_logloss = {:.7f}\n'.format(mean_train_logloss, mean_test_logloss))
+    print('mean_train_auc = {:.7f} , mean_test_auc = {:.7f}\n'.format(mean_train_logloss, mean_test_logloss))
     print('---> training on total dataset to predict test and submit')
     model = xgb.train(dict(xgb_params),
                       dtrain_all,

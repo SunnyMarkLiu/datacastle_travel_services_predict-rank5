@@ -147,6 +147,19 @@ def year_most_order_month(uid, userid_grouped, flag, year):
             return df.sort_values(by='orderTime', ascending=False)['order_month'].values[0]
 
 
+def year_good_order_count(uid, userid_grouped, flag, year):
+    """ 每年精品订单数量 """
+    if flag == 0:
+        return -1
+
+    df = userid_grouped[uid]
+    if df.shape[0] == 0:
+        return 0
+    else:
+        df = df.loc[df['order_year'] == year]
+        return sum(df['orderType'])
+
+
 def build_order_history_features(df, history):
     features = pd.DataFrame({'userid': df['userid']})
 
@@ -189,8 +202,8 @@ def build_order_history_features(df, history):
     # 是否 2016 年和 2017 年都有 order
     features['both_year_has_order'] = features.apply(lambda row: (row['2016_order_count'] > 0) & (row['2017_order_count'] > 0), axis=1).astype(int)
     # 每年去了几个月份
-    # features['2016_order_month_count'] = features.apply(lambda row: year_order_month_count(row['userid'], userid_grouped, row['has_history_flag'], 2016), axis=1)
-    # features['2017_order_month_count'] = features.apply(lambda row: year_order_month_count(row['userid'], userid_grouped, row['has_history_flag'], 2017), axis=1)
+    features['2016_order_month_count'] = features.apply(lambda row: year_order_month_count(row['userid'], userid_grouped, row['has_history_flag'], 2016), axis=1)
+    features['2017_order_month_count'] = features.apply(lambda row: year_order_month_count(row['userid'], userid_grouped, row['has_history_flag'], 2017), axis=1)
     # 每年一个月去的最多的次数
     # features['2016_order_month_most'] = features.apply(lambda row: year_order_month_most(row['userid'], userid_grouped, row['has_history_flag'], 2016), axis=1)
     # features['2017_most_order_month'] = features.apply(lambda row: year_order_month_most(row['userid'], userid_grouped, row['has_history_flag'], 2017), axis=1)
@@ -200,6 +213,15 @@ def build_order_history_features(df, history):
 
     print('比率特征')
     # 最后一次 order 的 continent 占比
+    # 用户总订单数、精品订单数、精品订单比例
+    features['2016_good_order_count'] = features.apply(lambda row: year_good_order_count(row['userid'], userid_grouped, row['has_history_flag'], 2016), axis=1)
+    features['2016_good_order_ratio'] = (features['2016_good_order_count'] + 1) / (features['2016_order_count'] + 2) - 0.5
+    features['2017_good_order_count'] = features.apply(lambda row: year_good_order_count(row['userid'], userid_grouped, row['has_history_flag'], 2017), axis=1)
+    features['2017_good_order_ratio'] = (features['2017_good_order_count'] + 1) / (features['2017_order_count'] + 2) - 0.5
+    features['total_order_count'] = features['2016_order_count'] + features['2017_order_count']
+    features['total_good_order_count'] = features['2016_good_order_count'] + features['2017_good_order_count']
+    features['total_good_order_ratio'] = (features['total_good_order_count'] + 1) / (features['total_order_count'] + 2) - 0.5
+    features.drop(['2016_good_order_count', '2017_good_order_count', 'total_order_count', 'total_good_order_count'], axis=1, inplace=True)
 
 
     return features
