@@ -26,8 +26,6 @@ def basic_action_info(action_df):
     """
     用户行为信息
     """
-    action_df['actionTime'] = pd.to_datetime(action_df['actionTime'], unit='s')
-
     def action_type_convert(action):
         if action == 1:
             return 'open_app'
@@ -69,16 +67,6 @@ def basic_action_info(action_df):
     action_features['fillin_form7_pay_money_ratio'] = (action_features['pay_money_ratio']+ 0.1) / (action_features['fillin_form7_ratio']+ 0.2)
     action_features['submit_order_pay_money_ratio'] = (action_features['pay_money_ratio']+ 0.1) / (action_features['submit_order_ratio']+ 0.2)
 
-    action_df['action_year'] = action_df['actionTime'].dt.year
-    action_df['action_month'] = action_df['actionTime'].dt.month
-    action_df['action_day'] = action_df['actionTime'].dt.day
-    action_df['action_weekofyear'] = action_df['actionTime'].dt.weekofyear
-    action_df['action_weekday'] = action_df['actionTime'].dt.weekday
-    action_df['action_hour'] = action_df['actionTime'].dt.hour
-    action_df['action_minute'] = action_df['actionTime'].dt.minute
-    action_df['action_is_weekend'] = action_df['action_weekday'].map(lambda d: 1 if (d == 0) | (d == 6) else 0)
-    action_df['action_week_hour'] = action_df['action_weekday'] * 24 + action_df['action_hour']
-
     print('每年 action 的情况')
     action_features = action_features.merge(
         action_df.groupby(['userid', 'action_year']).count().reset_index()[['userid', 'action_year', 'actionTime']] \
@@ -112,6 +100,19 @@ def basic_action_info(action_df):
     return action_features
 
 
+def build_time_features(action_df):
+    action_df['actionTime'] = pd.to_datetime(action_df['actionTime'], unit='s')
+    action_df['action_year'] = action_df['actionTime'].dt.year
+    action_df['action_month'] = action_df['actionTime'].dt.month
+    action_df['action_day'] = action_df['actionTime'].dt.day
+    action_df['action_weekofyear'] = action_df['actionTime'].dt.weekofyear
+    action_df['action_weekday'] = action_df['actionTime'].dt.weekday
+    action_df['action_hour'] = action_df['actionTime'].dt.hour
+    action_df['action_minute'] = action_df['actionTime'].dt.minute
+    action_df['action_is_weekend'] = action_df['action_weekday'].map(lambda d: 1 if (d == 0) | (d == 6) else 0)
+    action_df['action_week_hour'] = action_df['action_weekday'] * 24 + action_df['action_hour']
+    return action_df
+
 def main():
     feature_name = 'basic_user_action_features'
     if data_utils.is_feature_created(feature_name):
@@ -119,6 +120,9 @@ def main():
 
     train_action = pd.read_csv(Configure.base_path + 'train/action_train.csv')
     test_action = pd.read_csv(Configure.base_path + 'test/action_test.csv')
+
+    train_action = build_time_features(train_action)
+    test_action = build_time_features(test_action)
 
     print('save cleaned datasets')
     train_action.to_csv(Configure.cleaned_path + 'cleaned_action_train.csv', index=False, columns=train_action.columns)
