@@ -22,16 +22,48 @@ import pandas as pd
 from conf.configure import Configure
 from utils import data_utils
 
+
+def last_time_order_now_action_count(uid, history_grouped, action_grouped, flag):
+    """ 最后一次 order 距离现在的 action 操作的次数 """
+    a_df = action_grouped[uid]
+
+    if flag == 0:
+        return a_df.shape[0]
+
+    h_df = history_grouped[uid]
+    if a_df.shape[0] == 0:
+        return 0
+    else:
+        last_order_time = h_df.iloc[-1]['orderTime']
+        sub_action_df = a_df[a_df['actionTime'] > last_order_time]
+        actionTypes = sub_action_df['actionType']
+
+        return sub_action_df.shape[0]
+
+
 def build_action_history_features(df, action, history):
     features = pd.DataFrame({'userid': df['userid']})
 
+    df_ids = history['userid'].unique()
+    action_grouped = dict(list(action.groupby('userid')))
+    history_grouped = dict(list(history.groupby('userid')))
+
+    #给trade表打标签，若id在login表中，则打标签为1，否则为0
+    features['has_history_flag'] = features['userid'].map(lambda uid: uid in df_ids).astype(int)
+
+    # action 表
+    print('距离现在每个用户的 action 特征')
+    # 最后一次 order 距离现在的 action 操作的次数
+    features['last_time_order_now_action_count'] = features.apply(lambda row: last_time_order_now_action_count(row['userid'], history_grouped, action_grouped, row['has_history_flag']), axis=1)
+    features['last_time_order_now_actiontype_count'] = features.apply(lambda row: last_time_order_now_action_count(row['userid'], history_grouped, action_grouped, row['has_history_flag']), axis=1)
+    del features['has_history_flag']
     return features
 
 
 def main():
     feature_name = 'action_history_features'
-    if data_utils.is_feature_created(feature_name):
-        return
+    # if data_utils.is_feature_created(feature_name):
+    #     return
 
     print('load cleaned datasets')
     train = pd.read_csv(Configure.base_path + 'train/orderFuture_train.csv', encoding='utf8')
@@ -45,6 +77,16 @@ def main():
     orderHistory_test = pd.read_csv(Configure.cleaned_path + 'cleaned_orderHistory_test.csv', encoding='utf8')
     userComment_train = pd.read_csv(Configure.cleaned_path + 'cleaned_userComment_train.csv', encoding='utf8')
     userComment_test = pd.read_csv(Configure.cleaned_path + 'cleaned_userComment_test.csv', encoding='utf8')
+
+    action_train['actionTime'] = pd.to_datetime(action_train['actionTime'])
+    action_test['actionTime'] = pd.to_datetime(action_test['actionTime'])
+    orderHistory_train['orderTime'] = pd.to_datetime(orderHistory_train['orderTime'])
+    orderHistory_test['orderTime'] = pd.to_datetime(orderHistory_test['orderTime'])
+
+    action_train.sort_values(by='actionTime', inplace=True)
+    action_test.sort_values(by='actionTime', inplace=True)
+    orderHistory_train.sort_values(by='orderTime', inplace=True)
+    orderHistory_test.sort_values(by='orderTime', inplace=True)
 
     print('build train action history features')
     train_features = build_action_history_features(train, action_train, orderHistory_train)

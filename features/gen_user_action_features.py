@@ -26,25 +26,6 @@ def basic_action_info(action_df):
     """
     用户行为信息
     """
-    def action_type_convert(action):
-        if action == 1:
-            return 'open_app'
-        elif 2 <= action <= 4:
-            return 'browse_product'
-        elif action == 5:
-            return 'fillin_form5'
-        elif action == 6:
-            return 'fillin_form6'
-        elif action == 7:
-            return 'fillin_form7'
-        elif action == 8:
-            return 'submit_order'
-        elif action == 9:
-            return 'pay_money'
-
-    # action 操作，合并无序的浏览特征
-    action_df['actionType'] = action_df['actionType'].map(action_type_convert)
-
     print('用户不同操作的购买率')
     action_features = action_df.groupby(['userid', 'actionType']).actionTime.count().groupby(level=0).apply(lambda x: x.astype(float) / x.sum()).reset_index()
     action_features = action_features.pivot('userid', 'actionType', 'actionTime').reset_index().fillna(0)
@@ -111,6 +92,26 @@ def build_time_features(action_df):
     action_df['action_minute'] = action_df['actionTime'].dt.minute
     action_df['action_is_weekend'] = action_df['action_weekday'].map(lambda d: 1 if (d == 0) | (d == 6) else 0)
     action_df['action_week_hour'] = action_df['action_weekday'] * 24 + action_df['action_hour']
+
+    def action_type_convert(action):
+        if action == 1:
+            return 'open_app'
+        elif 2 <= action <= 4:
+            return 'browse_product'
+        elif action == 5:
+            return 'fillin_form5'
+        elif action == 6:
+            return 'fillin_form6'
+        elif action == 7:
+            return 'fillin_form7'
+        elif action == 8:
+            return 'submit_order'
+        elif action == 9:
+            return 'pay_money'
+
+    # action 操作，合并无序的浏览特征
+    action_df['actionType'] = action_df['actionType'].map(action_type_convert)
+
     return action_df
 
 def main():
