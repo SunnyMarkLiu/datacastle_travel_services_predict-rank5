@@ -28,17 +28,28 @@ def last_time_order_now_action_count(uid, history_grouped, action_grouped, flag)
     a_df = action_grouped[uid]
 
     if flag == 0:
-        return a_df.shape[0]
+        sub_action_df = a_df
+        if sub_action_df.shape[0] == 0:
+            return 0, 0, 0, 0, 0, 0, 0, 0
+
+        actionTypes = sub_action_df['actionType'].tolist()
+        return len(actionTypes), actionTypes.count('browse_product'), actionTypes.count('fillin_form5'), \
+               actionTypes.count('fillin_form6'), actionTypes.count('fillin_form7'), actionTypes.count('open_app'), \
+               actionTypes.count('pay_money'), actionTypes.count('submit_order')
 
     h_df = history_grouped[uid]
     if a_df.shape[0] == 0:
-        return 0
+        return 0, 0, 0, 0, 0, 0, 0, 0
     else:
         last_order_time = h_df.iloc[-1]['orderTime']
         sub_action_df = a_df[a_df['actionTime'] > last_order_time]
-        actionTypes = sub_action_df['actionType']
+        if sub_action_df.shape[0] == 0:
+            return 0, 0, 0, 0, 0, 0, 0, 0
 
-        return sub_action_df.shape[0]
+        actionTypes = sub_action_df['actionType'].tolist()
+        return len(actionTypes), actionTypes.count('browse_product'), actionTypes.count('fillin_form5'), \
+               actionTypes.count('fillin_form6'), actionTypes.count('fillin_form7'), actionTypes.count('open_app'), \
+               actionTypes.count('pay_money'), actionTypes.count('submit_order')
 
 
 def build_action_history_features(df, action, history):
@@ -54,9 +65,23 @@ def build_action_history_features(df, action, history):
     # action 表
     print('距离现在每个用户的 action 特征')
     # 最后一次 order 距离现在的 action 操作的次数
-    features['last_time_order_now_action_count'] = features.apply(lambda row: last_time_order_now_action_count(row['userid'], history_grouped, action_grouped, row['has_history_flag']), axis=1)
-    features['last_time_order_now_actiontype_count'] = features.apply(lambda row: last_time_order_now_action_count(row['userid'], history_grouped, action_grouped, row['has_history_flag']), axis=1)
+    features['last_time_order_now_action_info_count'] = features.apply(lambda row: last_time_order_now_action_count(row['userid'], history_grouped, action_grouped, row['has_history_flag']), axis=1)
+    features['last_time_order_now_action_total_count'] = features['last_time_order_now_action_info_count'].map(lambda x: x[0])
+    features['last_time_order_now_action_browse_product_count'] = features['last_time_order_now_action_info_count'].map(lambda x: x[1])
+    features['last_time_order_now_action_fillin_form5_count'] = features['last_time_order_now_action_info_count'].map(lambda x: x[2])
+    features['last_time_order_now_action_fillin_form6_count'] = features['last_time_order_now_action_info_count'].map(lambda x: x[3])
+    features['last_time_order_now_action_fillin_form7_count'] = features['last_time_order_now_action_info_count'].map(lambda x: x[4])
+    features['last_time_order_now_action_open_app_count'] = features['last_time_order_now_action_info_count'].map(lambda x: x[5])
+    features['last_time_order_now_action_pay_money_count'] = features['last_time_order_now_action_info_count'].map(lambda x: x[6])
+    features['last_time_order_now_action_submit_order_count'] = features['last_time_order_now_action_info_count'].map(lambda x: x[7])
+    del features['last_time_order_now_action_info_count']
+    # # 是否有支付操作和提交订单操作
+    # features['last_time_order_now_has_paied_money'] = features['last_time_order_now_action_pay_money_count'].map(lambda x: int(x > 0))
+    # features['last_time_order_now_has_submited_order'] = features['last_time_order_now_action_submit_order_count'].map(lambda x: int(x > 0))
+
+
     del features['has_history_flag']
+
     return features
 
 
