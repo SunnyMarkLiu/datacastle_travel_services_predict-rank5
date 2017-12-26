@@ -28,7 +28,7 @@ class Configure(object):
         'basic_user_action_features' : {'on': 'userid', 'how': 'left'},
         'user_order_history_features': {'on': 'userid', 'how': 'left'},
         'user_order_comment_features': {'on': 'userid', 'how': 'left'},
-        'history_merged_features'    : {'on': 'userid', 'how': 'left'},
+        'action_history_features'    : {'on': 'userid', 'how': 'left'},
     }
 
     submit_result_path = '../result/'

@@ -19,7 +19,6 @@ import warnings
 warnings.filterwarnings('ignore')
 
 import datetime
-import numpy as np
 import pandas as pd
 from pypinyin import lazy_pinyin
 from sklearn.preprocessing import LabelEncoder
