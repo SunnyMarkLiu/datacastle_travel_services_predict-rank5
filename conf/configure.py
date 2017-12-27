@@ -31,4 +31,18 @@ class Configure(object):
         'action_history_features'    : {'on': 'userid', 'how': 'left'},
     }
 
+    # 数据清晰后的路径
+    new_cleaned_path = base_path + 'new_cleaned/'
+    # 生成的特征的路径
+    new_features_path = base_path + 'new_features/'
+    # 生成的模型可训练和预测的数据集
+    new_datasets_path = base_path + 'new_datasets/'
+
+    # 待 merge 的特征（特征名：merge_on 的特征）
+    new_features = {
+        'basic_user_features'            : {'on': 'userid', 'how': 'left'},
+        'basic_history_features'         : {'on': ['userid', 'orderTime'], 'how': 'left'},
+    }
+
+
     submit_result_path = '../result/'
