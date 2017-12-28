@@ -41,7 +41,8 @@ class Configure(object):
     # 待 merge 的特征（特征名：merge_on 的特征）
     new_features = {
         'basic_user_features'            : {'on': 'userid', 'how': 'left'},
-        'basic_history_features'        : {'on': ['userid', 'orderTime'], 'how': 'left'},
+        'basic_history_features'         : {'on': ['userid', 'orderTime'], 'how': 'left'},
+        'basic_comment_features'         : {'on': ['userid', 'orderTime'], 'how': 'left'},
     }
 
 
