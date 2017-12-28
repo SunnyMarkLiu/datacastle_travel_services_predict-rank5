@@ -19,6 +19,7 @@ import warnings
 warnings.filterwarnings('ignore')
 
 import datetime
+import numpy as np
 import pandas as pd
 from pypinyin import lazy_pinyin
 from sklearn.preprocessing import LabelEncoder
@@ -108,6 +109,51 @@ def pre_good_days_order_count(uid, cur_orderTime, history_grouped, in_total_flag
         return sum(sub_df['orderType'])
 
 
+def pre_order_checkname_count(uid, cur_orderTime, history_grouped, in_total_flag, check_name):
+    """ 以往交易的类别属性的数目 """
+    if in_total_flag == 0:
+        return 0
+    df = history_grouped[uid]
+    if df.shape[0] == 0:
+        return 0
+    else:
+        sub_df = df[df['orderTime'] < cur_orderTime]
+        return len(sub_df[check_name].unique())
+
+
+def pre_last_two_order_delta(uid, cur_orderTime, history_grouped, in_total_flag):
+    """ 最近两次交易的时间差 """
+    if in_total_flag == 0:
+        return -1
+    df = history_grouped[uid]
+    if df.shape[0] == 0:
+        return -1
+    else:
+        sub_df = df[df['orderTime'] < cur_orderTime]
+        if sub_df.shape[0] < 2:
+            return -1
+        return sub_df.iloc[-2]['days_from_now'] - sub_df.iloc[-1]['days_from_now']
+
+
+def pre_order_max_delta_statistic(uid, cur_orderTime, history_grouped, in_total_flag, statistic):
+    """ 交易历史时间间隔的统计特征 """
+    if in_total_flag == 0:
+        return -1
+    df = history_grouped[uid]
+    if df.shape[0] == 0:
+        return -1
+    else:
+        sub_df = df[df['orderTime'] < cur_orderTime]
+        if sub_df.shape[0] < 2:
+            return -1
+
+        deltas = []
+        for i in range(sub_df.shape[0] - 1):
+            deltas.append(sub_df.iloc[i]['days_from_now'] - sub_df.iloc[i + 1]['days_from_now'])
+
+        return statistic(deltas)
+
+
 def build_basic_history_features(df, history):
     """ 构造 order 历史的基本特征 """
     features = pd.DataFrame({'userid': df['userid'], 'orderTime': df['orderTime']})
@@ -146,7 +192,21 @@ def build_basic_history_features(df, history):
     features['pre_90days_good_order_count'] = features.apply(lambda row: pre_good_days_order_count(row['userid'], row['orderTime'], history_grouped, row['uid_in_history_flag'], 90), axis=1)
     features['pre_order_good_ratio'] = (features['pre_90days_order_count'] + 1) / (features['pre_90days_good_order_count'] + 2) - 0.5
 
-    del features['uid_in_history_flag']
+    print('以往交易的类别属性的数目及比例')
+    features['pre_order_continent_count'] = features.apply(lambda row: pre_order_checkname_count(row['userid'], row['orderTime'], history_grouped, row['uid_in_history_flag'], 'continent'), axis=1)
+    features['pre_order_country_count'] = features.apply(lambda row: pre_order_checkname_count(row['userid'], row['orderTime'], history_grouped, row['uid_in_history_flag'], 'country'), axis=1)
+    features['pre_order_city_count'] = features.apply(lambda row: pre_order_checkname_count(row['userid'], row['orderTime'], history_grouped, row['uid_in_history_flag'], 'city'), axis=1)
+    features['pre_order_city_ratio'] = (features['pre_order_city_count'] + 1) / (features['pre_order_count'] + 2) - 0.5
+    features['pre_order_country_ratio'] = (features['pre_order_country_count'] + 1) / (features['pre_order_count'] + 2) - 0.5
+    features['pre_order_continent_ratio'] = (features['pre_order_continent_count'] + 1) / (features['pre_order_count'] + 2) - 0.5
+
+    print('最近交易的时间差的统计特征')
+    features['pre_last_two_order_delta'] = features.apply(lambda row: pre_last_two_order_delta(row['userid'], row['orderTime'], history_grouped, row['uid_in_history_flag']), axis=1)
+    # features['pre_order_max_delta'] = features.apply(lambda row: pre_order_max_delta_statistic(row['userid'], row['orderTime'], history_grouped, row['uid_in_history_flag'], np.max), axis=1)
+    # features['pre_order_min_delta'] = features.apply(lambda row: pre_order_max_delta_statistic(row['userid'], row['orderTime'], history_grouped, row['uid_in_history_flag'], np.min), axis=1)
+    features['pre_order_mean_delta'] = features.apply(lambda row: pre_order_max_delta_statistic(row['userid'], row['orderTime'], history_grouped, row['uid_in_history_flag'], np.mean), axis=1)
+
+    del features['uid_in_history_flag']  # 存在数据泄露，需要删除
     return features
 
 
@@ -183,6 +243,7 @@ def build_time_category_encode(history):
     history.sort_values(by='orderTime', inplace=True)
 
     return history
+
 
 def main():
     feature_name = 'basic_history_features'
