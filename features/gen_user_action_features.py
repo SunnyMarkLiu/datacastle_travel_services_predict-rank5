@@ -17,6 +17,7 @@ import sys
 module_path = os.path.abspath(os.path.join('..'))
 sys.path.append(module_path)
 
+import datetime
 import pandas as pd
 from conf.configure import Configure
 from utils import data_utils
@@ -82,7 +83,12 @@ def basic_action_info(action_df):
 
 
 def build_time_features(action_df):
+
     action_df['actionTime'] = pd.to_datetime(action_df['actionTime'], unit='s')
+    # 训练集和测试集最后一天是 2017-09-11
+    now = datetime.datetime(2017, 9, 12)
+    action_df['days_from_now'] = action_df['actionTime'].map(lambda order: (now - order).days)
+
     action_df['action_year'] = action_df['actionTime'].dt.year
     action_df['action_month'] = action_df['actionTime'].dt.month
     action_df['action_day'] = action_df['actionTime'].dt.day

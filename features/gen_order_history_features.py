@@ -26,7 +26,7 @@ from conf.configure import Configure
 from utils import data_utils
 
 
-def check_last_time_order_info(uid, userid_grouped, flag, check_name):
+def check_last_time_order_info(uid, userid_grouped, flag, check_name, last_time=1):
     """ 最近的一次交易的具体信息 check_name """
     if flag == 0:
         return 2
@@ -35,7 +35,10 @@ def check_last_time_order_info(uid, userid_grouped, flag, check_name):
     if df.shape[0] == 0:
         return 2
     else:
-        return df.iloc[-1][check_name]
+        if df.shape[0] < last_time:
+            return 2
+        else:
+            return df.iloc[-last_time][check_name]
 
 
 def pre_days_order_count(uid, userid_grouped, flag, days):
@@ -184,7 +187,14 @@ def build_order_history_features(df, history):
 
     print("基本特征")
     # 最近的一次交易的 orderType
-    features['last_time_orderType'] = features.apply(lambda row: check_last_time_order_info(row['userid'], userid_grouped, row['has_history_flag'], 'orderType'), axis=1)
+    features['last_time_orderType'] = features.apply(lambda row: check_last_time_order_info(row['userid'], userid_grouped, row['has_history_flag'], 'orderType', 1), axis=1)
+    # 倒数第二个 orderType
+    # features['last_2_time_orderType'] = features.apply(lambda row: check_last_time_order_info(row['userid'], userid_grouped, row['has_history_flag'], 'orderType', 2), axis=1)
+    # features['last_3_time_orderType'] = features.apply(lambda row: check_last_time_order_info(row['userid'], userid_grouped, row['has_history_flag'], 'orderType',3), axis=1)
+    # 倒数第二次距离现在的时间
+    # features['last_2_time_days_from_now'] = features.apply(lambda row: check_last_time_order_info(row['userid'], userid_grouped, row['has_history_flag'], 'days_from_now', 2), axis=1)
+    # features['last_3_time_days_from_now'] = features.apply(lambda row: check_last_time_order_info(row['userid'], userid_grouped, row['has_history_flag'], 'days_from_now', 3), axis=1)
+
     # 最近的一次交易的 days_from_now, order_year, order_month, order_day, order_weekofyear, order_weekday
     features['last_time_days_from_now'] = features.apply(lambda row: check_last_time_order_info(row['userid'], userid_grouped, row['has_history_flag'], 'days_from_now'), axis=1)
     features['last_time_order_year'] = features.apply(lambda row: check_last_time_order_info(row['userid'], userid_grouped, row['has_history_flag'], 'order_year'), axis=1)
@@ -285,8 +295,8 @@ def build_time_category_encode(history):
 
 def main():
     feature_name = 'user_order_history_features'
-    if data_utils.is_feature_created(feature_name):
-        return
+    # if data_utils.is_feature_created(feature_name):
+    #     return
 
     # 待预测订单的数据 （原始训练集和测试集）
     train = pd.read_csv(Configure.base_path + 'train/orderFuture_train.csv', encoding='utf8')
