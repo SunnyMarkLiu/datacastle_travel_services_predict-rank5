@@ -192,6 +192,19 @@ def last_actiontype_action_count(uid, action_grouped, actiontype):
     return df.shape[0]
 
 
+def last_target_actiontype_ratio(uid, action_grouped, target_action, actiontype):
+    """ 距离上一次 pay money 操作到现在 actiontype 的比例 """
+    action_df = action_grouped[uid]
+    df = action_df[action_df['actionType'] == target_action]
+    if df.shape[0] == 0:
+        return -1
+
+    last_actiontype_time = df['actionTime'].values[-1]
+    df = action_df[action_df['actionTime'] > last_actiontype_time]
+
+    return (df[df['actionType'] == actiontype].shape[0] + 1) / (df.shape[0] + 2) - 0.5
+
+
 def build_action_history_features2(df, action, history):
     features = pd.DataFrame({'userid': df['userid']})
 
@@ -206,6 +219,14 @@ def build_action_history_features2(df, action, history):
     features['last_fillin_form5_action_count'] = features.apply(lambda row: last_actiontype_action_count(row['userid'], action_grouped, 'fillin_form5'), axis=1)
     features['last_browse_product_action_count'] = features.apply(lambda row: last_actiontype_action_count(row['userid'], action_grouped, 'browse_product'), axis=1)
     features['last_open_app_action_count'] = features.apply(lambda row: last_actiontype_action_count(row['userid'], action_grouped, 'open_app'), axis=1)
+
+    print('距离上一次 pay money 操作到现在 actiontype 的比例')
+    features['last_pay_money_now_submit_order_ratio'] = features.apply(lambda row: last_target_actiontype_ratio(row['userid'], action_grouped, 'pay_money', 'submit_order'), axis=1)
+    features['last_pay_money_now_fillin_form7_ratio'] = features.apply(lambda row: last_target_actiontype_ratio(row['userid'], action_grouped, 'pay_money', 'fillin_form7'), axis=1)
+    features['last_pay_money_now_fillin_form6_ratio'] = features.apply(lambda row: last_target_actiontype_ratio(row['userid'], action_grouped, 'pay_money', 'fillin_form6'), axis=1)
+    features['last_pay_money_now_fillin_form5_ratio'] = features.apply(lambda row: last_target_actiontype_ratio(row['userid'], action_grouped, 'pay_money', 'fillin_form5'), axis=1)
+    features['last_pay_money_now_browse_product_ratio'] = features.apply(lambda row: last_target_actiontype_ratio(row['userid'], action_grouped, 'pay_money', 'browse_product'), axis=1)
+    features['last_pay_money_now_open_app_ratio'] = features.apply(lambda row: last_target_actiontype_ratio(row['userid'], action_grouped, 'pay_money', 'open_app'), axis=1)
 
     return features
 
@@ -246,14 +267,24 @@ def main():
         data_utils.save_features(train_features, test_features, feature_name)
 
     feature_name = 'action_history_features2'
-    # if not data_utils.is_feature_created(feature_name):
-    print('build train action history features2')
-    train_features = build_action_history_features2(train, action_train, orderHistory_train)
-    print('build test action history features2')
-    test_features = build_action_history_features2(test, action_test, orderHistory_test)
+    if not data_utils.is_feature_created(feature_name):
+        print('build train action history features2')
+        train_features = build_action_history_features2(train, action_train, orderHistory_train)
+        print('build test action history features2')
+        test_features = build_action_history_features2(test, action_test, orderHistory_test)
 
-    print('save ', feature_name)
-    data_utils.save_features(train_features, test_features, feature_name)
+        print('save ', feature_name)
+        data_utils.save_features(train_features, test_features, feature_name)
+
+    feature_name = 'action_history_features3'
+    if not data_utils.is_feature_created(feature_name):
+        print('build train action history features3')
+        train_features = build_action_history_features3(train, action_train, orderHistory_train)
+        print('build test action history features3')
+        test_features = build_action_history_features3(test, action_test, orderHistory_test)
+
+        print('save ', feature_name)
+        data_utils.save_features(train_features, test_features, feature_name)
 
 
 if __name__ == "__main__":
