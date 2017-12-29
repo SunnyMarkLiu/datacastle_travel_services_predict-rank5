@@ -295,8 +295,8 @@ def build_time_category_encode(history):
 
 def main():
     feature_name = 'user_order_history_features'
-    # if data_utils.is_feature_created(feature_name):
-    #     return
+    if data_utils.is_feature_created(feature_name):
+        return
 
     # 待预测订单的数据 （原始训练集和测试集）
     train = pd.read_csv(Configure.base_path + 'train/orderFuture_train.csv', encoding='utf8')
