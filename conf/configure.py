@@ -30,6 +30,8 @@ class Configure(object):
         'user_order_history_features': {'on': 'userid', 'how': 'left'},
         'user_order_comment_features': {'on': 'userid', 'how': 'left'},
         'action_history_features'    : {'on': 'userid', 'how': 'left'},
+        'action_history_features2'   : {'on': 'userid', 'how': 'left'},
+
     }
 
     # 数据清晰后的路径

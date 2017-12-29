@@ -35,8 +35,8 @@ def main():
     y_train_all = train['orderType']
     id_test = test['userid']
 
-    train.drop(['userid', 'gender', 'province', 'age', 'orderType'], axis=1, inplace=True)
-    test.drop(['userid', 'gender', 'province', 'age'], axis=1, inplace=True)
+    train.drop(['userid', 'gender', 'province', 'age', 'orderType', 'has_history_flag'], axis=1, inplace=True)
+    test.drop(['userid', 'gender', 'province', 'age', 'has_history_flag'], axis=1, inplace=True)
 
     df_columns = train.columns.values
     print('===> feature count: {}'.format(len(df_columns)))
