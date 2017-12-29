@@ -7,6 +7,7 @@
 """
 from __future__ import absolute_import, division, print_function
 
+import hashlib
 import os
 import sys
 
@@ -228,6 +229,46 @@ def build_action_history_features2(df, action, history):
     features['last_pay_money_now_browse_product_ratio'] = features.apply(lambda row: last_target_actiontype_ratio(row['userid'], action_grouped, 'pay_money', 'browse_product'), axis=1)
     features['last_pay_money_now_open_app_ratio'] = features.apply(lambda row: last_target_actiontype_ratio(row['userid'], action_grouped, 'pay_money', 'open_app'), axis=1)
 
+    return features
+
+
+def gen_order_history_sequence(uid, history_grouped, has_history_flag):
+    """ 用户订单历史结果构成的序列 """
+    # 311 天的操作记录
+    sequence = ['0'] * 311
+    if has_history_flag == 0:
+        return sequence
+
+    df = history_grouped[uid]
+    for i in df['days_from_now']:
+        sequence[i] = str(df[df['days_from_now'] == i].shape[0])
+    return sequence
+
+
+def numerical_order_history_sequence(sequence):
+    weights = [1.0 / np.exp(((day + 1.0) / len(sequence))) for day in range(len(sequence))]
+    weights = weights / sum(weights)
+    sequence = np.array([int(s) for s in sequence])
+    score = np.dot(weights, sequence)
+    return score
+
+def build_action_history_features3(df, action, history):
+    features = pd.DataFrame({'userid': df['userid']})
+
+    unique_history_ids = history['userid'].unique()
+    action_grouped = dict(list(action.groupby('userid')))
+    history_grouped = dict(list(history.groupby('userid')))
+
+    # 是否有交易历史
+    features['has_history_flag'] = features['userid'].map(lambda uid: uid in unique_history_ids).astype(int)
+
+    print('order history 信息')
+    # features['order_history_sequence'] = features.apply(lambda row: gen_order_history_sequence(row['userid'], history_grouped, row['has_history_flag']), axis=1)
+    # features['hash_order_history_sequence'] = features['order_history_sequence'].map(lambda x: int(hashlib.sha1(''.join(x)).hexdigest(), 16) % (10 ** 10))
+    # features['numerical_order_history_sequence'] = features['order_history_sequence'].map(numerical_order_history_sequence)
+    #
+    # del features['order_history_sequence']
+    del features['has_history_flag']
     return features
 
 

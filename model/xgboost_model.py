@@ -20,6 +20,8 @@ import xgboost as xgb
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import auc, roc_curve
 from get_datasets import load_train_test
+from utils import xgb_utils
+from IPython.display import display
 
 
 def evaluate_score(predict, y_true):
@@ -78,6 +80,28 @@ def main():
                       early_stopping_rounds=100,
                       num_boost_round=4000)
 
+    print('----------- feature importance -----------')
+    importances = xgb_utils.get_xgb_importance(model)
+    feature_percentile = 0.95
+    use_columns = importances[importances['importance'] > importances.importance.quantile(1 - feature_percentile)]['feature']
+    print('使用 {}% 的特征后，特征的维度：{}'.format(feature_percentile, len(use_columns)))
+    train = train[use_columns]
+    test = test[use_columns]
+
+    X_train, X_valid, y_train, y_valid = train_test_split(train, y_train_all, test_size=0.25, random_state=42)
+    print('train: {}, valid: {}, test: {}'.format(X_train.shape[0], X_valid.shape[0], test.shape[0]))
+    dtrain = xgb.DMatrix(X_train, y_train, feature_names=use_columns)
+    dvalid = xgb.DMatrix(X_valid, y_valid, feature_names=use_columns)
+    dtest = xgb.DMatrix(test, feature_names=use_columns)
+
+    watchlist = [(dtrain, 'train'), (dvalid, 'valid')]
+    model = xgb.train(dict(xgb_params),
+                      dtrain,
+                      evals=watchlist,
+                      verbose_eval=50,
+                      early_stopping_rounds=100,
+                      num_boost_round=4000)
+
     # predict train
     predict_train = model.predict(dtrain)
     train_auc = evaluate_score(predict_train, y_train)
@@ -89,7 +113,7 @@ def main():
     print('train auc = {:.7f} , valid auc = {:.7f}\n'.format(train_auc, valid_auc))
 
     print('---> cv train to choose best_num_boost_round')
-    dtrain_all = xgb.DMatrix(train.values, y_train_all, feature_names=df_columns)
+    dtrain_all = xgb.DMatrix(train.values, y_train_all, feature_names=use_columns)
 
     cv_result = xgb.cv(dict(xgb_params),
                        dtrain_all,
