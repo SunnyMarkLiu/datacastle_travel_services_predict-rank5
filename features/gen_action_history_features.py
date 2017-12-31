@@ -7,7 +7,7 @@
 """
 from __future__ import absolute_import, division, print_function
 
-import hashlib
+# import hashlib
 import os
 import sys
 
@@ -39,24 +39,26 @@ def last_time_order_now_action_count(uid, history_grouped, action_grouped, flag)
     if flag == 0:
         sub_action_df = a_df
         if sub_action_df.shape[0] == 0:
-            return 0, 0, 0, 0, 0, 0, 0, 0
+            return 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 
         actionTypes = sub_action_df['actionType'].tolist()
-        return len(actionTypes), actionTypes.count('browse_product'), actionTypes.count('fillin_form5'), \
+        return len(actionTypes), actionTypes.count('browse_product'), actionTypes.count('browse_product2'), \
+               actionTypes.count('browse_product3'), actionTypes.count('fillin_form5'), \
                actionTypes.count('fillin_form6'), actionTypes.count('fillin_form7'), actionTypes.count('open_app'), \
                actionTypes.count('pay_money'), actionTypes.count('submit_order')
 
     h_df = history_grouped[uid]
     if a_df.shape[0] == 0:
-        return 0, 0, 0, 0, 0, 0, 0, 0
+        return 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
     else:
         last_order_time = h_df.iloc[-1]['orderTime']
         sub_action_df = a_df[a_df['actionTime'] > last_order_time]
         if sub_action_df.shape[0] == 0:
-            return 0, 0, 0, 0, 0, 0, 0, 0
+            return 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 
         actionTypes = sub_action_df['actionType'].tolist()
-        return len(actionTypes), actionTypes.count('browse_product'), actionTypes.count('fillin_form5'), \
+        return len(actionTypes), actionTypes.count('browse_product'), actionTypes.count('browse_product2') \
+            , actionTypes.count('browse_product3') , actionTypes.count('fillin_form5'), \
                actionTypes.count('fillin_form6'), actionTypes.count('fillin_form7'), actionTypes.count('open_app'), \
                actionTypes.count('pay_money'), actionTypes.count('submit_order')
 
@@ -104,12 +106,14 @@ def build_action_history_features(df, action, history):
     features['last_time_order_now_action_info_count'] = features.apply(lambda row: last_time_order_now_action_count(row['userid'], history_grouped, action_grouped, row['has_history_flag']), axis=1)
     features['last_time_order_now_action_total_count'] = features['last_time_order_now_action_info_count'].map(lambda x: x[0])
     features['last_time_order_now_action_browse_product_count'] = features['last_time_order_now_action_info_count'].map(lambda x: x[1])
-    features['last_time_order_now_action_fillin_form5_count'] = features['last_time_order_now_action_info_count'].map(lambda x: x[2])
-    features['last_time_order_now_action_fillin_form6_count'] = features['last_time_order_now_action_info_count'].map(lambda x: x[3])
-    features['last_time_order_now_action_fillin_form7_count'] = features['last_time_order_now_action_info_count'].map(lambda x: x[4])
-    features['last_time_order_now_action_open_app_count'] = features['last_time_order_now_action_info_count'].map(lambda x: x[5])
-    features['last_time_order_now_action_pay_money_count'] = features['last_time_order_now_action_info_count'].map(lambda x: x[6])
-    features['last_time_order_now_action_submit_order_count'] = features['last_time_order_now_action_info_count'].map(lambda x: x[7])
+    features['last_time_order_now_action_browse_product2_count'] = features['last_time_order_now_action_info_count'].map(lambda x: x[2])
+    features['last_time_order_now_action_browse_product3_count'] = features['last_time_order_now_action_info_count'].map(lambda x: x[3])
+    features['last_time_order_now_action_fillin_form5_count'] = features['last_time_order_now_action_info_count'].map(lambda x: x[4])
+    features['last_time_order_now_action_fillin_form6_count'] = features['last_time_order_now_action_info_count'].map(lambda x: x[5])
+    features['last_time_order_now_action_fillin_form7_count'] = features['last_time_order_now_action_info_count'].map(lambda x: x[6])
+    features['last_time_order_now_action_open_app_count'] = features['last_time_order_now_action_info_count'].map(lambda x: x[7])
+    features['last_time_order_now_action_pay_money_count'] = features['last_time_order_now_action_info_count'].map(lambda x: x[8])
+    features['last_time_order_now_action_submit_order_count'] = features['last_time_order_now_action_info_count'].map(lambda x: x[9])
     del features['last_time_order_now_action_info_count']
     # 是否有支付操作和提交订单操作
     features['last_time_order_now_has_paied_money'] = features['last_time_order_now_action_pay_money_count'].map(lambda x: int(x > 0))
@@ -118,6 +122,8 @@ def build_action_history_features(df, action, history):
     print('距离最近的 action type 的时间距离')
     features['last_action_open_app_time_delta'] = features.apply(lambda row: last_action_type_time_delta(row['userid'], action_grouped, 'open_app'), axis=1)
     features['last_action_browse_product_time_delta'] = features.apply(lambda row: last_action_type_time_delta(row['userid'], action_grouped, 'browse_product'), axis=1)
+    features['last_action_browse_product2_time_delta'] = features.apply(lambda row: last_action_type_time_delta(row['userid'], action_grouped, 'browse_product2'), axis=1)
+    features['last_action_browse_product3_time_delta'] = features.apply(lambda row: last_action_type_time_delta(row['userid'], action_grouped, 'browse_product3'), axis=1)
     features['last_action_fillin_form5_time_delta'] = features.apply(lambda row: last_action_type_time_delta(row['userid'], action_grouped, 'fillin_form5'), axis=1)
     features['last_action_fillin_form6_time_delta'] = features.apply(lambda row: last_action_type_time_delta(row['userid'], action_grouped, 'fillin_form6'), axis=1)
     features['last_action_fillin_form7_time_delta'] = features.apply(lambda row: last_action_type_time_delta(row['userid'], action_grouped, 'fillin_form7'), axis=1)
@@ -127,6 +133,8 @@ def build_action_history_features(df, action, history):
     print('距离最近的倒数第二次 action type 的时间距离')
     features['last2_action_open_app_time_delta'] = features.apply(lambda row: last_action_type_time_delta(row['userid'], action_grouped, 'open_app', 2), axis=1)
     features['last2_action_browse_product_time_delta'] = features.apply(lambda row: last_action_type_time_delta(row['userid'], action_grouped, 'browse_product', 2), axis=1)
+    features['last2_action_browse_product2_time_delta'] = features.apply(lambda row: last_action_type_time_delta(row['userid'], action_grouped, 'browse_product2', 2), axis=1)
+    features['last2_action_browse_product3_time_delta'] = features.apply(lambda row: last_action_type_time_delta(row['userid'], action_grouped, 'browse_product3', 2), axis=1)
     features['last2_action_fillin_form5_time_delta'] = features.apply(lambda row: last_action_type_time_delta(row['userid'], action_grouped, 'fillin_form5', 2), axis=1)
     features['last2_action_fillin_form6_time_delta'] = features.apply(lambda row: last_action_type_time_delta(row['userid'], action_grouped, 'fillin_form6', 2), axis=1)
     features['last2_action_fillin_form7_time_delta'] = features.apply(lambda row: last_action_type_time_delta(row['userid'], action_grouped, 'fillin_form7', 2), axis=1)
@@ -145,6 +153,16 @@ def build_action_history_features(df, action, history):
     features['browse_product_max_delta'] = features['actiontype_timedelta_statistic'].map(lambda x: x[1])
     features['browse_product_min_delta'] = features['actiontype_timedelta_statistic'].map(lambda x: x[2])
     features['browse_product_std_delta'] = features['actiontype_timedelta_statistic'].map(lambda x: x[3])
+    features['actiontype_timedelta_statistic'] = features.apply(lambda row: actiontype_timedelta_statistic(row['userid'], action_grouped, 'browse_product2'), axis=1)
+    features['browse_product2_mean_delta'] = features['actiontype_timedelta_statistic'].map(lambda x: x[0])
+    features['browse_product2_max_delta'] = features['actiontype_timedelta_statistic'].map(lambda x: x[1])
+    features['browse_product2_min_delta'] = features['actiontype_timedelta_statistic'].map(lambda x: x[2])
+    features['browse_product2_std_delta'] = features['actiontype_timedelta_statistic'].map(lambda x: x[3])
+    features['actiontype_timedelta_statistic'] = features.apply(lambda row: actiontype_timedelta_statistic(row['userid'], action_grouped, 'browse_product3'), axis=1)
+    features['browse_product3_mean_delta'] = features['actiontype_timedelta_statistic'].map(lambda x: x[0])
+    features['browse_product3_max_delta'] = features['actiontype_timedelta_statistic'].map(lambda x: x[1])
+    features['browse_product3_min_delta'] = features['actiontype_timedelta_statistic'].map(lambda x: x[2])
+    features['browse_product3_std_delta'] = features['actiontype_timedelta_statistic'].map(lambda x: x[3])
 
     features['actiontype_timedelta_statistic'] = features.apply(lambda row: actiontype_timedelta_statistic(row['userid'], action_grouped, 'fillin_form5'), axis=1)
     features['fillin_form5_mean_delta'] = features['actiontype_timedelta_statistic'].map(lambda x: x[0])
@@ -219,6 +237,8 @@ def build_action_history_features2(df, action, history):
     features['last_fillin_form6_action_count'] = features.apply(lambda row: last_actiontype_action_count(row['userid'], action_grouped, 'fillin_form6'), axis=1)
     features['last_fillin_form5_action_count'] = features.apply(lambda row: last_actiontype_action_count(row['userid'], action_grouped, 'fillin_form5'), axis=1)
     features['last_browse_product_action_count'] = features.apply(lambda row: last_actiontype_action_count(row['userid'], action_grouped, 'browse_product'), axis=1)
+    features['last_browse_product2_action_count'] = features.apply(lambda row: last_actiontype_action_count(row['userid'], action_grouped, 'browse_product2'), axis=1)
+    features['last_browse_product3_action_count'] = features.apply(lambda row: last_actiontype_action_count(row['userid'], action_grouped, 'browse_product3'), axis=1)
     features['last_open_app_action_count'] = features.apply(lambda row: last_actiontype_action_count(row['userid'], action_grouped, 'open_app'), axis=1)
 
     print('距离上一次 pay money 操作到现在 actiontype 的比例')
@@ -227,6 +247,8 @@ def build_action_history_features2(df, action, history):
     features['last_pay_money_now_fillin_form6_ratio'] = features.apply(lambda row: last_target_actiontype_ratio(row['userid'], action_grouped, 'pay_money', 'fillin_form6'), axis=1)
     features['last_pay_money_now_fillin_form5_ratio'] = features.apply(lambda row: last_target_actiontype_ratio(row['userid'], action_grouped, 'pay_money', 'fillin_form5'), axis=1)
     features['last_pay_money_now_browse_product_ratio'] = features.apply(lambda row: last_target_actiontype_ratio(row['userid'], action_grouped, 'pay_money', 'browse_product'), axis=1)
+    features['last_pay_money_now_browse_product2_ratio'] = features.apply(lambda row: last_target_actiontype_ratio(row['userid'], action_grouped, 'pay_money', 'browse_product2'), axis=1)
+    features['last_pay_money_now_browse_product3_ratio'] = features.apply(lambda row: last_target_actiontype_ratio(row['userid'], action_grouped, 'pay_money', 'browse_product3'), axis=1)
     features['last_pay_money_now_open_app_ratio'] = features.apply(lambda row: last_target_actiontype_ratio(row['userid'], action_grouped, 'pay_money', 'open_app'), axis=1)
 
     return features
@@ -298,34 +320,34 @@ def main():
     orderHistory_test.sort_values(by='orderTime', inplace=True)
 
     feature_name = 'action_history_features'
-    if not data_utils.is_feature_created(feature_name):
-        print('build train action history features')
-        train_features = build_action_history_features(train, action_train, orderHistory_train)
-        print('build test action history features')
-        test_features = build_action_history_features(test, action_test, orderHistory_test)
+    # if not data_utils.is_feature_created(feature_name):
+    print('build train action history features')
+    train_features = build_action_history_features(train, action_train, orderHistory_train)
+    print('build test action history features')
+    test_features = build_action_history_features(test, action_test, orderHistory_test)
 
-        print('save ', feature_name)
-        data_utils.save_features(train_features, test_features, feature_name)
+    print('save ', feature_name)
+    data_utils.save_features(train_features, test_features, feature_name)
 
     feature_name = 'action_history_features2'
-    if not data_utils.is_feature_created(feature_name):
-        print('build train action history features2')
-        train_features = build_action_history_features2(train, action_train, orderHistory_train)
-        print('build test action history features2')
-        test_features = build_action_history_features2(test, action_test, orderHistory_test)
+    # if not data_utils.is_feature_created(feature_name):
+    print('build train action history features2')
+    train_features = build_action_history_features2(train, action_train, orderHistory_train)
+    print('build test action history features2')
+    test_features = build_action_history_features2(test, action_test, orderHistory_test)
 
-        print('save ', feature_name)
-        data_utils.save_features(train_features, test_features, feature_name)
+    print('save ', feature_name)
+    data_utils.save_features(train_features, test_features, feature_name)
 
     feature_name = 'action_history_features3'
-    if not data_utils.is_feature_created(feature_name):
-        print('build train action history features3')
-        train_features = build_action_history_features3(train, action_train, orderHistory_train)
-        print('build test action history features3')
-        test_features = build_action_history_features3(test, action_test, orderHistory_test)
+    # if not data_utils.is_feature_created(feature_name):
+    print('build train action history features3')
+    train_features = build_action_history_features3(train, action_train, orderHistory_train)
+    print('build test action history features3')
+    test_features = build_action_history_features3(test, action_test, orderHistory_test)
 
-        print('save ', feature_name)
-        data_utils.save_features(train_features, test_features, feature_name)
+    print('save ', feature_name)
+    data_utils.save_features(train_features, test_features, feature_name)
 
 
 if __name__ == "__main__":

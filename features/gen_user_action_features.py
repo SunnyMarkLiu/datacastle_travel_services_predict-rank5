@@ -36,6 +36,7 @@ def basic_action_info(action_df):
         on='userid', how='left'
     )
     action_features.rename(columns={'open_app': 'open_app_ratio', 'browse_product': 'browse_product_ratio',
+                                    'browse_product2': 'browse_product2_ratio', 'browse_product3': 'browse_product3_ratio',
                                     'fillin_form5': 'fillin_form5_ratio', 'fillin_form6': 'fillin_form6_ratio',
                                     'fillin_form7': 'fillin_form7_ratio', 'submit_order': 'submit_order_ratio',
                                     'pay_money': 'pay_money_ratio'}, inplace=True)
@@ -44,6 +45,8 @@ def basic_action_info(action_df):
     print('拉普拉斯平滑计算基本的转化率')
     action_features['open_app_pay_money_ratio'] = (action_features['pay_money_ratio']+ 0.1) / (action_features['open_app_ratio']+ 0.2)
     action_features['browse_product_pay_money_ratio'] = (action_features['pay_money_ratio']+ 0.1) / (action_features['browse_product_ratio']+ 0.2)
+    action_features['browse_product2_pay_money_ratio'] = (action_features['pay_money_ratio']+ 0.1) / (action_features['browse_product2_ratio']+ 0.2)
+    action_features['browse_product3_pay_money_ratio'] = (action_features['pay_money_ratio']+ 0.1) / (action_features['browse_product3_ratio']+ 0.2)
     action_features['fillin_form5_pay_money_ratio'] = (action_features['pay_money_ratio']+ 0.1) / (action_features['fillin_form5_ratio']+ 0.2)
     action_features['fillin_form6_pay_money_ratio'] = (action_features['pay_money_ratio']+ 0.1) / (action_features['fillin_form6_ratio']+ 0.2)
     action_features['fillin_form7_pay_money_ratio'] = (action_features['pay_money_ratio']+ 0.1) / (action_features['fillin_form7_ratio']+ 0.2)
@@ -102,8 +105,12 @@ def build_time_features(action_df):
     def action_type_convert(action):
         if action == 1:
             return 'open_app'
-        elif 2 <= action <= 4:
+        elif action == 2:
             return 'browse_product'
+        elif action == 3:
+            return 'browse_product2'
+        elif action == 4:
+            return 'browse_product3'
         elif action == 5:
             return 'fillin_form5'
         elif action == 6:
