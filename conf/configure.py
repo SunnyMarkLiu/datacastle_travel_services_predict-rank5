@@ -31,6 +31,7 @@ class Configure(object):
         'action_history_features'    : {'on': 'userid', 'how': 'left'},
         'action_history_features2'   : {'on': 'userid', 'how': 'left'},
         'action_history_features3'   : {'on': 'userid', 'how': 'left'},
+        'action_history_features4'   : {'on': 'userid', 'how': 'left'},
 
     }
 
