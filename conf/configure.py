@@ -32,7 +32,8 @@ class Configure(object):
         'action_history_features2'   : {'on': 'userid', 'how': 'left'},
         'action_history_features3'   : {'on': 'userid', 'how': 'left'},
         'action_history_features4'   : {'on': 'userid', 'how': 'left'},
-
+        'action_history_features5'   : {'on': 'userid', 'how': 'left'},
+        'action_history_features6': {'on': 'userid', 'how': 'left'},
     }
 
     # 数据清晰后的路径

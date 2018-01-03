@@ -719,6 +719,145 @@ def build_action_history_features4(df, action, history):
     return features
 
 
+def last_time_x_actiontype(uid, action_grouped, last):
+    """ 最后几次操作的时间乘以操作类型 """
+    df = action_grouped[uid]
+    if df.shape[0] >= -last:
+        return df['actionTime'].iat[last] * df['actionType'].iat[last]
+    else:
+        return -1
+
+def build_action_history_features5(df, action, history):
+    features = pd.DataFrame({'userid': df['userid']})
+    df_ids = history['userid'].unique()
+    action_grouped = dict(list(action.groupby('userid')))
+    history['orderTime'] = history.orderTime.values.astype(np.int64) // 10 ** 9
+    history_grouped = dict(list(history.groupby('userid')))
+
+    # 是否有交易历史
+    # features['has_history_flag'] = features['userid'].map(lambda uid: uid in df_ids).astype(int)
+
+    features['last_-1_x_actiontype'] = features.apply(lambda row: last_time_x_actiontype(row['userid'], action_grouped, -1), axis=1)
+    features['last_-2_x_actiontype'] = features.apply(lambda row: last_time_x_actiontype(row['userid'], action_grouped, -2), axis=1)
+    features['last_-3_x_actiontype'] = features.apply(lambda row: last_time_x_actiontype(row['userid'], action_grouped, -3), axis=1)
+    features['last_time_x_actiontypr_mean'] = np.mean(features[['last_-1_x_actiontype', 'last_-2_x_actiontype', 'last_-3_x_actiontype']], axis=1)
+    del features['last_-2_x_actiontype']
+    del features['last_-3_x_actiontype']
+
+    # del features['has_history_flag']
+    return features
+
+
+def build_action_history_features6(features):
+    features['timespan_action1tolast'] = features['actiontime_last_1'] - features['actiontype_lasttime_1']
+    features['timespan_action5tolast'] = features['actiontime_last_1'] - features['actiontype_lasttime_5']
+    features['timespan_action6tolast'] = features['actiontime_last_1'] - features['actiontype_lasttime_6']
+    features['timespan_action7tolast'] = features['actiontime_last_1'] - features['actiontype_lasttime_7']
+    features['timespan_action8tolast'] = features['actiontime_last_1'] - features['actiontype_lasttime_8']
+    features['timespan_action9tolast'] = features['actiontime_last_1'] - features['actiontype_lasttime_9']
+    features['timespan_action24tolast'] = features['actiontime_last_1'] - features['actiontype_lasttime_24']
+    features['timespan_last_1'] = (features['actiontime_last_1'] - features['actiontime_last_2'])
+    features['timespan_last_2'] = (features['actiontime_last_2'] - features['actiontime_last_3'])
+    features['timespan_last_3'] = (features['actiontime_last_3'] - features['actiontime_last_4'])
+    features['timespan_last_4'] = (features['actiontime_last_4'] - features['actiontime_last_5'])
+    features['timespan_last_5'] = (features['actiontime_last_5'] - features['actiontime_last_6'])
+    features['timespan_last_6'] = (features['actiontime_last_6'] - features['actiontime_last_7'])
+    features['timespan_last_7'] = (features['actiontime_last_7'] - features['actiontime_last_8'])
+    features['timespan_last_8'] = (features['actiontime_last_8'] - features['actiontime_last_9'])
+    features['timespan_last_9'] = (features['actiontime_last_9'] - features['actiontime_last_10'])
+    features['timespanmean_last_3'] = np.mean(features[['timespan_last_1', 'timespan_last_2', 'timespan_last_3']],
+                                              axis=1)
+    features['timespanmin_last_3'] = np.min(features[['timespan_last_1', 'timespan_last_2', 'timespan_last_3']], axis=1)
+    features['timespanmax_last_3'] = np.max(features[['timespan_last_1', 'timespan_last_2', 'timespan_last_3']], axis=1)
+    features['timespanstd_last_3'] = np.std(features[['timespan_last_1', 'timespan_last_2', 'timespan_last_3']], axis=1)
+    features['timespanmean_last_4'] = np.mean(
+        features[['timespan_last_1', 'timespan_last_2', 'timespan_last_3', 'timespan_last_4']], axis=1)
+    features['timespanmin_last_4'] = np.min(
+        features[['timespan_last_1', 'timespan_last_2', 'timespan_last_3', 'timespan_last_4']], axis=1)
+    features['timespanmax_last_4'] = np.max(
+        features[['timespan_last_1', 'timespan_last_2', 'timespan_last_3', 'timespan_last_4']], axis=1)
+    features['timespanstd_last_4'] = np.std(
+        features[['timespan_last_1', 'timespan_last_2', 'timespan_last_3', 'timespan_last_4']], axis=1)
+    features['timespanmean_last_5'] = np.mean(
+        features[['timespan_last_1', 'timespan_last_2', 'timespan_last_3', 'timespan_last_4', 'timespan_last_5']],
+        axis=1)
+    features['timespanmin_last_5'] = np.min(
+        features[['timespan_last_1', 'timespan_last_2', 'timespan_last_3', 'timespan_last_4', 'timespan_last_5']],
+        axis=1)
+    features['timespanmax_last_5'] = np.max(
+        features[['timespan_last_1', 'timespan_last_2', 'timespan_last_3', 'timespan_last_4', 'timespan_last_5']],
+        axis=1)
+    features['timespanstd_last_5'] = np.std(
+        features[['timespan_last_1', 'timespan_last_2', 'timespan_last_3', 'timespan_last_4', 'timespan_last_5']],
+        axis=1)
+    features['timespanmean_last_6'] = np.mean(features[['timespan_last_1', 'timespan_last_2', 'timespan_last_3',
+                                                        'timespan_last_4', 'timespan_last_5', 'timespan_last_6']],
+                                              axis=1)
+    features['timespanmin_last_6'] = np.min(features[['timespan_last_1', 'timespan_last_2', 'timespan_last_3',
+                                                      'timespan_last_4', 'timespan_last_5', 'timespan_last_6']], axis=1)
+    features['timespanmax_last_6'] = np.max(features[['timespan_last_1', 'timespan_last_2', 'timespan_last_3',
+                                                      'timespan_last_4', 'timespan_last_5', 'timespan_last_6']], axis=1)
+    features['timespanstd_last_6'] = np.std(features[['timespan_last_1', 'timespan_last_2', 'timespan_last_3',
+                                                      'timespan_last_4', 'timespan_last_5', 'timespan_last_6']], axis=1)
+    features['timespanmean_last_7'] = np.mean(features[['timespan_last_1', 'timespan_last_2', 'timespan_last_3',
+                                                        'timespan_last_4', 'timespan_last_5', 'timespan_last_6',
+                                                        'timespan_last_7']], axis=1)
+    features['timespanmin_last_7'] = np.min(features[['timespan_last_1', 'timespan_last_2', 'timespan_last_3',
+                                                      'timespan_last_4', 'timespan_last_5', 'timespan_last_6',
+                                                      'timespan_last_7']], axis=1)
+    features['timespanmax_last_7'] = np.max(features[['timespan_last_1', 'timespan_last_2', 'timespan_last_3',
+                                                      'timespan_last_4', 'timespan_last_5', 'timespan_last_6',
+                                                      'timespan_last_7']], axis=1)
+    features['timespanstd_last_7'] = np.std(features[['timespan_last_1', 'timespan_last_2', 'timespan_last_3',
+                                                      'timespan_last_4', 'timespan_last_5', 'timespan_last_6',
+                                                      'timespan_last_7']], axis=1)
+    features['timespanmean_last_8'] = np.mean(features[['timespan_last_1', 'timespan_last_2', 'timespan_last_3',
+                                                        'timespan_last_4', 'timespan_last_5', 'timespan_last_6',
+                                                        'timespan_last_7', 'timespan_last_8']], axis=1)
+    features['timespanmin_last_8'] = np.min(features[['timespan_last_1', 'timespan_last_2', 'timespan_last_3',
+                                                      'timespan_last_4', 'timespan_last_5', 'timespan_last_6',
+                                                      'timespan_last_7', 'timespan_last_8']], axis=1)
+    features['timespanmax_last_8'] = np.max(features[['timespan_last_1', 'timespan_last_2', 'timespan_last_3',
+                                                      'timespan_last_4', 'timespan_last_5', 'timespan_last_6',
+                                                      'timespan_last_7', 'timespan_last_8']], axis=1)
+    features['timespanstd_last_8'] = np.std(features[['timespan_last_1', 'timespan_last_2', 'timespan_last_3',
+                                                      'timespan_last_4', 'timespan_last_5', 'timespan_last_6',
+                                                      'timespan_last_7', 'timespan_last_8']], axis=1)
+    features['timespanmean_last_9'] = np.mean(features[['timespan_last_1', 'timespan_last_2', 'timespan_last_3',
+                                                        'timespan_last_4', 'timespan_last_5', 'timespan_last_6',
+                                                        'timespan_last_7', 'timespan_last_8', 'timespan_last_9']],
+                                              axis=1)
+    features['timespanmin_last_9'] = np.min(features[['timespan_last_1', 'timespan_last_2', 'timespan_last_3',
+                                                      'timespan_last_4', 'timespan_last_5', 'timespan_last_6',
+                                                      'timespan_last_7', 'timespan_last_8', 'timespan_last_9']], axis=1)
+    features['timespanmax_last_9'] = np.max(features[['timespan_last_1', 'timespan_last_2', 'timespan_last_3',
+                                                      'timespan_last_4', 'timespan_last_5', 'timespan_last_6',
+                                                      'timespan_last_7', 'timespan_last_8', 'timespan_last_9']], axis=1)
+    features['timespanstd_last_9'] = np.std(features[['timespan_last_1', 'timespan_last_2', 'timespan_last_3',
+                                                      'timespan_last_4', 'timespan_last_5', 'timespan_last_6',
+                                                      'timespan_last_7', 'timespan_last_8', 'timespan_last_9']], axis=1)
+    features['timespan_total'] = features['actiontime_last_1'] - features['actiontime_1']
+
+    features['actiontypeproplast20_mean'] = np.mean(features[['actiontypeproplast20_1', 'actiontypeproplast20_2', 'actiontypeproplast20_3',
+                                                              'actiontypeproplast20_4', 'actiontypeproplast20_5', 'actiontypeproplast20_6',
+                                                              'actiontypeproplast20_7', 'actiontypeproplast20_8', 'actiontypeproplast20_9']], axis=1)
+    features['actiontypeproplast20_std'] = np.std(features[['actiontypeproplast20_1', 'actiontypeproplast20_2', 'actiontypeproplast20_3',
+                                                              'actiontypeproplast20_4', 'actiontypeproplast20_5', 'actiontypeproplast20_6',
+                                                              'actiontypeproplast20_7', 'actiontypeproplast20_8', 'actiontypeproplast20_9']], axis=1)
+    features['actiontime_lasttime_mean'] =  np.mean(features[['actiontype_lasttime_1', 'actiontype_lasttime_5', 'actiontype_lasttime_6',
+                                                          'actiontype_lasttime_7', 'actiontype_lasttime_8', 'actiontype_lasttime_9']], axis=1)
+    features['actiontime_lasttime_std'] =  np.std(features[['actiontype_lasttime_1', 'actiontype_lasttime_5', 'actiontype_lasttime_6',
+                                                          'actiontype_lasttime_7', 'actiontype_lasttime_8', 'actiontype_lasttime_9']], axis=1)
+    features['actiontypeprop_mean'] = np.mean(features[['actiontypeprop_1', 'actiontypeprop_2', 'actiontypeprop_3',
+                                                        'actiontypeprop_4', 'actiontypeprop_5', 'actiontypeprop_6',
+                                                        'actiontypeprop_7', 'actiontypeprop_8', 'actiontypeprop_9']], axis=1)
+    features['actiontypeprop_std'] = np.std(features[['actiontypeprop_1', 'actiontypeprop_2', 'actiontypeprop_3',
+                                                        'actiontypeprop_4', 'actiontypeprop_5', 'actiontypeprop_6',
+                                                        'actiontypeprop_7', 'actiontypeprop_8', 'actiontypeprop_9']], axis=1)
+
+    return features
+
+
 def main():
 
     print('load cleaned datasets')
@@ -778,14 +917,38 @@ def main():
         data_utils.save_features(train_features, test_features, feature_name)
 
     feature_name = 'action_history_features4'
-    # if not data_utils.is_feature_created(feature_name):
-    print('build train action history features4')
-    train_features = build_action_history_features4(train, action_train, orderHistory_train)
-    print('build test action history features4')
-    test_features = build_action_history_features4(test, action_test, orderHistory_test)
+    if not data_utils.is_feature_created(feature_name):
+        print('build train action history features4')
+        train_features = build_action_history_features4(train, action_train, orderHistory_train)
+        print('build test action history features4')
+        test_features = build_action_history_features4(test, action_test, orderHistory_test)
 
-    print('save ', feature_name)
-    data_utils.save_features(train_features, test_features, feature_name)
+        print('save ', feature_name)
+        data_utils.save_features(train_features, test_features, feature_name)
+
+    feature_name = 'action_history_features5'
+    if not data_utils.is_feature_created(feature_name):
+        print('build train action history features5')
+
+        train_features = build_action_history_features5(train, action_train, orderHistory_train)
+        print('build test action history features5')
+        test_features = build_action_history_features5(test, action_test, orderHistory_test)
+
+        print('save ', feature_name)
+        data_utils.save_features(train_features, test_features, feature_name)
+
+    train_features3, test_features3 = data_utils.load_features('action_history_features3')
+    feature_name = 'action_history_features6'
+    if not data_utils.is_feature_created(feature_name):
+        print('build train action history features6')
+        train_features = build_action_history_features6(train_features3)
+        print('build test action history features6')
+        test_features = build_action_history_features6(test_features3)
+
+        print('save ', feature_name)
+        data_utils.save_features(train_features, test_features, feature_name)
+
+    # action 和 history 相结合构造特征
 
 
 if __name__ == "__main__":
