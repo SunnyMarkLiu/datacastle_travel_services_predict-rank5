@@ -7,7 +7,7 @@
 """
 from __future__ import absolute_import, division, print_function
 
-# import hashlib
+import hashlib
 import os
 import sys
 
@@ -16,9 +16,9 @@ sys.path.append(module_path)
 
 # remove warnings
 import warnings
-
 warnings.filterwarnings('ignore')
 
+import time
 import numpy as np
 import pandas as pd
 from conf.configure import Configure
@@ -274,25 +274,379 @@ def numerical_order_history_sequence(sequence):
     score = np.dot(weights, sequence)
     return score
 
+
+def getActionTimeSpan(df_action_of_userid, actiontypeA, actiontypeB, timethred=100):
+    timespan_list = []
+    i = 0
+    while i < (len(df_action_of_userid)-1):
+        if df_action_of_userid['actionType'].iat[i] == actiontypeA:
+            timeA = df_action_of_userid['actionTime'].iat[i]
+            for j in range(i+1, len(df_action_of_userid)):
+                if df_action_of_userid['actionType'].iat[j] == actiontypeA:
+                    timeA = df_action_of_userid['actionTime'].iat[j]
+                if df_action_of_userid['actionType'].iat[j] == actiontypeB:
+                    timeB = df_action_of_userid['actionTime'].iat[j]
+                    timespan_list.append(timeB-timeA)
+                    i = j
+                    break
+        i+=1
+    return np.sum(np.array(timespan_list) <= timethred) / (np.sum(np.array(timespan_list)) + 1.0)
+
+
+def get2ActionTimeSpanLast(df_action_of_userid, actiontypeA, actiontypeB):
+    timespan_list = []
+    i = 0
+    while i < (len(df_action_of_userid)-1):
+        if df_action_of_userid['actionType'].iat[i] == actiontypeA:
+            timeA = df_action_of_userid['actionTime'].iat[i]
+            for j in range(i+1, len(df_action_of_userid)):
+                if df_action_of_userid['actionType'].iat[j] == actiontypeA:
+                    timeA = df_action_of_userid['actionTime'].iat[j]
+                    continue
+                if df_action_of_userid['actionType'].iat[j] == actiontypeB:
+                    timeB = df_action_of_userid['actionTime'].iat[j]
+                    timespan_list.append(timeB-timeA)
+                    i = j
+                    break
+        i+=1
+    if len(timespan_list) > 0:
+        return timespan_list[-1]
+    else:
+        return -1
+
+def calc_seqentialratio(df_action_of_userid):
+    i = 0
+    pos_5 = -1
+    result = 0
+    df_len = len(df_action_of_userid)
+    for i in range(0, df_len):
+        if df_action_of_userid['actionType'].iat[i] == 5:
+            pos_5 = i
+    if pos_5 != -1:
+        result += 1
+        if pos_5+1 < df_len:
+            if df_action_of_userid['actionType'].iat[pos_5+1] == 6:
+                result += 1
+                if pos_5+2 < df_len:
+                    if df_action_of_userid['actionType'].iat[pos_5+2] == 7:
+                        result += 1
+                        if pos_5+3 < df_len:
+                            if df_action_of_userid['actionType'].iat[pos_5+3] == 8:
+                                result += 1
+    return result
+
+
+def getTagsFromActionByUserid(uid, action_grouped):
+    df_action_of_userid = action_grouped[uid]
+    sum_action = len(df_action_of_userid)  # 一个用户action的总次数
+    actiontime_last_1_year = -1
+    actiontime_last_1_month = -1
+    action_last_1 = 0   # 倒数第1次actionType
+    action_last_2 = 0   # 倒数第2次actionType
+    action_last_3 = 0   # 倒数第3次actionType
+    action_last_4 = 0   # 倒数第4次actionType
+    action_last_5 = 0   # 倒数第5次actionType
+    action_last_6 = 0   # 倒数第6次actionType
+    action_last_7 = 0   # 倒数第7次actionType
+    action_last_8 = 0   # 倒数第8次actionType
+    action_last_9 = 0   # 倒数第9次actionType
+    action_last_10 = 0  # 倒数第10次actionType
+    action_last_11 = 0  # 倒数第11次actionType
+    action_last_12 = 0  # 倒数第12次actionType
+    action_last_13 = 0  # 倒数第13次actionType
+    action_last_14 = 0  # 倒数第14次actionType
+    action_last_15 = 0  # 倒数第15次actionType
+    action_last_16 = 0  # 倒数第16次actionType
+    action_last_17 = 0  # 倒数第17次actionType
+    action_last_18 = 0  # 倒数第18次actionType
+    action_last_19 = 0  # 倒数第19次actionType
+    action_last_20 = 0  # 倒数第20次actionType
+    #actiontime_mean = np.mean(df_action['actionTime'])
+    actiontime_last_1 = 0   # 倒数第1次actionTime
+    actiontime_last_2 = 0   # 倒数第2次actionTime
+    actiontime_last_3 = 0   # 倒数第3次actionTime
+    actiontime_last_4 = 0   # 倒数第4次actionTime
+    actiontime_last_5 = 0   # 倒数第5次actionTime
+    actiontime_last_6 = 0   # 倒数第6次actionTime
+    actiontime_last_7 = 0   # 倒数第7次actionTime
+    actiontime_last_8 = 0   # 倒数第8次actionTime
+    actiontime_last_9 = 0   # 倒数第9次actionTime
+    actiontime_last_10 = 0  # 倒数第10次actionTime
+    actiontime_last_11 = 0  # 倒数第11次actionTime
+    actiontime_last_12 = 0  # 倒数第12次actionTime
+    actiontime_last_13 = 0  # 倒数第13次actionTime
+    actiontime_last_14 = 0  # 倒数第14次actionTime
+    actiontime_last_15 = 0  # 倒数第15次actionTime
+    actiontime_last_16 = 0  # 倒数第16次actionTime
+    actiontime_last_17 = 0  # 倒数第17次actionTime
+    actiontime_last_18 = 0  # 倒数第18次actionTime
+    actiontime_last_19 = 0  # 倒数第19次actionTime
+    actiontime_last_20 = 0  # 倒数第20次actionTime
+    actiontypeprop_1 = 0  # actionType1占比
+    actiontypeprop_2 = 0  # actionType2占比
+    actiontypeprop_3 = 0  # actionType3占比
+    actiontypeprop_4 = 0  # actionType4占比
+    actiontypeprop_5 = 0  # actionType5占比
+    actiontypeprop_6 = 0  # actionType6占比
+    actiontypeprop_7 = 0  # actionType7占比
+    actiontypeprop_8 = 0  # actionType8占比
+    actiontypeprop_9 = 0  # actionType9占比
+    timespanthred = 100
+    actiontimespancount_1_5 = 0  # actionType1-5的时间差小于timespanthred的数量
+    actiontimespancount_5_6 = 0  # actionType5-6的时间差小于timespanthred的数量
+    actiontimespancount_6_7 = 0  # actionType6-7的时间差小于timespanthred的数量
+    actiontimespancount_7_8 = 0  # actionType7-8的时间差小于timespanthred的数量
+    actiontimespancount_8_9 = 0  # actionType8-9的时间差小于timespanthred的数量
+    actionratio_24_59 = 1.0      # actionType2-4与5-9之间的比值
+    actiontype_lasttime_1 = 0    # actionType1最后一次出现的时间
+    actiontype_lasttime_5 = 0    # actionType5最后一次出现的时间
+    actiontype_lasttime_6 = 0    # actionType6最后一次出现的时间
+    actiontype_lasttime_7 = 0    # actionType7最后一次出现的时间
+    actiontype_lasttime_8 = 0    # actionType8最后一次出现的时间
+    actiontype_lasttime_9 = 0    # actionType9最后一次出现的时间
+    actiontype_lasttime_24 = 0   # actionType2-4最后一次出现的时间
+    actiontimespanlast_1_5 = 0   # 最后一次actionType1与5之间的间隔
+    actiontimespanlast_5_6 = 0   # 最后一次actionType5与6之间的间隔
+    actiontimespanlast_6_7 = 0   # 最后一次actionType6与7之间的间隔
+    actiontimespanlast_7_8 = 0   # 最后一次actionType7与8之间的间隔
+    actiontimespanlast_5_7 = 0   # 最后一次actionType5与7之间的间隔
+    actiontimespanlast_5_8 = 0   # 最后一次actionType5与8之间的间隔
+    action59seqentialratio = 0      # actionType5-9的连续程度
+    actiontypeproplast20_1 = 0  # 最后20个action中，actionType1占比
+    actiontypeproplast20_2 = 0  # 最后20个action中，actionType2占比
+    actiontypeproplast20_3 = 0  # 最后20个action中，actionType3占比
+    actiontypeproplast20_4 = 0  # 最后20个action中，actionType4占比
+    actiontypeproplast20_5 = 0  # 最后20个action中，actionType5占比
+    actiontypeproplast20_6 = 0  # 最后20个action中，actionType6占比
+    actiontypeproplast20_7 = 0  # 最后20个action中，actionType7占比
+    actiontypeproplast20_8 = 0  # 最后20个action中，actionType8占比
+    actiontypeproplast20_9 = 0  # 最后20个action中，actionType9占比
+    actiontime_1 = 0            # 第一个actionTime（用户第一次使用app的时间）
+    if sum_action >= 1:
+        actiontime_1 = df_action_of_userid['actionTime'].iat[0]
+        action_last_1 = df_action_of_userid['actionType'].iat[-1]
+        actiontime_last_1 = df_action_of_userid['actionTime'].iat[-1]
+        time_local = time.localtime(actiontime_last_1)
+        actiontime_last_1_year = time_local.tm_year
+        actiontime_last_1_month = time_local.tm_mon
+        if len(df_action_of_userid[df_action_of_userid['actionType'] == 1]) > 0:
+            actiontype_lasttime_1 = df_action_of_userid[df_action_of_userid['actionType'] == 1].iloc[-1]['actionTime']
+        if len(df_action_of_userid[df_action_of_userid['actionType'] == 5]) > 0:
+            actiontype_lasttime_5 = df_action_of_userid[df_action_of_userid['actionType'] == 5].iloc[-1]['actionTime']
+        if len(df_action_of_userid[df_action_of_userid['actionType'] == 6]) > 0:
+            actiontype_lasttime_6 = df_action_of_userid[df_action_of_userid['actionType'] == 6].iloc[-1]['actionTime']
+        if len(df_action_of_userid[df_action_of_userid['actionType'] == 7]) > 0:
+            actiontype_lasttime_7 = df_action_of_userid[df_action_of_userid['actionType'] == 7].iloc[-1]['actionTime']
+        if len(df_action_of_userid[df_action_of_userid['actionType'] == 8]) > 0:
+            actiontype_lasttime_8 = df_action_of_userid[df_action_of_userid['actionType'] == 8].iloc[-1]['actionTime']
+        if len(df_action_of_userid[df_action_of_userid['actionType'] == 9]) > 0:
+            actiontype_lasttime_9 = df_action_of_userid[df_action_of_userid['actionType'] == 9].iloc[-1]['actionTime']
+        if len(df_action_of_userid[(df_action_of_userid['actionType'] >= 2) & (df_action_of_userid['actionType'] <= 4)]) > 0:
+            actiontype_lasttime_24 = df_action_of_userid[(df_action_of_userid['actionType'] >= 2) & (df_action_of_userid['actionType'] <= 4)].iloc[-1]['actionTime']
+    if sum_action >= 2:
+        action_last_2 = df_action_of_userid['actionType'].iat[-2]
+        actiontime_last_2 = df_action_of_userid['actionTime'].iat[-2]
+    if sum_action >= 3:
+        action_last_3 = df_action_of_userid['actionType'].iat[-3]
+        actiontime_last_3 = df_action_of_userid['actionTime'].iat[-3]
+        actiontimespanlast_1_5 = get2ActionTimeSpanLast(df_action_of_userid, 1, 5)
+        actiontimespanlast_5_6 = get2ActionTimeSpanLast(df_action_of_userid, 5, 6)
+        actiontimespanlast_6_7 = get2ActionTimeSpanLast(df_action_of_userid, 6, 7)
+        actiontimespanlast_7_8 = get2ActionTimeSpanLast(df_action_of_userid, 7, 8)
+        actiontimespanlast_5_7 = get2ActionTimeSpanLast(df_action_of_userid, 5, 7)
+        actiontimespanlast_5_8 = get2ActionTimeSpanLast(df_action_of_userid, 5, 8)
+        action59seqentialratio = calc_seqentialratio(df_action_of_userid)
+    if sum_action >= 4:
+        action_last_4 = df_action_of_userid['actionType'].iat[-4]
+        actiontime_last_4 = df_action_of_userid['actionTime'].iat[-4]
+    if sum_action >= 5:
+        action_last_5 = df_action_of_userid['actionType'].iat[-5]
+        actiontime_last_5 = df_action_of_userid['actionTime'].iat[-5]
+    if sum_action >= 6:
+        action_last_6 = df_action_of_userid['actionType'].iat[-6]
+        actiontime_last_6 = df_action_of_userid['actionTime'].iat[-6]
+    if sum_action >= 7:
+        action_last_7 = df_action_of_userid['actionType'].iat[-7]
+        actiontime_last_7 = df_action_of_userid['actionTime'].iat[-7]
+    if sum_action >= 8:
+        action_last_8 = df_action_of_userid['actionType'].iat[-8]
+        actiontime_last_8 = df_action_of_userid['actionTime'].iat[-8]
+    if sum_action >= 9:
+        action_last_9 = df_action_of_userid['actionType'].iat[-9]
+        actiontime_last_9 = df_action_of_userid['actionTime'].iat[-9]
+    if sum_action >= 10:
+        action_last_10 = df_action_of_userid['actionType'].iat[-10]
+        actiontime_last_10 = df_action_of_userid['actionTime'].iat[-10]
+    if sum_action >= 11:
+        action_last_11 = df_action_of_userid['actionType'].iat[-11]
+        actiontime_last_11 = df_action_of_userid['actionTime'].iat[-11]
+    if sum_action >= 12:
+        action_last_12 = df_action_of_userid['actionType'].iat[-12]
+        actiontime_last_12 = df_action_of_userid['actionTime'].iat[-12]
+    if sum_action >= 13:
+        action_last_13 = df_action_of_userid['actionType'].iat[-13]
+        actiontime_last_13 = df_action_of_userid['actionTime'].iat[-13]
+    if sum_action >= 14:
+        action_last_14 = df_action_of_userid['actionType'].iat[-14]
+        actiontime_last_14 = df_action_of_userid['actionTime'].iat[-14]
+    if sum_action >= 15:
+        action_last_15 = df_action_of_userid['actionType'].iat[-15]
+        actiontime_last_15 = df_action_of_userid['actionTime'].iat[-15]
+    if sum_action >= 16:
+        action_last_16 = df_action_of_userid['actionType'].iat[-16]
+        actiontime_last_16 = df_action_of_userid['actionTime'].iat[-16]
+    if sum_action >= 17:
+        action_last_17 = df_action_of_userid['actionType'].iat[-17]
+        actiontime_last_17 = df_action_of_userid['actionTime'].iat[-17]
+    if sum_action >= 18:
+        action_last_18 = df_action_of_userid['actionType'].iat[-18]
+        actiontime_last_18 = df_action_of_userid['actionTime'].iat[-18]
+    if sum_action >= 19:
+        action_last_19 = df_action_of_userid['actionType'].iat[-19]
+        actiontime_last_19 = df_action_of_userid['actionTime'].iat[-19]
+    if sum_action >= 20:
+        action_last_20 = df_action_of_userid['actionType'].iat[-20]
+        actiontime_last_20 = df_action_of_userid['actionTime'].iat[-20]
+        actiontypeproplast20_1 = np.sum(df_action_of_userid.iloc[-20:]['actionType']==1)
+        actiontypeproplast20_2 = np.sum(df_action_of_userid.iloc[-20:]['actionType']==2)
+        actiontypeproplast20_3 = np.sum(df_action_of_userid.iloc[-20:]['actionType']==3)
+        actiontypeproplast20_4 = np.sum(df_action_of_userid.iloc[-20:]['actionType']==4)
+        actiontypeproplast20_5 = np.sum(df_action_of_userid.iloc[-20:]['actionType']==5)
+        actiontypeproplast20_6 = np.sum(df_action_of_userid.iloc[-20:]['actionType']==6)
+        actiontypeproplast20_7 = np.sum(df_action_of_userid.iloc[-20:]['actionType']==7)
+        actiontypeproplast20_8 = np.sum(df_action_of_userid.iloc[-20:]['actionType']==8)
+        actiontypeproplast20_9 = np.sum(df_action_of_userid.iloc[-20:]['actionType']==9)
+    actiontypeprop_1 = np.sum(df_action_of_userid['actionType']==1) / (sum_action+1.0)
+    actiontypeprop_2 = np.sum(df_action_of_userid['actionType']==2) / (sum_action+1.0)
+    actiontypeprop_3 = np.sum(df_action_of_userid['actionType']==3) / (sum_action+1.0)
+    actiontypeprop_4 = np.sum(df_action_of_userid['actionType']==4) / (sum_action+1.0)
+    actiontypeprop_5 = np.sum(df_action_of_userid['actionType']==5) / (sum_action+1.0)
+    actiontypeprop_6 = np.sum(df_action_of_userid['actionType']==6) / (sum_action+1.0)
+    actiontypeprop_7 = np.sum(df_action_of_userid['actionType']==7) / (sum_action+1.0)
+    actiontypeprop_8 = np.sum(df_action_of_userid['actionType']==8) / (sum_action+1.0)
+    actiontypeprop_9 = np.sum(df_action_of_userid['actionType']==9) / (sum_action+1.0)
+    actiontimespancount_1_5 = getActionTimeSpan(df_action_of_userid, 1, 5, timespanthred)
+    actiontimespancount_5_6 = getActionTimeSpan(df_action_of_userid, 5, 6, timespanthred)
+    actiontimespancount_6_7 = getActionTimeSpan(df_action_of_userid, 6, 7, timespanthred)
+    actiontimespancount_7_8 = getActionTimeSpan(df_action_of_userid, 5, 8, timespanthred)
+    actiontimespancount_8_9 = getActionTimeSpan(df_action_of_userid, 4, 9, timespanthred)
+    sum_action_24 = np.sum((df_action_of_userid['actionType'] >= 2) & (df_action_of_userid['actionType'] <= 4))
+    sum_action_59 = np.sum((df_action_of_userid['actionType'] >= 5) & (df_action_of_userid['actionType'] <= 9))
+    actionratio_24_59 = (sum_action_24 + 1.0) / (sum_action_59 + 1.0)
+    return actiontime_last_1_year, actiontime_last_1_month, action_last_1, action_last_2, action_last_3, action_last_4, \
+           action_last_5, action_last_6, action_last_7, action_last_8, action_last_9, action_last_10, action_last_11, \
+           action_last_12, action_last_13, action_last_14, action_last_15, action_last_16, action_last_17, action_last_18, \
+           action_last_19, action_last_20, actiontime_last_1, actiontime_last_2, actiontime_last_3, actiontime_last_4, \
+           actiontime_last_5, actiontime_last_6, actiontime_last_7, actiontime_last_8, actiontime_last_9, actiontime_last_10, \
+           actiontime_last_11, actiontime_last_12, actiontime_last_13, actiontime_last_14, actiontime_last_15, actiontime_last_16, \
+           actiontime_last_17, actiontime_last_18, actiontime_last_19, actiontime_last_20, actiontypeprop_1, actiontypeprop_2, \
+           actiontypeprop_3, actiontypeprop_4, actiontypeprop_5, actiontypeprop_6, actiontypeprop_7, actiontypeprop_8, actiontypeprop_9, \
+           actiontimespancount_1_5, actiontimespancount_5_6, actiontimespancount_6_7, actiontimespancount_7_8, actiontimespancount_8_9, \
+           actionratio_24_59, actiontype_lasttime_1, actiontype_lasttime_5, actiontype_lasttime_6, actiontype_lasttime_7, actiontype_lasttime_8, \
+           actiontype_lasttime_9, actiontype_lasttime_24, actiontimespanlast_1_5, actiontimespanlast_5_6, actiontimespanlast_6_7, \
+           actiontimespanlast_7_8, actiontimespanlast_5_7, actiontimespanlast_5_8, action59seqentialratio, actiontypeproplast20_1, \
+           actiontypeproplast20_2, actiontypeproplast20_3, actiontypeproplast20_4, actiontypeproplast20_5, actiontypeproplast20_6, \
+           actiontypeproplast20_7, actiontypeproplast20_8, actiontypeproplast20_9, actiontime_1
+
+
 def build_action_history_features3(df, action, history):
     features = pd.DataFrame({'userid': df['userid']})
 
-    unique_history_ids = history['userid'].unique()
     action_grouped = dict(list(action.groupby('userid')))
-    history_grouped = dict(list(history.groupby('userid')))
 
-    # 是否有交易历史
-    features['has_history_flag'] = features['userid'].map(lambda uid: uid in unique_history_ids).astype(int)
+    features['statistic'] = features.apply(lambda row: getTagsFromActionByUserid(row['userid'], action_grouped), axis=1)
+    features['actiontime_last_1_year'] = features['statistic'].map(lambda x: x[0])
+    features['actiontime_last_1_month'] = features['statistic'].map(lambda x: x[1])
 
-    print('order history 信息')
-    # features['order_history_sequence'] = features.apply(lambda row: gen_order_history_sequence(row['userid'], history_grouped, row['has_history_flag']), axis=1)
-    # features['hash_order_history_sequence'] = features['order_history_sequence'].map(lambda x: int(hashlib.sha1(''.join(x)).hexdigest(), 16) % (10 ** 10))
-    # features['numerical_order_history_sequence'] = features['order_history_sequence'].map(numerical_order_history_sequence)
-    #
-    # del features['order_history_sequence']
-    del features['has_history_flag']
+    features['action_last_1'] = features['statistic'].map(lambda x: x[2])
+    features['action_last_2'] = features['statistic'].map(lambda x: x[3])
+    features['action_last_3'] = features['statistic'].map(lambda x: x[4])
+    features['action_last_4'] = features['statistic'].map(lambda x: x[5])
+    features['action_last_5'] = features['statistic'].map(lambda x: x[6])
+    features['action_last_6'] = features['statistic'].map(lambda x: x[7])
+    features['action_last_7'] = features['statistic'].map(lambda x: x[8])
+    features['action_last_8'] = features['statistic'].map(lambda x: x[9])
+    features['action_last_9'] = features['statistic'].map(lambda x: x[10])
+    features['action_last_10'] = features['statistic'].map(lambda x: x[11])
+    features['action_last_11'] = features['statistic'].map(lambda x: x[12])
+    features['action_last_12'] = features['statistic'].map(lambda x: x[13])
+    features['action_last_13'] = features['statistic'].map(lambda x: x[14])
+    features['action_last_14'] = features['statistic'].map(lambda x: x[15])
+    features['action_last_15'] = features['statistic'].map(lambda x: x[16])
+    features['action_last_16'] = features['statistic'].map(lambda x: x[17])
+    features['action_last_17'] = features['statistic'].map(lambda x: x[18])
+    features['action_last_18'] = features['statistic'].map(lambda x: x[19])
+    features['action_last_19'] = features['statistic'].map(lambda x: x[20])
+    features['action_last_20'] = features['statistic'].map(lambda x: x[21])
+
+    features['actiontime_last_1'] = features['statistic'].map(lambda x: x[22])
+    features['actiontime_last_2'] = features['statistic'].map(lambda x: x[23])
+    features['actiontime_last_3'] = features['statistic'].map(lambda x: x[24])
+    features['actiontime_last_4'] = features['statistic'].map(lambda x: x[25])
+    features['actiontime_last_5'] = features['statistic'].map(lambda x: x[26])
+    features['actiontime_last_6'] = features['statistic'].map(lambda x: x[27])
+    features['actiontime_last_7'] = features['statistic'].map(lambda x: x[28])
+    features['actiontime_last_8'] = features['statistic'].map(lambda x: x[29])
+    features['actiontime_last_9'] = features['statistic'].map(lambda x: x[30])
+    features['actiontime_last_10'] = features['statistic'].map(lambda x: x[31])
+    features['actiontime_last_11'] = features['statistic'].map(lambda x: x[32])
+    features['actiontime_last_12'] = features['statistic'].map(lambda x: x[33])
+    features['actiontime_last_13'] = features['statistic'].map(lambda x: x[34])
+    features['actiontime_last_14'] = features['statistic'].map(lambda x: x[35])
+    features['actiontime_last_15'] = features['statistic'].map(lambda x: x[36])
+    features['actiontime_last_16'] = features['statistic'].map(lambda x: x[37])
+    features['actiontime_last_17'] = features['statistic'].map(lambda x: x[38])
+    features['actiontime_last_18'] = features['statistic'].map(lambda x: x[39])
+    features['actiontime_last_19'] = features['statistic'].map(lambda x: x[40])
+    features['actiontime_last_20'] = features['statistic'].map(lambda x: x[41])
+
+    features['actiontypeprop_1'] = features['statistic'].map(lambda x: x[42])
+    features['actiontypeprop_2'] = features['statistic'].map(lambda x: x[43])
+    features['actiontypeprop_3'] = features['statistic'].map(lambda x: x[44])
+    features['actiontypeprop_4'] = features['statistic'].map(lambda x: x[45])
+    features['actiontypeprop_5'] = features['statistic'].map(lambda x: x[46])
+    features['actiontypeprop_6'] = features['statistic'].map(lambda x: x[47])
+    features['actiontypeprop_7'] = features['statistic'].map(lambda x: x[48])
+    features['actiontypeprop_8'] = features['statistic'].map(lambda x: x[49])
+    features['actiontypeprop_9'] = features['statistic'].map(lambda x: x[50])
+
+    features['actiontimespancount_1_5'] = features['statistic'].map(lambda x: x[51])
+    features['actiontimespancount_5_6'] = features['statistic'].map(lambda x: x[52])
+    features['actiontimespancount_6_7'] = features['statistic'].map(lambda x: x[53])
+    features['actiontimespancount_7_8'] = features['statistic'].map(lambda x: x[54])
+    features['actiontimespancount_8_9'] = features['statistic'].map(lambda x: x[55])
+    features['actionratio_24_59'] = features['statistic'].map(lambda x: x[56])
+
+    features['actiontype_lasttime_1'] = features['statistic'].map(lambda x: x[57])
+    features['actiontype_lasttime_5'] = features['statistic'].map(lambda x: x[58])
+    features['actiontype_lasttime_6'] = features['statistic'].map(lambda x: x[59])
+    features['actiontype_lasttime_7'] = features['statistic'].map(lambda x: x[60])
+    features['actiontype_lasttime_8'] = features['statistic'].map(lambda x: x[61])
+    features['actiontype_lasttime_9'] = features['statistic'].map(lambda x: x[62])
+    features['actiontype_lasttime_24'] = features['statistic'].map(lambda x: x[63])
+
+    features['actiontimespanlast_1_5'] = features['statistic'].map(lambda x: x[64])
+    features['actiontimespanlast_5_6'] = features['statistic'].map(lambda x: x[65])
+    features['actiontimespanlast_6_7'] = features['statistic'].map(lambda x: x[66])
+    features['actiontimespanlast_7_8'] = features['statistic'].map(lambda x: x[67])
+    features['actiontimespanlast_5_7'] = features['statistic'].map(lambda x: x[68])
+    features['actiontimespanlast_5_8'] = features['statistic'].map(lambda x: x[69])
+
+    features['action59seqentialratio'] = features['statistic'].map(lambda x: x[70])
+
+    features['actiontypeproplast20_1'] = features['statistic'].map(lambda x: x[71])
+    features['actiontypeproplast20_2'] = features['statistic'].map(lambda x: x[72])
+    features['actiontypeproplast20_3'] = features['statistic'].map(lambda x: x[73])
+    features['actiontypeproplast20_4'] = features['statistic'].map(lambda x: x[74])
+    features['actiontypeproplast20_5'] = features['statistic'].map(lambda x: x[75])
+    features['actiontypeproplast20_6'] = features['statistic'].map(lambda x: x[76])
+    features['actiontypeproplast20_7'] = features['statistic'].map(lambda x: x[77])
+    features['actiontypeproplast20_8'] = features['statistic'].map(lambda x: x[78])
+    features['actiontypeproplast20_9'] = features['statistic'].map(lambda x: x[79])
+    features['actiontime_1'] = features['statistic'].map(lambda x: x[80])
+
+    del features['statistic']
     return features
-
 
 def main():
 
@@ -320,34 +674,37 @@ def main():
     orderHistory_test.sort_values(by='orderTime', inplace=True)
 
     feature_name = 'action_history_features'
-    # if not data_utils.is_feature_created(feature_name):
-    print('build train action history features')
-    train_features = build_action_history_features(train, action_train, orderHistory_train)
-    print('build test action history features')
-    test_features = build_action_history_features(test, action_test, orderHistory_test)
+    if not data_utils.is_feature_created(feature_name):
+        print('build train action history features')
+        train_features = build_action_history_features(train, action_train, orderHistory_train)
+        print('build test action history features')
+        test_features = build_action_history_features(test, action_test, orderHistory_test)
 
-    print('save ', feature_name)
-    data_utils.save_features(train_features, test_features, feature_name)
+        print('save ', feature_name)
+        data_utils.save_features(train_features, test_features, feature_name)
 
     feature_name = 'action_history_features2'
-    # if not data_utils.is_feature_created(feature_name):
-    print('build train action history features2')
-    train_features = build_action_history_features2(train, action_train, orderHistory_train)
-    print('build test action history features2')
-    test_features = build_action_history_features2(test, action_test, orderHistory_test)
+    if not data_utils.is_feature_created(feature_name):
+        print('build train action history features2')
+        train_features = build_action_history_features2(train, action_train, orderHistory_train)
+        print('build test action history features2')
+        test_features = build_action_history_features2(test, action_test, orderHistory_test)
 
-    print('save ', feature_name)
-    data_utils.save_features(train_features, test_features, feature_name)
+        print('save ', feature_name)
+        data_utils.save_features(train_features, test_features, feature_name)
+
+    action_train = pd.read_csv(Configure.base_path + 'train/action_train.csv')
+    action_test = pd.read_csv(Configure.base_path + 'test/action_test.csv')
 
     feature_name = 'action_history_features3'
-    # if not data_utils.is_feature_created(feature_name):
-    print('build train action history features3')
-    train_features = build_action_history_features3(train, action_train, orderHistory_train)
-    print('build test action history features3')
-    test_features = build_action_history_features3(test, action_test, orderHistory_test)
+    if not data_utils.is_feature_created(feature_name):
+        print('build train action history features3')
+        train_features = build_action_history_features3(train, action_train, orderHistory_train)
+        print('build test action history features3')
+        test_features = build_action_history_features3(test, action_test, orderHistory_test)
 
-    print('save ', feature_name)
-    data_utils.save_features(train_features, test_features, feature_name)
+        print('save ', feature_name)
+        data_utils.save_features(train_features, test_features, feature_name)
 
 
 if __name__ == "__main__":
