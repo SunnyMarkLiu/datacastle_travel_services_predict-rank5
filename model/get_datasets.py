@@ -39,4 +39,15 @@ def load_train_test():
                           on=features_merged_dict[feature_name]['on'],
                           how=features_merged_dict[feature_name]['how'])
 
+    # # 过采样处理样本不均衡
+    # pos_train = train[train['orderType'] == 1]
+    # neg_train = train[train['orderType'] == 0]
+    # print('train, ordertype1: ', pos_train.shape[0], ', ordertype0: ', neg_train.shape[0], ', 1:0 = ', 1.0 * pos_train.shape[0] / neg_train.shape[0])
+    #
+    # sample_pos_size = int(pos_train.shape[0] * 0.05)
+    # sample_pos_train = pos_train.sample(sample_pos_size, random_state=42)
+    # train = pd.concat([neg_train, pos_train, sample_pos_train])
+    # pos_train = train[train['orderType'] == 1]
+    # print('train, ordertype1: ', pos_train.shape[0], ', ordertype0: ', neg_train.shape[0], ', 1:0 = ', 1.0 * pos_train.shape[0] / neg_train.shape[0])
+
     return train, test
