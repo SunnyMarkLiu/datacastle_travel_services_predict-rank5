@@ -31,6 +31,7 @@ def load_train_test():
     # 加载特征， 并合并
     features_merged_dict = Configure.features
     for feature_name in Configure.features:
+        print('merge', feature_name)
         train_feature, test_feature = data_utils.load_features(feature_name)
         train = train.merge(train_feature,
                             on=features_merged_dict[feature_name]['on'],
@@ -49,5 +50,16 @@ def load_train_test():
     # train = pd.concat([neg_train, pos_train, sample_pos_train])
     # pos_train = train[train['orderType'] == 1]
     # print('train, ordertype1: ', pos_train.shape[0], ', ordertype0: ', neg_train.shape[0], ', 1:0 = ', 1.0 * pos_train.shape[0] / neg_train.shape[0])
+
+    train.drop(['gender', 'province', 'age', 'has_history_flag'], axis=1, inplace=True)
+    test.drop(['gender', 'province', 'age', 'has_history_flag'], axis=1, inplace=True)
+
+    # 去掉 importance 很低的特征
+    droped_features = ['actiontimespanlast_7_8', 'fillin_form7_std_delta', 'fillin_form7_mean_delta',
+                       'year_action_count', 'actiontypeproplast20_3', 'pay_money_max_delta',
+                       'pay_money_std_delta', 'last_time_order_now_has_paied_money', '2016_order_month_count',
+                       'fillin_form7_max_delta']
+    train.drop(droped_features, axis=1, inplace=True)
+    test.drop(droped_features, axis=1, inplace=True)
 
     return train, test

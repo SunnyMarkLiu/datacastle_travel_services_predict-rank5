@@ -36,17 +36,7 @@ def main():
 
     y_train_all = train['orderType']
     id_test = test['userid']
-
-    train.drop(['gender', 'province', 'age', 'orderType', 'has_history_flag'], axis=1, inplace=True)
-    test.drop(['gender', 'province', 'age', 'has_history_flag'], axis=1, inplace=True)
-
-    # 去掉 importance 很低的特征
-    droped_features = ['actiontimespanlast_7_8', 'fillin_form7_std_delta', 'fillin_form7_mean_delta',
-                       'year_action_count', 'actiontypeproplast20_3', 'pay_money_max_delta',
-                       'pay_money_std_delta', 'last_time_order_now_has_paied_money', '2016_order_month_count',
-                       'fillin_form7_max_delta']
-    train.drop(droped_features, axis=1, inplace=True)
-    test.drop(droped_features, axis=1, inplace=True)
+    del train['orderType']
 
     df_columns = train.columns.values
     print('===> feature count: {}'.format(len(df_columns)))

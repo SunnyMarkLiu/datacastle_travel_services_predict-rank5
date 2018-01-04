@@ -780,8 +780,8 @@ def build_action_history_features5(df, action, history):
     history['orderTime'] = history.orderTime.values.astype(np.int64) // 10 ** 9
     history_grouped = dict(list(history.groupby('userid')))
 
-    # 是否有交易历史
-    features['has_history_flag'] = features['userid'].map(lambda uid: uid in df_ids).astype(int)
+    # # 是否有交易历史
+    # features['has_history_flag'] = features['userid'].map(lambda uid: uid in df_ids).astype(int)
 
     features['last_-1_x_actiontype'] = features.apply(lambda row: last_time_x_actiontype(row['userid'], action_grouped, -1), axis=1)
     features['last_-2_x_actiontype'] = features.apply(lambda row: last_time_x_actiontype(row['userid'], action_grouped, -2), axis=1)
@@ -790,46 +790,46 @@ def build_action_history_features5(df, action, history):
     del features['last_-2_x_actiontype']
     del features['last_-3_x_actiontype']
 
-    print('距离上一次 actiontype 为 pay money 或有交易历史开始到现在的统计信息')
-    features['last_paymoney_orderhistory_statistic'] = \
-        features.apply(lambda row: last_paymoney_orderhistory_statistic(row['userid'], action_grouped, history_grouped, row['has_history_flag']), axis=1)
-    features['last_order_sum_all'] = features['last_paymoney_orderhistory_statistic'].map(lambda x: x[0])
-    features['last_order_actiontimespanlast_1_5'] = features['last_paymoney_orderhistory_statistic'].map(lambda x: x[1])
-    features['last_order_actiontimespanlast_5_6'] = features['last_paymoney_orderhistory_statistic'].map(lambda x: x[2])
-    features['last_order_actiontimespanlast_6_7'] = features['last_paymoney_orderhistory_statistic'].map(lambda x: x[3])
-    features['last_order_actiontimespanlast_7_8'] = features['last_paymoney_orderhistory_statistic'].map(lambda x: x[4])
-    features['last_order_actiontimespanlast_5_7'] = features['last_paymoney_orderhistory_statistic'].map(lambda x: x[5])
-    features['last_order_actiontimespanlast_5_8'] = features['last_paymoney_orderhistory_statistic'].map(lambda x: x[6])
-    features['last_order_action59seqentialratio'] = features['last_paymoney_orderhistory_statistic'].map(lambda x: x[7])
-    features['last_order_actiontimespancount_1_5'] = features['last_paymoney_orderhistory_statistic'].map(lambda x: x[8])
-    features['last_order_actiontimespancount_5_6'] = features['last_paymoney_orderhistory_statistic'].map(lambda x: x[9])
-    features['last_order_actiontimespancount_5_7'] = features['last_paymoney_orderhistory_statistic'].map(lambda x: x[10])
-    features['last_order_actiontimespancount_5_8'] = features['last_paymoney_orderhistory_statistic'].map(lambda x: x[11])
-    features['last_order_actiontimespancount_6_7'] = features['last_paymoney_orderhistory_statistic'].map(lambda x: x[12])
-    features['last_order_actiontimespancount_6_8'] = features['last_paymoney_orderhistory_statistic'].map(lambda x: x[13])
-    del features['last_paymoney_orderhistory_statistic']
+    # print('距离上一次 actiontype 为 pay money 或有交易历史开始到现在的统计信息')
+    # features['last_paymoney_orderhistory_statistic'] = \
+    #     features.apply(lambda row: last_paymoney_orderhistory_statistic(row['userid'], action_grouped, history_grouped, row['has_history_flag']), axis=1)
+    # features['last_order_sum_all'] = features['last_paymoney_orderhistory_statistic'].map(lambda x: x[0])
+    # features['last_order_actiontimespanlast_1_5'] = features['last_paymoney_orderhistory_statistic'].map(lambda x: x[1])
+    # features['last_order_actiontimespanlast_5_6'] = features['last_paymoney_orderhistory_statistic'].map(lambda x: x[2])
+    # features['last_order_actiontimespanlast_6_7'] = features['last_paymoney_orderhistory_statistic'].map(lambda x: x[3])
+    # features['last_order_actiontimespanlast_7_8'] = features['last_paymoney_orderhistory_statistic'].map(lambda x: x[4])
+    # features['last_order_actiontimespanlast_5_7'] = features['last_paymoney_orderhistory_statistic'].map(lambda x: x[5])
+    # features['last_order_actiontimespanlast_5_8'] = features['last_paymoney_orderhistory_statistic'].map(lambda x: x[6])
+    # features['last_order_action59seqentialratio'] = features['last_paymoney_orderhistory_statistic'].map(lambda x: x[7])
+    # features['last_order_actiontimespancount_1_5'] = features['last_paymoney_orderhistory_statistic'].map(lambda x: x[8])
+    # features['last_order_actiontimespancount_5_6'] = features['last_paymoney_orderhistory_statistic'].map(lambda x: x[9])
+    # features['last_order_actiontimespancount_5_7'] = features['last_paymoney_orderhistory_statistic'].map(lambda x: x[10])
+    # features['last_order_actiontimespancount_5_8'] = features['last_paymoney_orderhistory_statistic'].map(lambda x: x[11])
+    # features['last_order_actiontimespancount_6_7'] = features['last_paymoney_orderhistory_statistic'].map(lambda x: x[12])
+    # features['last_order_actiontimespancount_6_8'] = features['last_paymoney_orderhistory_statistic'].map(lambda x: x[13])
+    # del features['last_paymoney_orderhistory_statistic']
+    #
+    # print('action type 变化求出 score')
+    # end_time = action['actionTime'].max()
+    # actionType = pd.get_dummies(action['actionType'], prefix='actionType')
+    # tr_x = pd.concat([action, actionType], axis=1, join='inner')  # axis=1 是行
+    # del tr_x['actionType']
+    # del tr_x['actionTime']
+    # tr_x = tr_x.groupby('userid', as_index=False).sum()
+    # vals = []
+    # for i in range(1, 10):
+    #     vals.append(tr_x['actionType_%s' % i].sum())
+    # vals = list(
+    #     map(lambda x: round(-math.log((1.0 * (x - min(vals) + 100) / (max(vals) - min(vals) + 100 * len(vals)))), 4),
+    #         vals))
+    # acttype2weight = {(idx + 1): weight for idx, weight in enumerate(vals)}
+    # action['time_weight'] = action['actionTime'].apply(lambda x: 0.5 ** int((end_time - x) / (30 * 24 * 3600)))
+    # action['action_weight'] = action['actionType'].apply(lambda x: acttype2weight[x])
+    # action_grouped = dict(list(action.groupby('userid')))
+    # print('calc action score')
+    # features['action_score'] = features.apply(lambda row: calc_action_score(row['userid'], action_grouped), axis=1)
 
-    print('action type 变化求出 score')
-    end_time = action['actionTime'].max()
-    actionType = pd.get_dummies(action['actionType'], prefix='actionType')
-    tr_x = pd.concat([action, actionType], axis=1, join='inner')  # axis=1 是行
-    del tr_x['actionType']
-    del tr_x['actionTime']
-    tr_x = tr_x.groupby('userid', as_index=False).sum()
-    vals = []
-    for i in range(1, 10):
-        vals.append(tr_x['actionType_%s' % i].sum())
-    vals = list(
-        map(lambda x: round(-math.log((1.0 * (x - min(vals) + 100) / (max(vals) - min(vals) + 100 * len(vals)))), 4),
-            vals))
-    acttype2weight = {(idx + 1): weight for idx, weight in enumerate(vals)}
-    action['time_weight'] = action['actionTime'].apply(lambda x: 0.5 ** int((end_time - x) / (30 * 24 * 3600)))
-    action['action_weight'] = action['actionType'].apply(lambda x: acttype2weight[x])
-    action_grouped = dict(list(action.groupby('userid')))
-    print('calc action score')
-    features['action_score'] = features.apply(lambda row: calc_action_score(row['userid'], action_grouped), axis=1)
-
-    del features['has_history_flag']
+    # del features['has_history_flag']
     return features
 
 
@@ -944,6 +944,39 @@ def build_action_history_features6(features3):
     return features
 
 
+def several_days_had_action(uid, action_grouped, days_gap):
+    action_df = action_grouped[uid]
+
+    days = 1
+    last_day = 0
+    action_days_from_nows = action_df['days_from_now'].values
+    last_action_day = action_days_from_nows[-1]
+
+    for i in range(1, days_gap+1):
+        days += sum((action_df['days_from_now'] == last_action_day).astype(int))
+        last_action_day += 1
+
+    return days
+
+
+def build_action_history_features7(df, action, history):
+    features = pd.DataFrame({'userid': df['userid']})
+    action_grouped = dict(list(action.groupby('userid')))
+
+    # 连续操作的天数(如两天内都有操作 app)
+    features['several_1days_had_action'] = features.apply(lambda row: several_days_had_action(row['userid'], action_grouped, 1), axis=1)
+    features['several_1days_had_action_lg_150'] = features['several_1days_had_action'].map(lambda x: int(x > 150))
+    features['several_1days_had_action'] = np.log1p(features['several_1days_had_action'])
+
+    features['several_2days_had_action'] = features.apply(lambda row: several_days_had_action(row['userid'], action_grouped, 2), axis=1)
+    # features['several_2days_had_action_lg_220'] = features['several_2days_had_action'].map(lambda x: int(x > 220))
+    features['several_2days_had_action'] = np.log1p(features['several_2days_had_action'])
+
+    # 连续几天都进行了相关操作
+
+    return features
+
+
 def main():
 
     print('load cleaned datasets')
@@ -1012,13 +1045,13 @@ def main():
     action_test.sort_values(by='actionTime', inplace=True)
 
     feature_name = 'action_history_features5'
-    # if not data_utils.is_feature_created(feature_name):
-    print('build train action history features5')
-    train_features = build_action_history_features5(train, action_train, orderHistory_train)
-    print('build test action history features5')
-    test_features = build_action_history_features5(test, action_test, orderHistory_test)
-    print('save ', feature_name)
-    data_utils.save_features(train_features, test_features, feature_name)
+    if not data_utils.is_feature_created(feature_name):
+        print('build train action history features5')
+        train_features = build_action_history_features5(train, action_train, orderHistory_train)
+        print('build test action history features5')
+        test_features = build_action_history_features5(test, action_test, orderHistory_test)
+        print('save ', feature_name)
+        data_utils.save_features(train_features, test_features, feature_name)
 
     feature_name = 'action_history_features6'
     if not data_utils.is_feature_created(feature_name):
@@ -1027,6 +1060,21 @@ def main():
         train_features = build_action_history_features6(train_features3)
         print('build test action history features6')
         test_features = build_action_history_features6(test_features3)
+        print('save ', feature_name)
+        data_utils.save_features(train_features, test_features, feature_name)
+
+    feature_name = 'action_history_features7'
+    if not data_utils.is_feature_created(feature_name):
+        action_train = pd.read_csv(Configure.cleaned_path + 'cleaned_action_train.csv')
+        action_test = pd.read_csv(Configure.cleaned_path + 'cleaned_action_test.csv')
+        action_train['actionTime'] = pd.to_datetime(action_train['actionTime'])
+        action_test['actionTime'] = pd.to_datetime(action_test['actionTime'])
+        action_train.sort_values(by='actionTime', inplace=True)
+        action_test.sort_values(by='actionTime', inplace=True)
+        print('build train action history features7')
+        train_features = build_action_history_features7(train, action_train, orderHistory_train)
+        print('build test action history features7')
+        test_features = build_action_history_features7(test, action_test, orderHistory_test)
         print('save ', feature_name)
         data_utils.save_features(train_features, test_features, feature_name)
 
