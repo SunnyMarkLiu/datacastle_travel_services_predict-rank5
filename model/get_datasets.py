@@ -23,6 +23,11 @@ from conf.configure import Configure
 from utils import data_utils
 
 
+def feature_target_correlation(train):
+    """ 特征和类别的相关性 """
+
+
+
 def load_train_test():
     # 待预测订单的数据 （原始训练集和测试集）
     train = pd.read_csv(Configure.base_path + 'train/orderFuture_train.csv', encoding='utf8')

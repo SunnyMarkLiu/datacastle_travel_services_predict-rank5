@@ -125,8 +125,8 @@ def main():
     mean_test_logloss = cv_result.loc[best_num_boost_rounds-11 : best_num_boost_rounds-1, 'test-auc-mean'].mean()
     print('best_num_boost_rounds = {}'.format(best_num_boost_rounds))
 
-    num_boost_round = int(best_num_boost_rounds * 1.1)
-    print('num_boost_round = ', num_boost_round)
+    # num_boost_round = int(best_num_boost_rounds * 1.1)
+    # print('num_boost_round = ', num_boost_round)
 
     print('mean_train_auc = {:.7f} , mean_test_auc = {:.7f}\n'.format(mean_train_logloss, mean_test_logloss))
     print('---> training on total dataset to predict test and submit')
