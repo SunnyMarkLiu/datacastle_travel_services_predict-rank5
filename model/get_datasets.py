@@ -22,12 +22,6 @@ import pandas as pd
 from conf.configure import Configure
 from utils import data_utils
 
-
-def feature_target_correlation(train):
-    """ 特征和类别的相关性 """
-
-
-
 def load_train_test():
     # 待预测订单的数据 （原始训练集和测试集）
     train = pd.read_csv(Configure.base_path + 'train/orderFuture_train.csv', encoding='utf8')
@@ -60,10 +54,13 @@ def load_train_test():
     test.drop(['gender', 'province', 'age', 'has_history_flag'], axis=1, inplace=True)
 
     # 去掉 importance 很低的特征
-    droped_features = ['actiontimespanlast_7_8', 'fillin_form7_std_delta', 'fillin_form7_mean_delta',
-                       'year_action_count', 'actiontypeproplast20_3', 'pay_money_max_delta',
-                       'pay_money_std_delta', 'last_time_order_now_has_paied_money', '2016_order_month_count',
-                       'fillin_form7_max_delta']
+    droped_features = ['user_rating_std', 'actiontimespancount_8_9', 'actiontimespanlast_7_8', 'actiontimespancount_7_8',
+                       'age_lg00', 'age_lg60', 'has_pay_money', 'actiontypeproplast20_mean', 'last_time_order_now_action_pay_money_count', 'actiontypeproplast20_9',]
+
+                       # 'fillin_form7_std_delta', 'fillin_form7_mean_delta',
+                       # 'year_action_count', 'actiontypeproplast20_3', 'pay_money_max_delta',
+                       # 'pay_money_std_delta', 'last_time_order_now_has_paied_money', '2016_order_month_count',
+                       # 'fillin_form7_max_delta']
     train.drop(droped_features, axis=1, inplace=True)
     test.drop(droped_features, axis=1, inplace=True)
 

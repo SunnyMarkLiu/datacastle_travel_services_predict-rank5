@@ -16,11 +16,28 @@ sys.path.append(module_path)
 import pandas as pd
 
 
-def get_xgb_importance(clf):
-    impdf = []
-    for ft, score in clf.get_fscore().iteritems():
-        impdf.append({'feature': ft, 'importance': score})
-    impdf = pd.DataFrame(impdf)
-    impdf = impdf.sort_values(by='importance', ascending=False).reset_index(drop=True)
+def get_xgb_importance(clf, features):
+
+    weughts_imp = clf.get_score(importance_type='weight')
+    gains_imp = clf.get_score(importance_type='gain')
+    covers_imp = clf.get_score(importance_type='cover')
+
+    weights = []
+    gains = []
+    covers = []
+    for f in features:
+        weights.append(weughts_imp.get(f, 0))
+        gains.append(gains_imp.get(f, 0))
+        covers.append(covers_imp.get(f, 0))
+
+    features_imp = pd.DataFrame({'feature': features, 'weights': weights, 'gains': gains, 'covers': covers})
+    sum_weight = sum(features_imp['weights']) * 1.0
+    features_imp['weights'] = features_imp['weights'] / sum_weight
+    features_imp['importance'] = features_imp['weights'] + features_imp['gains'] + features_imp['covers']
+    del features_imp['weights']
+    del features_imp['gains']
+    del features_imp['covers']
+
+    impdf = features_imp.sort_values(by='importance', ascending=False).reset_index(drop=True)
     impdf['importance'] /= impdf['importance'].sum()
     return impdf
