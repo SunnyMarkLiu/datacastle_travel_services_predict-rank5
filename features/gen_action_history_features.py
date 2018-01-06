@@ -959,21 +959,93 @@ def several_days_had_action(uid, action_grouped, days_gap):
     return days
 
 
+def order_history_delta_statistic(uid, history_grouped, flag):
+    if flag == 0:
+        return -1, -1, -1, -1
+
+    df = history_grouped[uid]
+    order_times = df['orderTime'].values.tolist()
+    time_deltas = []
+    if len(order_times) == 1:
+        return -1, -1, -1, -1
+    for i in range(len(order_times) - 1):
+        time_deltas.append(order_times[i + 1] - order_times[i])
+    return np.mean(time_deltas), np.max(time_deltas), np.min(time_deltas), time_deltas[-1]
+
+
+def last_order_history_time(uid, history_grouped, flag):
+    if flag == 0:
+        return 0
+    df = history_grouped[uid]
+    return df['orderTime'].values.tolist()[-1]
+
+
+def last_month_order_now_action_count(uid, action_grouped):
+    """ 最近一个月距离现在的 action 操作的次数 """
+    a_df = action_grouped[uid]
+
+    sub_action_df = a_df[a_df['days_from_now'] < 30]
+    if sub_action_df.shape[0] == 0:
+        return 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+
+    actionTypes = sub_action_df['actionType'].tolist()
+    return len(actionTypes), actionTypes.count('browse_product'), actionTypes.count('browse_product2') \
+        , actionTypes.count('browse_product3') , actionTypes.count('fillin_form5'), \
+           actionTypes.count('fillin_form6'), actionTypes.count('fillin_form7'), actionTypes.count('open_app'), \
+           actionTypes.count('pay_money'), actionTypes.count('submit_order')
+
+
 def build_action_history_features7(df, action, history):
     features = pd.DataFrame({'userid': df['userid']})
     action_grouped = dict(list(action.groupby('userid')))
 
-    # 连续操作的天数(如两天内都有操作 app)
-    features['several_1days_had_action'] = features.apply(lambda row: several_days_had_action(row['userid'], action_grouped, 1), axis=1)
-    features['several_1days_had_action_lg_150'] = features['several_1days_had_action'].map(lambda x: int(x > 150))
-    features['several_1days_had_action'] = np.log1p(features['several_1days_had_action'])
+    # # 连续操作的天数(如两天内都有操作 app)
+    # features['several_1days_had_action'] = features.apply(lambda row: several_days_had_action(row['userid'], action_grouped, 1), axis=1)
+    # features['several_1days_had_action_lg_150'] = features['several_1days_had_action'].map(lambda x: int(x > 150))
+    # features['several_1days_had_action'] = np.log1p(features['several_1days_had_action'])
+    #
+    # features['several_2days_had_action'] = features.apply(lambda row: several_days_had_action(row['userid'], action_grouped, 2), axis=1)
+    # # features['several_2days_had_action_lg_220'] = features['several_2days_had_action'].map(lambda x: int(x > 220))
+    # features['several_2days_had_action'] = np.log1p(features['several_2days_had_action'])
 
-    features['several_2days_had_action'] = features.apply(lambda row: several_days_had_action(row['userid'], action_grouped, 2), axis=1)
-    # features['several_2days_had_action_lg_220'] = features['several_2days_had_action'].map(lambda x: int(x > 220))
-    features['several_2days_had_action'] = np.log1p(features['several_2days_had_action'])
 
-    # 连续几天都进行了相关操作
+    df_ids = history['userid'].unique()
+    # history['orderTime'] = history.orderTime.values.astype(np.int64) // 10 ** 9
+    history_grouped = dict(list(history.groupby('userid')))
 
+    # # 是否有交易历史
+    features['has_history_flag'] = features['userid'].map(lambda uid: uid in df_ids).astype(int)
+
+    # 上一次交易到现在的时间差和交易的平均时间差的统计特征
+    features['order_history_delta_statistic'] = features.apply(lambda row: order_history_delta_statistic(row['userid'], history_grouped, row['has_history_flag']), axis=1)
+    features['order_history_delta_mean'] = features['order_history_delta_statistic'].map(lambda x: x[0])
+    features['order_history_delta_max'] = features['order_history_delta_statistic'].map(lambda x: x[1])
+    features['order_history_delta_min'] = features['order_history_delta_statistic'].map(lambda x: x[2])
+    features['order_history_last_delta'] = features['order_history_delta_statistic'].map(lambda x: x[3])
+    del features['order_history_delta_statistic']
+    features['last_order_history_time'] = features.apply(lambda row: last_order_history_time(row['userid'], history_grouped, row['has_history_flag']), axis=1)
+    features['order_history_last_delta_minus_deltamean'] = features['order_history_last_delta'] - features['order_history_delta_mean']
+    features['order_history_last_delta_minus_deltamax'] = features['order_history_last_delta'] - features['order_history_delta_max']
+    features['order_history_last_delta_minus_deltamin'] = features['order_history_last_delta'] - features['order_history_delta_min']
+    del features['order_history_last_delta']
+
+    features['last_month_order_now_action_count'] = features.apply(lambda row: last_month_order_now_action_count(row['userid'], action_grouped), axis=1)
+    features['last_month_order_now_action_total_count'] = features['last_month_order_now_action_count'].map(lambda x: x[0])
+    features['last_month_order_now_action_browse_product_count'] = features['last_month_order_now_action_count'].map(lambda x: x[1])
+    features['last_month_order_now_action_browse_product2_count'] = features['last_month_order_now_action_count'].map(lambda x: x[2])
+    features['last_month_order_now_action_browse_product3_count'] = features['last_month_order_now_action_count'].map(lambda x: x[3])
+    features['last_month_order_now_action_fillin_form5_count'] = features['last_month_order_now_action_count'].map(lambda x: x[4])
+    features['last_month_order_now_action_fillin_form6_count'] = features['last_month_order_now_action_count'].map(lambda x: x[5])
+    features['last_month_order_now_action_fillin_form7_count'] = features['last_month_order_now_action_count'].map(lambda x: x[6])
+    features['last_month_order_now_action_open_app_count'] = features['last_month_order_now_action_count'].map(lambda x: x[7])
+    features['last_month_order_now_action_pay_money_count'] = features['last_month_order_now_action_count'].map(lambda x: x[8])
+    features['last_month_order_now_action_submit_order_count'] = features['last_month_order_now_action_count'].map(lambda x: x[9])
+    del features['last_month_order_now_action_count']
+    # 是否有支付操作和提交订单操作
+    features['last_month_order_now_has_paied_money'] = features['last_month_order_now_action_pay_money_count'].map(lambda x: int(x > 0))
+    features['last_month_order_now_has_submited_order'] = features['last_month_order_now_action_submit_order_count'].map(lambda x: int(x > 0))
+
+    del features['has_history_flag']
     return features
 
 
