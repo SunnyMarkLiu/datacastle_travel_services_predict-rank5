@@ -16,7 +16,7 @@ sys.path.append(module_path)
 import numpy as np
 import pandas as pd
 import xgboost as xgb
-from sklearn.model_selection import KFold
+from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import auc, roc_curve
 from get_datasets import load_train_test
 
@@ -58,7 +58,7 @@ def main():
     }
 
     roof_flod = 7
-    kf = KFold(n_splits=roof_flod, shuffle=True, random_state=42)
+    kf = StratifiedKFold(n_splits=roof_flod, shuffle=True, random_state=42)
 
     pred_train_full = np.zeros(train.shape[0])
     pred_test_full = 0
@@ -66,7 +66,7 @@ def main():
 
     dtest = xgb.DMatrix(test, feature_names=df_columns)
 
-    for i, (dev_index, val_index) in enumerate(kf.split(X_train)):
+    for i, (dev_index, val_index) in enumerate(kf.split(X_train, y_train_all)):
         print('========== perform fold {}, train size: {}, validate size: {} =========='.format(i, len(dev_index), len(val_index)))
         dev_X, val_X = X_train.ix[dev_index], X_train.ix[val_index]
         dev_y, val_y = y_train_all[dev_index], y_train_all[val_index]
