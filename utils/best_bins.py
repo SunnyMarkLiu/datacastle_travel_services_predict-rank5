@@ -19,7 +19,7 @@ def _check_target_binary(y):
     y:exog variable,pandas Series contains binary variable
     ------------------------------
     Return
-    if y is not binary, raise a error   
+    if y is not binary, raise a error
     """
     y_type = type_of_target(y)
     if y_type not in ['binary']:
@@ -31,7 +31,7 @@ def _isNullZero(x):
     check x is null or equal zero
     -----------------------------
     Params
-    x: data 
+    x: data
     -----------------------------
     Return
     bool obj
@@ -140,14 +140,14 @@ def _calCMerit(temp, ix, method):
     Calculation of the merit function for the current table temp
     ---------------------------------------------
     Params
-    temp: pandas dataframe, temp table in _bestSplit 
-    ix: single int obj,index of temp, from length of temp 
+    temp: pandas dataframe, temp table in _bestSplit
+    ix: single int obj,index of temp, from length of temp
     method: int obj, metric to split x(1:Gini, 2:Entropy, 3:person chisq, 4:Info value)
     ---------------------------------------------
     Return
     M_value: float or np.nan
     """
-    # split data by ix 
+    # split data by ix
     temp_L = temp[temp['i'] <= ix]
     temp_U = temp[temp['i'] > ix]
     # calculate sum of 0, 1, total for each splited data
@@ -188,7 +188,7 @@ def _calCMerit(temp, ix, method):
                 X2 = X2 + ((N_mat[i][j] - M[i][j]) * (N_mat[i][j] - M[i][j])) / M[i][j]
 
         M_value = X2
-    # Info Value    
+    # Info Value
     else:
         try:
             IV = ((n_11 / n_s1) - (n_12 / n_s2)) * np.log((n_11 * n_s2) / (n_12 * n_s1)) \
@@ -220,7 +220,7 @@ def _bestSplit(binDS, method, BinNo):
     bestI = 1
     for i in range(1, mb):
         # split data by i
-        # metric: Gini,Entropy,pearson chisq,Info value 
+        # metric: Gini,Entropy,pearson chisq,Info value
         value = _calCMerit(binDS, i, method)
         # if value>bestValue，then make value=bestValue，and bestI = i
         if bestValue < value:
@@ -241,7 +241,7 @@ def _bestSplit(binDS, method, BinNo):
 
 def _candSplit(binDS, method):
     """
-    Generate all candidate splits from current Bins 
+    Generate all candidate splits from current Bins
     and select the best new bins
     middle procession functions for binContVar & reduceCats
     ---------------------------------------------
@@ -273,7 +273,7 @@ def _candSplit(binDS, method):
     bin_i_value = []
     for i in range(1, Bmax + 1):
         if m[i] > 1:  # if nrows of bin > 1
-            # split data by best i        
+            # split data by best i
             temp_trysplit[i] = _bestSplit(temp_binC[i], method, i)
             temp_trysplit[i]['bin'] = np.where(temp_trysplit[i]['split'] == 1,
                                                Bmax + 1,
@@ -296,7 +296,7 @@ def _candSplit(binDS, method):
 
 def _EqualWidthBinMap(x, Acc, adjust):
     """
-    Data bining function, 
+    Data bining function,
     middle procession functions for binContVar
     method: equal width
     Mind: Generate bining width and interval by Acc
@@ -322,7 +322,7 @@ def _EqualWidthBinMap(x, Acc, adjust):
         Upper[i] = varMin + i * minMaxSize
         Lower[i] = varMin + (i - 1) * minMaxSize
 
-    # adjust the min_bin's lower and max_bin's upper     
+    # adjust the min_bin's lower and max_bin's upper
     Upper[Mbins] = Upper[Mbins] + adjust
     Lower[1] = Lower[1] - adjust
     bin_map = pd.concat([Lower, Upper], axis=1)
@@ -359,7 +359,7 @@ def _applyBinMap(x, bin_map):
 def _combineBins(temp_cont, target):
     """
     merge all bins that either 0 or 1 or total =0
-    middle procession functions for binContVar 
+    middle procession functions for binContVar
     ---------------------------------
     Params
     temp_cont: pandas dataframe, middle results of binContVar
@@ -416,14 +416,14 @@ def _getNewBins(sub, i):
 def binContVar(x, y, method, mmax=5, Acc=0.01, target=1, adjust=0.0001):
     """
     Optimal binings for contiouns var x by (y & method)
-    method is represent by number, 
+    method is represent by number,
         1:Gini, 2:Entropy, 3:person chisq, 4:Info value
     ---------------------------------------------
     Params
     x: pandas Series, which need to reduce category
     y: pandas Series, 0-1 distribute dependent variable
     method: int obj, metric to split x
-    mmax: int, bining number 
+    mmax: int, bining number
     Acc: float less than 1, partition ratio for equal width bining
     badlabel: target label
     adjust: float or np.inf, bining adjust for limitation
@@ -453,7 +453,7 @@ def binContVar(x, y, method, mmax=5, Acc=0.01, target=1, adjust=0.0001):
     temp_cont['pdv1'] = temp_cont.index
     # if any(0,1,total)==0, then combine it with per bin or next bin
     temp_cont = _combineBins(temp_cont, target)
-    # calculate other temp vars      
+    # calculate other temp vars
     temp_cont['bin'] = 1
     temp_cont['i'] = range(1, len(temp_cont) + 1)
     temp_cont['var'] = temp_cont.index
@@ -514,7 +514,7 @@ def _groupCal(x, y, badlabel=1):
 def reduceCats(x, y, method=1, mmax=5, badlabel=1):
     """
     Reduce category for x by y & method
-    method is represent by number, 
+    method is represent by number,
         1:Gini, 2:Entropy, 3:person chisq, 4:Info value
     ----------------------------------------------
     Params:
