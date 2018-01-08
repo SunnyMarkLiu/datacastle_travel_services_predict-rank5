@@ -55,6 +55,10 @@ def main():
     dummies = pd.get_dummies(test_user['gender'], prefix='gender')
     test_user[dummies.columns] = dummies
 
+    province = pd.read_csv('province_economic.csv', encoding='utf8')
+    train_user = train_user.merge(province, on='province', how='left')
+    test_user = test_user.merge(province, on='province', how='left')
+
     # 2. 省份进行 LabelEncoder
     train_user['province'] = train_user['province'].map(province_convert)
     test_user['province'] = test_user['province'].map(province_convert)

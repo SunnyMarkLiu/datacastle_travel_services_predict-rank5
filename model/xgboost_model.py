@@ -21,7 +21,6 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import auc, roc_curve
 from get_datasets import load_train_test
 from utils import xgb_utils
-from IPython.display import display
 
 
 def evaluate_score(predict, y_true):
@@ -43,8 +42,9 @@ def main():
     # print('feature check before modeling...')
     # feature_util.feature_check_before_modeling(train, test, df_columns)
 
-    scale_pos_weight = (np.sum(y_train_all == 0) / np.sum(y_train_all == 1)) - 1
-    # print('scale_pos_weight = ', scale_pos_weight)
+    # scale_pos_weight = (np.sum(y_train_all == 0) / np.sum(y_train_all == 1)) - 1
+    scale_pos_weight = 1
+    print('scale_pos_weight = ', scale_pos_weight)
 
     xgb_params = {
         'eta': 0.01,
@@ -53,7 +53,7 @@ def main():
         'max_depth': 8,
         'subsample': 0.9,
         'lambda': 2.0,
-        'scale_pos_weight': 1,
+        'scale_pos_weight': scale_pos_weight,
         'eval_metric': 'auc',
         'objective': 'binary:logistic',
         'updater': 'grow_gpu',

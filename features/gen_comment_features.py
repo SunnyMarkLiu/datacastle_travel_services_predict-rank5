@@ -122,18 +122,35 @@ def comment_tags_keywords_statistic(uid, userid_grouped, flag, name):
         return df[name].std(), df[name].var(), df[name].min(), df[name].median(), df[name].max(), df[name].mean()
 
 
+def bad_good_score_count(uid, userid_grouped, flag):
+    if flag == 0:
+        return -1, -1
+    df = userid_grouped[uid]
+    return sum(df['rating'] >= 4), sum(df['rating'] < 4)
+
+
+def comment_has_jingxi(uid, userid_grouped, flag):
+    if flag == 0:
+        return -1, -1
+    df = userid_grouped[uid]
+    df = df.fillna(' ')
+    tags = ' '.join(df['tags'].values.tolist())
+    result = u'行程安排有惊喜' in tags
+    return result
+
+
 def built_comment_features(df, comments):
     features = pd.DataFrame({'userid': df['userid']})
 
-    comments['tags'] = comments['tags'].map(lambda t: t.split('|') if t == t else ['None'])
-    comments['commentsKeyWords'] = comments['commentsKeyWords'].map(lambda t: t if t == t else ['None'])
-    comments['tags_count'] = comments['tags'].map(lambda x: len(x))
-    comments['keywords_count'] = comments['commentsKeyWords'].map(lambda x: len(x))
-    tags = []
-    for c_t in comments['tags'].values:
-        tags.extend(c_t)
-    unique_tags = set(tags)
-    unique_tags.remove('None')
+    # comments['tags'] = comments['tags'].map(lambda t: t.split('|') if t == t else ['None'])
+    # comments['commentsKeyWords'] = comments['commentsKeyWords'].map(lambda t: t if t == t else ['None'])
+    # comments['tags_count'] = comments['tags'].map(lambda x: len(x))
+    # comments['keywords_count'] = comments['commentsKeyWords'].map(lambda x: len(x))
+    # tags = []
+    # for c_t in comments['tags'].values:
+    #     tags.extend(c_t)
+    # unique_tags = set(tags)
+    # unique_tags.remove('None')
 
     df_ids = comments['userid'].unique()
     userid_grouped = dict(list(comments.groupby('userid')))
@@ -157,6 +174,15 @@ def built_comment_features(df, comments):
     features['raing4_ratio'] = features['user_rating_ratio'].map(lambda x: x[3])
     # features['raing5_ratio'] = features['user_rating_ratio'].map(lambda x: x[4])
     del features['user_rating_ratio']
+
+    # # 是否好评好评次数
+    # features['bad_good_score_count'] = features.apply(lambda row: bad_good_score_count(row['userid'], userid_grouped, row['has_comment_flag']), axis=1)
+    # features['good_score_count'] = features['bad_good_score_count'].map(lambda x: x[0])
+    # features['bad_score_count'] = features['bad_good_score_count'].map(lambda x: x[1])
+    # features['good_score_ratio'] = features['good_score_count'].astype(float) / (features['good_score_count'] + features['bad_score_count'])
+    # del features['bad_good_score_count']
+
+    # features['comment_has_jingxi'] = features.apply(lambda row: comment_has_jingxi(row['userid'], userid_grouped, row['has_comment_flag']), axis=1)
 
     # 最后一次打分
     # features['last_time_rating'] = features.apply(lambda row: last_time_rating(row['userid'], userid_grouped, row['has_comment_flag']), axis=1)
