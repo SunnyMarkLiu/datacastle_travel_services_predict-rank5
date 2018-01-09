@@ -791,8 +791,10 @@ def build_action_history_features5(df, action, history):
     del features['last_-3_x_actiontype']
 
     # print('距离上一次 actiontype 为 pay money 或有交易历史开始到现在的统计信息')
-    # features['last_paymoney_orderhistory_statistic'] = \
-    #     features.apply(lambda row: last_paymoney_orderhistory_statistic(row['userid'], action_grouped, history_grouped, row['has_history_flag']), axis=1)
+    # features['last_paymoney_orderhistory_statistic'] = features.apply(
+    #     lambda row: last_paymoney_orderhistory_statistic(row['userid'], action_grouped, history_grouped, row['has_history_flag']),
+    #     axis=1
+    # )
     # features['last_order_sum_all'] = features['last_paymoney_orderhistory_statistic'].map(lambda x: x[0])
     # features['last_order_actiontimespanlast_1_5'] = features['last_paymoney_orderhistory_statistic'].map(lambda x: x[1])
     # features['last_order_actiontimespanlast_5_6'] = features['last_paymoney_orderhistory_statistic'].map(lambda x: x[2])
@@ -1077,12 +1079,47 @@ def get_baseline_features():
     return train_features[used_features], test_features[used_features]
 
 
+def diff_action_type_time_delta_after_newyear(uid, action_grouped, actiontypeA, actiontypeB, flag):
+    if flag == 0:
+        return -999, -999, -999, -999, -999, -999
+
+    df_action_of_userid = action_grouped[uid]
+
+    timespan_list = []
+    i = 0
+    while i < (len(df_action_of_userid)-1):
+        if df_action_of_userid['actionType'].iat[i] == actiontypeA:
+            timeA = df_action_of_userid['actionTime'].iat[i]
+            for j in range(i+1, len(df_action_of_userid)):
+                if df_action_of_userid['actionType'].iat[j] == actiontypeA:
+                    timeA = df_action_of_userid['actionTime'].iat[j]
+                    continue
+                if df_action_of_userid['actionType'].iat[j] == actiontypeB:
+                    timeB = df_action_of_userid['actionTime'].iat[j]
+                    timespan_list.append(timeB-timeA)
+                    i = j
+        i+=1
+    if len(timespan_list) > 0:
+        if len(timespan_list) >= 3:
+            return np.min(timespan_list), np.max(timespan_list), np.mean(timespan_list), np.std(timespan_list), timespan_list[-3], timespan_list[-2]
+        elif len(timespan_list) == 2:
+            return np.min(timespan_list), np.max(timespan_list), np.mean(timespan_list), np.std(timespan_list), -999, timespan_list[-2]
+        else:
+            return np.min(timespan_list), np.max(timespan_list), np.mean(timespan_list), np.std(timespan_list), -999, -999
+    else:
+        return -999, -999, -999, -999, -999, -999
+
+
 def build_action_history_features8(df, action, history):
     features = pd.DataFrame({'userid': df['userid']})
     action_grouped = dict(list(action.groupby('userid')))
+    action_ids = action['userid'].unique()
+
+    # 是否有交易历史
+    features['after_newyear_has_action_flag'] = features['userid'].map(lambda uid: uid in action_ids).astype(int)
 
     # type 1 与 5-9 的时间差统计特征
-    features['diff_action_type_time_delta'] = features.apply(lambda row: diff_action_type_time_delta(row['userid'], action_grouped, 1, 5), axis=1)
+    features['diff_action_type_time_delta'] = features.apply(lambda row: diff_action_type_time_delta_after_newyear(row['userid'], action_grouped, 1, 5, row['after_newyear_has_action_flag']), axis=1)
     features['action_type_15_time_delta_min'] = features['diff_action_type_time_delta'].map(lambda x: x[0])
     features['action_type_15_time_delta_max'] = features['diff_action_type_time_delta'].map(lambda x: x[1])
     features['action_type_15_time_delta_mean'] = features['diff_action_type_time_delta'].map(lambda x: x[2])
@@ -1091,7 +1128,7 @@ def build_action_history_features8(df, action, history):
     # features['action_type_15_time_delta_last2'] = features['diff_action_type_time_delta'].map(lambda x: x[4])
     # features['action_type_15_time_delta_last3'] = features['diff_action_type_time_delta'].map(lambda x: x[5])
 
-    features['diff_action_type_time_delta'] = features.apply(lambda row: diff_action_type_time_delta(row['userid'], action_grouped, 1, 6), axis=1)
+    features['diff_action_type_time_delta'] = features.apply(lambda row: diff_action_type_time_delta_after_newyear(row['userid'], action_grouped, 1, 6, row['after_newyear_has_action_flag']), axis=1)
     features['action_type_16_time_delta_min'] = features['diff_action_type_time_delta'].map(lambda x: x[0])
     features['action_type_16_time_delta_max'] = features['diff_action_type_time_delta'].map(lambda x: x[1])
     features['action_type_16_time_delta_mean'] = features['diff_action_type_time_delta'].map(lambda x: x[2])
@@ -1140,6 +1177,7 @@ def build_action_history_features8(df, action, history):
     # features['action_type_35_time_delta_std'] = features['diff_action_type_time_delta'].map(lambda x: x[3])
 
     del features['diff_action_type_time_delta']
+    del features['after_newyear_has_action_flag']
     return features
 
 
