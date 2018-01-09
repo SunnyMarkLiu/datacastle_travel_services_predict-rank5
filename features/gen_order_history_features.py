@@ -245,7 +245,8 @@ def build_order_history_features(df, history):
     features['total_good_order_ratio'] = (features['total_good_order_count'] + 1) / (features['total_order_count'] + 2) - 0.5
     features.drop(['2016_good_order_count', '2017_good_order_count', 'total_order_count', 'total_good_order_count'], axis=1, inplace=True)
 
-    # 最后一次 order 的 check_name 的占比 （未测试）
+    # cv 变差一点点，不到1个万分点
+    # print('最后一次 order 的 check_name 的占比') #（未测试）
     # features['last_time_order_year_ratio'] = features.apply(lambda row: last_time_checkname_ratio(row['userid'], userid_grouped, row['has_history_flag'], 'order_year'), axis=1)
     # features['last_time_order_month_ratio'] = features.apply(lambda row: last_time_checkname_ratio(row['userid'], userid_grouped, row['has_history_flag'], 'order_month'), axis=1)
     # features['last_time_order_day_ratio'] = features.apply(lambda row: last_time_checkname_ratio(row['userid'], userid_grouped, row['has_history_flag'], 'order_day'), axis=1)
@@ -293,33 +294,86 @@ def build_time_category_encode(history):
     return history
 
 
-def main():
-    feature_name = 'user_order_history_features'
-    if data_utils.is_feature_created(feature_name):
-        return
+def father_son_order_statistic(uid, userid_grouped, flag):
+    if flag == 0:
+        return -1, -1
 
+    df = userid_grouped[uid]
+    if len(set(df['orderTime'])) < df.shape[0]: # 存在子父订单
+        start = -1
+        count = 0
+        for i in range(df.shape[0] - 2):
+            if df['orderTime'].iat[i] == df['orderTime'].iat[i+1]:
+                if count == 0:
+                    start = i
+                count += 1
+        df = df.iloc[start: start+count]
+        if df.shape[0] == 0:
+            return -1, -1
+        else:
+            order_type0_count = df[df['orderType'] == 0].shape[0]
+            order_type1_count = df[df['orderType'] == 0].shape[0]
+            order_type0_ratio = 1.0* order_type0_count / df.shape[0]
+            order_type1_ratio = 1.0* order_type1_count / df.shape[0]
+            return order_type0_ratio, order_type1_ratio
+    else:
+        return -1, -1
+
+
+def build_order_history_features2(df, history):
+    features = pd.DataFrame({'userid': df['userid']})
+
+    history_uids = history['userid'].unique()
+    history_grouped = dict(list(history.groupby('userid')))
+
+    #给trade表打标签，若id在login表中，则打标签为1，否则为0
+    features['has_history_flag'] = features['userid'].map(lambda uid: uid in history_uids).astype(int)
+
+    # 子父订单统计特征
+    features['father_son_order_statistic'] = features.apply(lambda row: father_son_order_statistic(row['userid'], history_grouped, row['has_history_flag']), axis=1)
+    # features['has_father_son_order'] = features['father_son_order_statistic'].map(lambda x: x[0])
+    # features['father_son_order_order_type0_count'] = features['father_son_order_statistic'].map(lambda x: x[1])
+    # features['father_son_order_order_type1_count'] = features['father_son_order_statistic'].map(lambda x: x[2])
+    features['father_son_order_order_type0_ratio'] = features['father_son_order_statistic'].map(lambda x: x[0])
+    features['father_son_order_order_type1_ratio'] = features['father_son_order_statistic'].map(lambda x: x[1])
+    del features['father_son_order_statistic']
+
+    del features['has_history_flag']
+    return features
+
+
+def main():
     # 待预测订单的数据 （原始训练集和测试集）
     train = pd.read_csv(Configure.base_path + 'train/orderFuture_train.csv', encoding='utf8')
     test = pd.read_csv(Configure.base_path + 'test/orderFuture_test.csv', encoding='utf8')
-
-
     orderHistory_train = pd.read_csv(Configure.base_path + 'train/orderHistory_train.csv', encoding='utf8')
     orderHistory_test = pd.read_csv(Configure.base_path + 'test/orderHistory_test.csv', encoding='utf8')
-
     orderHistory_train = build_time_category_encode(orderHistory_train)
     orderHistory_test = build_time_category_encode(orderHistory_test)
-
     print('save cleaned datasets')
-    orderHistory_train.to_csv(Configure.cleaned_path + 'cleaned_orderHistory_train.csv', index=False, columns=orderHistory_train.columns)
-    orderHistory_test.to_csv(Configure.cleaned_path + 'cleaned_orderHistory_test.csv', index=False, columns=orderHistory_test.columns)
+    orderHistory_train.to_csv(Configure.cleaned_path + 'cleaned_orderHistory_train.csv', index=False,
+                              columns=orderHistory_train.columns)
+    orderHistory_test.to_csv(Configure.cleaned_path + 'cleaned_orderHistory_test.csv', index=False,
+                             columns=orderHistory_test.columns)
 
-    print('build train features')
-    train_features = build_order_history_features(train, orderHistory_train)
-    print('build test features')
-    test_features = build_order_history_features(test, orderHistory_test)
+    feature_name = 'user_order_history_features'
+    if not data_utils.is_feature_created(feature_name):
+        print('build train user_order_history_features')
+        train_features = build_order_history_features(train, orderHistory_train)
+        print('build test user_order_history_features')
+        test_features = build_order_history_features(test, orderHistory_test)
+        print('save ', feature_name)
+        data_utils.save_features(train_features, test_features, feature_name)
 
-    print('save ', feature_name)
-    data_utils.save_features(train_features, test_features, feature_name)
+    feature_name = 'user_order_history_features2'
+    if not data_utils.is_feature_created(feature_name):
+        print('build train user_order_history_features2')
+        train_features = build_order_history_features2(train, orderHistory_train)
+        print('build test user_order_history_features2')
+        test_features = build_order_history_features2(test, orderHistory_test)
+
+        print('save ', feature_name)
+        data_utils.save_features(train_features, test_features, feature_name)
 
 
 if __name__ == "__main__":
