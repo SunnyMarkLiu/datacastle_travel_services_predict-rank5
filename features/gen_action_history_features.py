@@ -1077,6 +1077,46 @@ def get_baseline_features():
     return train_features[used_features], test_features[used_features]
 
 
+def build_action_history_features8(df, action, history):
+    features = pd.DataFrame({'userid': df['userid']})
+    action_grouped = dict(list(action.groupby('userid')))
+
+    features['diff_action_type_time_delta'] = features.apply(lambda row: diff_action_type_time_delta(row['userid'], action_grouped, 1, 5), axis=1)
+    features['action_type_15_time_delta_min'] = features['diff_action_type_time_delta'].map(lambda x: x[0])
+    features['action_type_15_time_delta_max'] = features['diff_action_type_time_delta'].map(lambda x: x[1])
+    features['action_type_15_time_delta_mean'] = features['diff_action_type_time_delta'].map(lambda x: x[2])
+    features['action_type_15_time_delta_std'] = features['diff_action_type_time_delta'].map(lambda x: x[3])
+    features['action_type_15_time_delta_last2'] = features['diff_action_type_time_delta'].map(lambda x: x[4])
+    features['action_type_15_time_delta_last3'] = features['diff_action_type_time_delta'].map(lambda x: x[5])
+    features['diff_action_type_time_delta'] = features.apply(lambda row: diff_action_type_time_delta(row['userid'], action_grouped, 1, 6), axis=1)
+    features['action_type_16_time_delta_min'] = features['diff_action_type_time_delta'].map(lambda x: x[0])
+    features['action_type_16_time_delta_max'] = features['diff_action_type_time_delta'].map(lambda x: x[1])
+    features['action_type_16_time_delta_mean'] = features['diff_action_type_time_delta'].map(lambda x: x[2])
+    features['action_type_16_time_delta_std'] = features['diff_action_type_time_delta'].map(lambda x: x[3])
+    features['action_type_16_time_delta_last2'] = features['diff_action_type_time_delta'].map(lambda x: x[4])
+    features['action_type_16_time_delta_last3'] = features['diff_action_type_time_delta'].map(lambda x: x[5])
+    features['diff_action_type_time_delta'] = features.apply(lambda row: diff_action_type_time_delta(row['userid'], action_grouped, 1, 7), axis=1)
+    features['action_type_17_time_delta_min'] = features['diff_action_type_time_delta'].map(lambda x: x[0])
+    features['action_type_17_time_delta_max'] = features['diff_action_type_time_delta'].map(lambda x: x[1])
+    features['action_type_17_time_delta_mean'] = features['diff_action_type_time_delta'].map(lambda x: x[2])
+    features['action_type_17_time_delta_std'] = features['diff_action_type_time_delta'].map(lambda x: x[3])
+
+    features['diff_action_type_time_delta'] = features.apply(lambda row: diff_action_type_time_delta(row['userid'], action_grouped, 1, 8), axis=1)
+    features['action_type_18_time_delta_min'] = features['diff_action_type_time_delta'].map(lambda x: x[0])
+    features['action_type_18_time_delta_max'] = features['diff_action_type_time_delta'].map(lambda x: x[1])
+    features['action_type_18_time_delta_mean'] = features['diff_action_type_time_delta'].map(lambda x: x[2])
+    features['action_type_18_time_delta_std'] = features['diff_action_type_time_delta'].map(lambda x: x[3])
+    features['diff_action_type_time_delta'] = features.apply(lambda row: diff_action_type_time_delta(row['userid'], action_grouped, 1, 9), axis=1)
+    features['action_type_19_time_delta_min'] = features['diff_action_type_time_delta'].map(lambda x: x[0])
+    features['action_type_19_time_delta_max'] = features['diff_action_type_time_delta'].map(lambda x: x[1])
+    features['action_type_19_time_delta_mean'] = features['diff_action_type_time_delta'].map(lambda x: x[2])
+    features['action_type_19_time_delta_std'] = features['diff_action_type_time_delta'].map(lambda x: x[3])
+
+    del features['diff_action_type_time_delta']
+    return features
+
+
+
 def main():
 
     print('load cleaned datasets')
@@ -1183,6 +1223,15 @@ def main():
     #     train_features, test_features = get_baseline_features()
     #     print('save ', feature_name)
     #     data_utils.save_features(train_features, test_features, feature_name)
+
+    feature_name = 'action_history_features8'
+    if not data_utils.is_feature_created(feature_name):
+        print('build train action history features8')
+        train_features = build_action_history_features8(train, action_train, orderHistory_train)
+        print('build test action history features8')
+        test_features = build_action_history_features8(test, action_test, orderHistory_test)
+        print('save ', feature_name)
+        data_utils.save_features(train_features, test_features, feature_name)
 
     # action 和 history 相结合构造特征
 
