@@ -49,7 +49,7 @@ def main():
         'eta': 0.01,
         'min_child_weight': 20,
         'colsample_bytree': 0.5,
-        'max_depth': 8,
+        'max_depth': 15,
         'subsample': 0.9,
         'lambda': 2.0,
         'scale_pos_weight': scale_pos_weight,
