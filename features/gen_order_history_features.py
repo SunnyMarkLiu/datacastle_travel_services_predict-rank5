@@ -186,8 +186,9 @@ def build_order_history_features(df, history):
     features['has_history_flag'] = features['userid'].map(lambda uid: uid in df_ids).astype(int)
 
     print("基本特征")
+    # build_order_history_features2 函数中提交提取，冗余
     # 最近的一次交易的 orderType
-    features['last_time_orderType'] = features.apply(lambda row: check_last_time_order_info(row['userid'], userid_grouped, row['has_history_flag'], 'orderType', 1), axis=1)
+    # features['last_time_orderType'] = features.apply(lambda row: check_last_time_order_info(row['userid'], userid_grouped, row['has_history_flag'], 'orderType', 1), axis=1)
     # 倒数第二个 orderType
     # features['last_2_time_orderType'] = features.apply(lambda row: check_last_time_order_info(row['userid'], userid_grouped, row['has_history_flag'], 'orderType', 2), axis=1)
     # features['last_3_time_orderType'] = features.apply(lambda row: check_last_time_order_info(row['userid'], userid_grouped, row['has_history_flag'], 'orderType',3), axis=1)
@@ -320,6 +321,67 @@ def father_son_order_statistic(uid, userid_grouped, flag):
         return -1, -1
 
 
+def first_order_history_type(uid, history_grouped, flag):
+    """  最后几次订单的 ordertype """
+    if flag == 0:
+        return -1, -1, -1
+
+    df = history_grouped[uid]
+    first2_ordertype = -1
+    first3_ordertype = -1
+
+    if df.shape[0] < 2:
+        first1_ordertype = df['orderType'].iat[0]
+
+    elif df.shape[0] < 3:
+        first1_ordertype = df['orderType'].iat[0]
+        first2_ordertype = df['orderType'].iat[1]
+    else:
+        first1_ordertype = df['orderType'].iat[0]
+        first2_ordertype = df['orderType'].iat[1]
+        first3_ordertype = df['orderType'].iat[2]
+
+    return first1_ordertype, first2_ordertype, first3_ordertype
+
+
+def last_order_history_type(uid, history_grouped, flag):
+    """  最后几次订单的 ordertype """
+    if flag == 0:
+        return -1, -1, -1
+
+    df = history_grouped[uid]
+    last2_ordertype = -1
+    last3_ordertype = -1
+
+    if df.shape[0] < 2:
+        last1_ordertype = df['orderType'].iat[-1]
+
+    elif df.shape[0] < 3:
+        last1_ordertype = df['orderType'].iat[-1]
+        last2_ordertype = df['orderType'].iat[-2]
+    else:
+        last1_ordertype = df['orderType'].iat[-1]
+        last2_ordertype = df['orderType'].iat[-2]
+        last3_ordertype = df['orderType'].iat[-3]
+
+    return last1_ordertype, last2_ordertype, last3_ordertype
+
+
+def first1_last1_ordertype(row):
+    if row['first_1_order_history_type'] == -1:
+        if row['last_1_order_history_type'] == -1:
+            return -1
+        else:
+            return row['last_1_order_history_type']
+
+    if row['last_1_order_history_type'] == -1:
+        if row['first_1_order_history_type'] == -1:
+            return -1
+        else:
+            return row['first_1_order_history_type']
+    return int((row['first_1_order_history_type'] == 1) | (row['last_1_order_history_type'] == 1))
+
+
 def build_order_history_features2(df, history):
     features = pd.DataFrame({'userid': df['userid']})
 
@@ -329,14 +391,31 @@ def build_order_history_features2(df, history):
     #给trade表打标签，若id在login表中，则打标签为1，否则为0
     features['has_history_flag'] = features['userid'].map(lambda uid: uid in history_uids).astype(int)
 
-    # 子父订单统计特征
-    features['father_son_order_statistic'] = features.apply(lambda row: father_son_order_statistic(row['userid'], history_grouped, row['has_history_flag']), axis=1)
-    # features['has_father_son_order'] = features['father_son_order_statistic'].map(lambda x: x[0])
-    # features['father_son_order_order_type0_count'] = features['father_son_order_statistic'].map(lambda x: x[1])
-    # features['father_son_order_order_type1_count'] = features['father_son_order_statistic'].map(lambda x: x[2])
-    features['father_son_order_order_type0_ratio'] = features['father_son_order_statistic'].map(lambda x: x[0])
-    features['father_son_order_order_type1_ratio'] = features['father_son_order_statistic'].map(lambda x: x[1])
-    del features['father_son_order_statistic']
+    # # 子父订单统计特征
+    # features['father_son_order_statistic'] = features.apply(lambda row: father_son_order_statistic(row['userid'], history_grouped, row['has_history_flag']), axis=1)
+    # # features['has_father_son_order'] = features['father_son_order_statistic'].map(lambda x: x[0])
+    # # features['father_son_order_order_type0_count'] = features['father_son_order_statistic'].map(lambda x: x[1])
+    # # features['father_son_order_order_type1_count'] = features['father_son_order_statistic'].map(lambda x: x[2])
+    # features['father_son_order_order_type0_ratio'] = features['father_son_order_statistic'].map(lambda x: x[0])
+    # features['father_son_order_order_type1_ratio'] = features['father_son_order_statistic'].map(lambda x: x[1])
+    # del features['father_son_order_statistic']
+
+    """ 强特！ """
+    # 第一，二，三次订单的 ordertype
+    features['first_order_history_type'] = features.apply(lambda row: first_order_history_type(row['userid'], history_grouped, row['has_history_flag']), axis=1)
+    features['first_1_order_history_type'] = features['first_order_history_type'].map(lambda x:x[0])
+    # features['first_2_order_history_type'] = features['first_order_history_type'].map(lambda x:x[1])
+    # features['first_3_order_history_type'] = features['first_order_history_type'].map(lambda x:x[2])
+    del features['first_order_history_type']
+    """ 强特！ """
+    # 最后一，二，三次订单的 ordertype
+    features['last_order_history_type'] = features.apply(lambda row: last_order_history_type(row['userid'], history_grouped, row['has_history_flag']), axis=1)
+    features['last_1_order_history_type'] = features['last_order_history_type'].map(lambda x:x[0])
+    # features['last_2_order_history_type'] = features['last_order_history_type'].map(lambda x:x[1])
+    # features['last_3_order_history_type'] = features['last_order_history_type'].map(lambda x:x[2])
+    del features['last_order_history_type']
+    # features['first1_last1_ordertype'] = features.apply(lambda row: first1_last1_ordertype(row), axis=1)  # 下面的线下效果要好些
+    features['first1_last1_ordertype'] = (features['first_1_order_history_type'] == 1) | (features['last_1_order_history_type'] == 1).astype(int)
 
     del features['has_history_flag']
     return features
@@ -350,7 +429,6 @@ def main():
     orderHistory_test = pd.read_csv(Configure.base_path + 'test/orderHistory_test.csv', encoding='utf8')
     orderHistory_train = build_time_category_encode(orderHistory_train)
     orderHistory_test = build_time_category_encode(orderHistory_test)
-    print('save cleaned datasets')
     orderHistory_train.to_csv(Configure.cleaned_path + 'cleaned_orderHistory_train.csv', index=False,
                               columns=orderHistory_train.columns)
     orderHistory_test.to_csv(Configure.cleaned_path + 'cleaned_orderHistory_test.csv', index=False,
@@ -366,7 +444,7 @@ def main():
         data_utils.save_features(train_features, test_features, feature_name)
 
     feature_name = 'user_order_history_features2'
-    if not data_utils.is_feature_created(feature_name):
+    if data_utils.is_feature_created(feature_name):
         print('build train user_order_history_features2')
         train_features = build_order_history_features2(train, orderHistory_train)
         print('build test user_order_history_features2')

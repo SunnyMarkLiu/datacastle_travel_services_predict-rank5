@@ -37,7 +37,7 @@ def main():
     del train['orderType']
 
     df_columns = train.columns.values
-    print('===> feature count: {}'.format(len(df_columns)))
+    print('train: {}, test: {}, feature count: {}'.format(train.shape[0], test.shape[0], len(df_columns)))
     # print('feature check before modeling...')
     # feature_util.feature_check_before_modeling(train, test, df_columns)
 
