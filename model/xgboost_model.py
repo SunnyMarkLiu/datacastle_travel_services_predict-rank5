@@ -47,7 +47,7 @@ def main():
 
     xgb_params = {
         'eta': 0.01,
-        'min_child_weight': 10,
+        'min_child_weight': 20,
         'colsample_bytree': 0.5,
         'max_depth': 8,
         'subsample': 0.9,
@@ -85,36 +85,6 @@ def main():
     # num_boost_round = int(best_num_boost_rounds * 1.1)
     # print('num_boost_round = ', num_boost_round)
 
-    print('mean_train_auc = {:.7f} , mean_test_auc = {:.7f}\n'.format(mean_train_logloss, mean_test_logloss))
-    print('---> training on total dataset to predict test and submit')
-    model = xgb.train(dict(xgb_params),
-                      dtrain_all,
-                      num_boost_round=best_num_boost_rounds)
-
-    importances = xgb_utils.get_xgb_importance(model, df_columns)
-    importances.to_csv('../features/features_importances.csv', index=False, columns=['feature', 'importance'])
-    print(set(train.columns) - set(importances['feature']))
-
-    feature_percentile = 0.95
-    use_columns = importances[importances['importance'] > importances.importance.quantile(1 - feature_percentile)]['feature']
-    print('使用 {}% 的特征后，特征的维度：{}'.format(feature_percentile, len(use_columns)))
-    train = train[use_columns]
-    test = test[use_columns]
-    dtrain_all = xgb.DMatrix(train.values, y_train_all, feature_names=use_columns)
-    dtest = xgb.DMatrix(test, feature_names=use_columns)
-    cv_result = xgb.cv(dict(xgb_params),
-                       dtrain_all,
-                       nfold=nfold,
-                       stratified=True,
-                       num_boost_round=4000,
-                       early_stopping_rounds=100,
-                       verbose_eval=100,
-                       show_stdv=False,
-                       )
-    best_num_boost_rounds = len(cv_result)
-    mean_train_logloss = cv_result.loc[best_num_boost_rounds - 11: best_num_boost_rounds - 1, 'train-auc-mean'].mean()
-    mean_test_logloss = cv_result.loc[best_num_boost_rounds - 11: best_num_boost_rounds - 1, 'test-auc-mean'].mean()
-    print('best_num_boost_rounds = {}'.format(best_num_boost_rounds))
     print('mean_train_auc = {:.7f} , mean_test_auc = {:.7f}\n'.format(mean_train_logloss, mean_test_logloss))
     print('---> training on total dataset to predict test and submit')
 
