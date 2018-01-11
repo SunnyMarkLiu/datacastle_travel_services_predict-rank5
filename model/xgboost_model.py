@@ -96,13 +96,17 @@ def main():
     importances = xgb_utils.get_xgb_importance(model, df_columns)
     importances.to_csv('../features/features_importances.csv', index=False, columns=['feature', 'importance'])
 
-    print('---> predict and submit')
-    print('---> predict submit')
+    print('---> predict test')
     y_pred = model.predict(dtest)
     df_sub = pd.DataFrame({'userid': id_test, 'orderType': y_pred})
     submission_path = '../result/{}_submission_{}.csv'.format('xgboost',
                                                                  time.strftime('%Y_%m_%d_%H_%M_%S',
                                                                                time.localtime(time.time())))
+    # 规则设置（cool！）
+    set_one_index = test[test['2016_2017_first_last_ordertype'] == 1].index
+    print('set to one count:', len(set_one_index))
+    df_sub.loc[set_one_index, 'orderType'] = 1
+
     df_sub.to_csv(submission_path, index=False, columns=['userid', 'orderType'])
     print('-------- predict and valid check  ------')
     print('test  count mean: {:.6f} , std: {:.6f}'.format(np.mean(df_sub['orderType']), np.std(df_sub['orderType'])))
