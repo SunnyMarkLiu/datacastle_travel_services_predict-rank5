@@ -56,7 +56,7 @@ def main():
         'eval_metric': 'auc',
         'objective': 'binary:logistic',
         'updater': 'grow_gpu',
-        'gpu_id': 2,
+        'gpu_id': 0,
         'nthread': -1,
         'silent': 1,
         'booster': 'gbtree'
@@ -91,6 +91,10 @@ def main():
     model = xgb.train(dict(xgb_params),
                       dtrain_all,
                       num_boost_round=best_num_boost_rounds)
+
+    print('save feature importances')
+    importances = xgb_utils.get_xgb_importance(model, df_columns)
+    importances.to_csv('../features/features_importances.csv', index=False, columns=['feature', 'importance'])
 
     print('---> predict and submit')
     print('---> predict submit')

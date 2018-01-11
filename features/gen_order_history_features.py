@@ -320,66 +320,20 @@ def father_son_order_statistic(uid, userid_grouped, flag):
     else:
         return -1, -1
 
-
-def first_order_history_type(uid, history_grouped, flag):
-    """  最后几次订单的 ordertype """
+def year_first_last_order_history_type(uid, history_grouped, flag, year=2017):
+    """  每年第一次和最后一次订单的 ordertype """
     if flag == 0:
-        return -1, -1, -1
+        return -1, -1
 
     df = history_grouped[uid]
-    first2_ordertype = -1
-    first3_ordertype = -1
+    df = df[df['order_year'] == year]
 
-    if df.shape[0] < 2:
-        first1_ordertype = df['orderType'].iat[0]
+    if df.shape[0] < 1:
+        return -1, -1
 
-    elif df.shape[0] < 3:
-        first1_ordertype = df['orderType'].iat[0]
-        first2_ordertype = df['orderType'].iat[1]
-    else:
-        first1_ordertype = df['orderType'].iat[0]
-        first2_ordertype = df['orderType'].iat[1]
-        first3_ordertype = df['orderType'].iat[2]
-
-    return first1_ordertype, first2_ordertype, first3_ordertype
-
-
-def last_order_history_type(uid, history_grouped, flag):
-    """  最后几次订单的 ordertype """
-    if flag == 0:
-        return -1, -1, -1
-
-    df = history_grouped[uid]
-    last2_ordertype = -1
-    last3_ordertype = -1
-
-    if df.shape[0] < 2:
-        last1_ordertype = df['orderType'].iat[-1]
-
-    elif df.shape[0] < 3:
-        last1_ordertype = df['orderType'].iat[-1]
-        last2_ordertype = df['orderType'].iat[-2]
-    else:
-        last1_ordertype = df['orderType'].iat[-1]
-        last2_ordertype = df['orderType'].iat[-2]
-        last3_ordertype = df['orderType'].iat[-3]
-
-    return last1_ordertype, last2_ordertype, last3_ordertype
-
-
-def first1_last1_ordertype(row):
-    if row['first_1_order_history_type'] == -1:
-        if row['last_1_order_history_type'] == -1:
-            return -1
-        else:
-            return row['last_1_order_history_type']
-
-    if row['last_1_order_history_type'] == -1:
-        if row['first_1_order_history_type'] == -1:
-            return -1
-        else:
-            return row['first_1_order_history_type']
-    return int((row['first_1_order_history_type'] == 1) | (row['last_1_order_history_type'] == 1))
+    first1_ordertype = df['orderType'].iat[0]
+    last1_ordertype = df['orderType'].iat[-1]
+    return first1_ordertype, last1_ordertype
 
 
 def build_order_history_features2(df, history):
@@ -401,21 +355,19 @@ def build_order_history_features2(df, history):
     # del features['father_son_order_statistic']
 
     """ 强特！ """
-    # 第一，二，三次订单的 ordertype
-    features['first_order_history_type'] = features.apply(lambda row: first_order_history_type(row['userid'], history_grouped, row['has_history_flag']), axis=1)
-    features['first_1_order_history_type'] = features['first_order_history_type'].map(lambda x:x[0])
-    # features['first_2_order_history_type'] = features['first_order_history_type'].map(lambda x:x[1])
-    # features['first_3_order_history_type'] = features['first_order_history_type'].map(lambda x:x[2])
-    del features['first_order_history_type']
-    """ 强特！ """
-    # 最后一，二，三次订单的 ordertype
-    features['last_order_history_type'] = features.apply(lambda row: last_order_history_type(row['userid'], history_grouped, row['has_history_flag']), axis=1)
-    features['last_1_order_history_type'] = features['last_order_history_type'].map(lambda x:x[0])
-    # features['last_2_order_history_type'] = features['last_order_history_type'].map(lambda x:x[1])
-    # features['last_3_order_history_type'] = features['last_order_history_type'].map(lambda x:x[2])
-    del features['last_order_history_type']
-    # features['first1_last1_ordertype'] = features.apply(lambda row: first1_last1_ordertype(row), axis=1)  # 下面的线下效果要好些
-    features['first1_last1_ordertype'] = (features['first_1_order_history_type'] == 1) | (features['last_1_order_history_type'] == 1).astype(int)
+    # 2017 年的第一次交易订单类型
+    features['2017_first_last_order_history_type'] = features.apply(lambda row: year_first_last_order_history_type(row['userid'], history_grouped, row['has_history_flag'], year=2017), axis=1)
+    features['2017_first_order_history_type'] = features['2017_first_last_order_history_type'].map(lambda x: x[0])
+    features['2017_last_order_history_type'] = features['2017_first_last_order_history_type'].map(lambda x: x[1])
+    features['2016_first_last_order_history_type'] = features.apply(lambda row: year_first_last_order_history_type(row['userid'], history_grouped, row['has_history_flag'], year=2016), axis=1)
+    features['2016_first_order_history_type'] = features['2016_first_last_order_history_type'].map(lambda x: x[0])
+    features['2016_last_order_history_type'] = features['2016_first_last_order_history_type'].map(lambda x: x[1])
+
+    features['2016_2017_first_last_ordertype'] = ((features['2016_first_order_history_type'] == 1) | (features['2017_first_order_history_type'] == 1) |
+                                                  (features['2016_last_order_history_type'] == 1) | (features['2017_last_order_history_type'] == 1)).astype(int)
+
+    features.drop(['2017_first_last_order_history_type', '2017_first_order_history_type', '2017_last_order_history_type',
+                   '2016_first_last_order_history_type', '2016_first_order_history_type', '2016_last_order_history_type'], axis=1, inplace=True)
 
     del features['has_history_flag']
     return features
