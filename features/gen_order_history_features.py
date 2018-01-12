@@ -269,6 +269,7 @@ def build_time_category_encode(history):
     history['days_from_now'] = history['orderTime'].map(lambda order: (now - order).days)
     history['order_year'] = history['orderTime'].dt.year
     history['order_month'] = history['orderTime'].dt.month
+    history['order_year_month'] = history['order_year'] * 100 + history['order_month']
     history['order_day'] = history['orderTime'].dt.day
     history['order_weekofyear'] = history['orderTime'].dt.weekofyear
     history['order_weekday'] = history['orderTime'].dt.weekday
@@ -355,8 +356,7 @@ def build_order_history_features2(df, history):
     # features['father_son_order_order_type1_ratio'] = features['father_son_order_statistic'].map(lambda x: x[1])
     # del features['father_son_order_statistic']
 
-    """ 强特！ """
-    # 2017 年的第一次交易订单类型
+    print('强特:2016_2017_first_last_ordertype')
     features['2017_first_last_order_history_type'] = features.apply(lambda row: year_first_last_order_history_type(row['userid'], history_grouped, row['has_history_flag'], year=2017), axis=1)
     features['2017_first_order_history_type'] = features['2017_first_last_order_history_type'].map(lambda x: x[0])
     features['2017_last_order_history_type'] = features['2017_first_last_order_history_type'].map(lambda x: x[1])
@@ -370,6 +370,12 @@ def build_order_history_features2(df, history):
     features.drop(['2017_first_last_order_history_type', '2017_first_order_history_type', '2017_last_order_history_type',
                    '2016_first_last_order_history_type', '2016_first_order_history_type', '2016_last_order_history_type'], axis=1, inplace=True)
 
+    print('每年每个月份订单的统计')
+    df = history.groupby(by=['userid', 'order_year_month']).count().reset_index()[['userid', 'order_year_month', 'orderid']].rename(columns={'orderid': 'year_month_order_count'})
+    df = df.pivot('userid', 'order_year_month', 'year_month_order_count').reset_index().fillna(0)
+    df.columns = df.columns.astype(str)
+    df.drop(['201709', '201708', '201707', '201701', '201705'], axis=1, inplace=True)
+    features = features.merge(df, on='userid', how='left')
     del features['has_history_flag']
     return features
 
@@ -463,7 +469,7 @@ def main():
         data_utils.save_features(train_features, test_features, feature_name)
 
     feature_name = 'user_order_history_features2'
-    if not data_utils.is_feature_created(feature_name):
+    if data_utils.is_feature_created(feature_name):
         print('build train user_order_history_features2')
         train_features = build_order_history_features2(train, orderHistory_train)
         print('build test user_order_history_features2')
