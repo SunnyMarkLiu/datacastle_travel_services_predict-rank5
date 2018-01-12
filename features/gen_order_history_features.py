@@ -19,6 +19,7 @@ import warnings
 warnings.filterwarnings('ignore')
 
 import datetime
+import numpy as np
 import pandas as pd
 from pypinyin import lazy_pinyin
 from sklearn.preprocessing import LabelEncoder
@@ -373,6 +374,72 @@ def build_order_history_features2(df, history):
     return features
 
 
+def history_city_hot_statistic(uid, history_grouped, flag, hot_df, column):
+    if flag == 0:
+        return -1, -1, -1, -1
+
+    df = history_grouped[uid]
+    citys = df[column].values
+    hots = []
+    for c in citys:
+        hots.append(hot_df[hot_df[column] == c]['hot'].values[0])
+
+    hots = np.array(hots)
+    return np.mean(hots), np.max(hots), np.min(hots), np.std(hots)
+
+
+def last_order_location_hot(uid, history_grouped, flag, hot_df, column):
+    if flag == 0:
+        return -1
+
+    df = history_grouped[uid]
+    last_hot = hot_df[hot_df[column] == df[column].iat[-1]]['hot'].values[0]
+    return last_hot
+
+
+def build_order_history_features3(df, orderHistory, history):
+    """ 热度分析 """
+    city_hot = orderHistory.groupby(['city']).count()['userid'].reset_index().rename(columns={'userid': 'hot'})
+    city_hot['hot'] = city_hot['hot'].astype(float) / sum(city_hot['hot'])
+    country_hot = orderHistory.groupby(['country']).count()['userid'].reset_index().rename(columns={'userid': 'hot'})
+    country_hot['hot'] = country_hot['hot'].astype(float) / sum(country_hot['hot'])
+    continent_hot = orderHistory.groupby(['continent']).count()['userid'].reset_index().rename(columns={'userid': 'hot'})
+    continent_hot['hot'] = continent_hot['hot'].astype(float) / sum(continent_hot['hot'])
+
+    features = pd.DataFrame({'userid': df['userid']})
+    history_uids = history['userid'].unique()
+    history_grouped = dict(list(history.groupby('userid')))
+    #给trade表打标签，若id在login表中，则打标签为1，否则为0
+    features['has_history_flag'] = features['userid'].map(lambda uid: uid in history_uids).astype(int)
+
+    # features['history_city_hot_statistic'] = features.apply(lambda row: history_city_hot_statistic(row['userid'], history_grouped, row['has_history_flag'], city_hot, 'city'), axis=1)
+    # features['history_city_hot_mean'] = features['history_city_hot_statistic'].map(lambda x:x[0])
+    # features['history_city_hot_max'] = features['history_city_hot_statistic'].map(lambda x:x[1])
+    # features['history_city_hot_min'] = features['history_city_hot_statistic'].map(lambda x:x[2])
+    # features['history_city_hot_std'] = features['history_city_hot_statistic'].map(lambda x:x[3])
+    # del features['history_city_hot_statistic']
+    # features['history_country_hot_statistic'] = features.apply(lambda row: history_city_hot_statistic(row['userid'], history_grouped, row['has_history_flag'], country_hot, 'country'), axis=1)
+    # features['history_country_hot_mean'] = features['history_country_hot_statistic'].map(lambda x:x[0])
+    # features['history_country_hot_max'] = features['history_country_hot_statistic'].map(lambda x:x[1])
+    # features['history_country_hot_min'] = features['history_country_hot_statistic'].map(lambda x:x[2])
+    # features['history_country_hot_std'] = features['history_country_hot_statistic'].map(lambda x:x[3])
+    # del features['history_country_hot_statistic']
+    # features['history_continent_hot_statistic'] = features.apply(lambda row: history_city_hot_statistic(row['userid'], history_grouped, row['has_history_flag'], continent_hot, 'continent'), axis=1)
+    # features['history_continent_hot_mean'] = features['history_continent_hot_statistic'].map(lambda x:x[0])
+    # features['history_continent_hot_max'] = features['history_continent_hot_statistic'].map(lambda x:x[1])
+    # features['history_continent_hot_min'] = features['history_continent_hot_statistic'].map(lambda x:x[2])
+    # features['history_continent_hot_std'] = features['history_continent_hot_statistic'].map(lambda x:x[3])
+    # del features['history_continent_hot_statistic']
+
+    # 只有 last_order_city_hot 线上A榜提升
+    features['last_order_city_hot'] = features.apply(lambda row: last_order_location_hot(row['userid'], history_grouped, row['has_history_flag'], city_hot, 'city'), axis=1)
+    # features['last_order_country_hot'] = features.apply(lambda row: last_order_location_hot(row['userid'], history_grouped, row['has_history_flag'], country_hot, 'country'), axis=1)
+    # features['last_order_continent_hot'] = features.apply(lambda row: last_order_location_hot(row['userid'], history_grouped, row['has_history_flag'], continent_hot, 'continent'), axis=1)
+
+    del features['has_history_flag']
+    return features
+
+
 def main():
     # 待预测订单的数据 （原始训练集和测试集）
     train = pd.read_csv(Configure.base_path + 'train/orderFuture_train.csv', encoding='utf8')
@@ -396,11 +463,22 @@ def main():
         data_utils.save_features(train_features, test_features, feature_name)
 
     feature_name = 'user_order_history_features2'
-    if data_utils.is_feature_created(feature_name):
+    if not data_utils.is_feature_created(feature_name):
         print('build train user_order_history_features2')
         train_features = build_order_history_features2(train, orderHistory_train)
         print('build test user_order_history_features2')
         test_features = build_order_history_features2(test, orderHistory_test)
+
+        print('save ', feature_name)
+        data_utils.save_features(train_features, test_features, feature_name)
+
+    feature_name = 'user_order_history_features3'
+    if data_utils.is_feature_created(feature_name):
+        orderHistory = pd.concat([orderHistory_train, orderHistory_test])
+        print('build train user_order_history_features3')
+        train_features = build_order_history_features3(train, orderHistory, orderHistory_train)
+        print('build test user_order_history_features3')
+        test_features = build_order_history_features3(test, orderHistory, orderHistory_test)
 
         print('save ', feature_name)
         data_utils.save_features(train_features, test_features, feature_name)

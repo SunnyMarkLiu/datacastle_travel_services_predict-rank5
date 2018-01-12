@@ -37,11 +37,11 @@ def main():
     del train['orderType']
 
     df_columns = train.columns.values
-    print('train: {}, test: {}, feature count: {}'.format(train.shape[0], test.shape[0], len(df_columns)))
+    print('train: {}, test: {}, feature count: {}, orderType 1:0 = {}'.format(train.shape[0], test.shape[0], len(df_columns), 1.0*sum(y_train_all) / len(y_train_all)))
     # print('feature check before modeling...')
     # feature_util.feature_check_before_modeling(train, test, df_columns)
 
-    # scale_pos_weight = (np.sum(y_train_all == 0) / np.sum(y_train_all == 1)) - 1
+    # scale_pos_weight = (np.sum(y_train_all == 0) / np.sum(y_train_all == 1))
     scale_pos_weight = 1
     print('scale_pos_weight = ', scale_pos_weight)
 
@@ -102,10 +102,10 @@ def main():
     submission_path = '../result/{}_submission_{}.csv'.format('xgboost',
                                                                  time.strftime('%Y_%m_%d_%H_%M_%S',
                                                                                time.localtime(time.time())))
-    # 规则设置（cool！）
-    set_one_index = test[test['2016_2017_first_last_ordertype'] == 1].index
-    print('set to one count:', len(set_one_index))
-    df_sub.loc[set_one_index, 'orderType'] = 1
+    # # 规则设置（cool！）
+    # set_one_index = test[test['2016_2017_first_last_ordertype'] == 1].index
+    # print('set to one count:', len(set_one_index))
+    # df_sub.loc[set_one_index, 'orderType'] = 1
 
     df_sub.to_csv(submission_path, index=False, columns=['userid', 'orderType'])
     print('-------- predict and valid check  ------')
