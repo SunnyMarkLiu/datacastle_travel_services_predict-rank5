@@ -420,6 +420,34 @@ def build_order_history_features3(df, orderHistory, history):
     return features
 
 
+def multi_order_has_good_order(uid, history_grouped, flag):
+    """ 多次订单并且有精品的老用户 """
+    if flag == 0:
+        return 0
+
+    df = history_grouped[uid]
+    if (df.shape[0] > 1) and sum(df['orderType']) > 0:
+        return 1
+
+    return 0
+
+
+def build_order_history_features4(df, history):
+    features = pd.DataFrame({'userid': df['userid']})
+
+    history_uids = history['userid'].unique()
+    history_grouped = dict(list(history.groupby('userid')))
+
+    #给trade表打标签，若id在login表中，则打标签为1，否则为0
+    features['has_history_flag'] = features['userid'].map(lambda uid: uid in history_uids).astype(int)
+
+    # 多次订单并且有精品的老用户
+    features['multi_order_has_good_order'] = features.apply(lambda row: multi_order_has_good_order(row['userid'], history_grouped, row['has_history_flag']), axis=1)
+
+    del features['has_history_flag']
+    return features
+
+
 def main():
     # 待预测订单的数据 （原始训练集和测试集）
     train = pd.read_csv(Configure.base_path + 'train/orderFuture_train.csv', encoding='utf8')
@@ -434,7 +462,7 @@ def main():
                              columns=orderHistory_test.columns)
 
     feature_name = 'user_order_history_features'
-    if data_utils.is_feature_created(feature_name):
+    if not data_utils.is_feature_created(feature_name):
         print('build train user_order_history_features')
         train_features = build_order_history_features(train, orderHistory_train)
         print('build test user_order_history_features')
@@ -448,7 +476,6 @@ def main():
         train_features = build_order_history_features2(train, orderHistory_train)
         print('build test user_order_history_features2')
         test_features = build_order_history_features2(test, orderHistory_test)
-
         print('save ', feature_name)
         data_utils.save_features(train_features, test_features, feature_name)
 
@@ -459,7 +486,15 @@ def main():
         train_features = build_order_history_features3(train, orderHistory, orderHistory_train)
         print('build test user_order_history_features3')
         test_features = build_order_history_features3(test, orderHistory, orderHistory_test)
+        print('save ', feature_name)
+        data_utils.save_features(train_features, test_features, feature_name)
 
+    feature_name = 'user_order_history_features4'
+    if data_utils.is_feature_created(feature_name):
+        print('build train user_order_history_features4')
+        train_features = build_order_history_features4(train, orderHistory_train)
+        print('build test user_order_history_features4')
+        test_features = build_order_history_features4(test, orderHistory_test)
         print('save ', feature_name)
         data_utils.save_features(train_features, test_features, feature_name)
 
