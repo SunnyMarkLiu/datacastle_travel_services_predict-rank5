@@ -30,107 +30,86 @@ from utils import data_utils
 def check_last_time_order_info(uid, userid_grouped, flag, check_name, last_time=1):
     """ 最近的一次交易的具体信息 check_name """
     if flag == 0:
-        return 2
+        return -1
 
     df = userid_grouped[uid]
-    if df.shape[0] == 0:
-        return 2
+    if df.shape[0] < last_time:
+        return -1
     else:
-        if df.shape[0] < last_time:
-            return 2
-        else:
-            return df.iloc[-last_time][check_name]
+        return df.iloc[-last_time][check_name]
 
 
 def pre_days_order_count(uid, userid_grouped, flag, days):
     """ 往前 days 的 order 数量 """
     if flag == 0:
-        return 2
+        return 0
 
     df = userid_grouped[uid]
-    if df.shape[0] == 0:
-        return 2
-    else:
-        df = df.loc[df['days_from_now'] < days]
-        return df.shape[0]
+    df = df.loc[df['days_from_now'] < days]
+    return df.shape[0]
 
 
 def pre_days_checkname_diff_count(uid, userid_grouped, flag, days, check_name):
     """ 往前 days 的 order 的不同 check_name 数量 """
     if flag == 0:
-        return 2
+        return 0
 
     df = userid_grouped[uid]
+    df = df.loc[df['days_from_now'] < days]
     if df.shape[0] == 0:
-        return 2
+        return 0
     else:
-        df = df.loc[df['days_from_now'] < days]
-        if df.shape[0] == 0:
-            return 0
-        else:
-            return len(df[check_name].unique())
+        return len(df[check_name].unique())
 
 
 def year_order_count(uid, userid_grouped, flag, year):
     """ 2016年的 order 的不同 check_name 数量 """
     if flag == 0:
-        return 2
+        return 0
 
     df = userid_grouped[uid]
-    if df.shape[0] == 0:
-        return 2
-    else:
-        df = df.loc[df['order_year'] == year]
-        return df.shape[0]
+    df = df.loc[df['order_year'] == year]
+    return df.shape[0]
 
 
 def year_checkname_diff_count(uid, userid_grouped, flag, year, check_name):
     """ year 的 order 的不同 check_name 数量 """
     if flag == 0:
-        return 2
+        return 0
 
     df = userid_grouped[uid]
+    df = df.loc[df['order_year'] == year]
     if df.shape[0] == 0:
-        return 2
+        return 0
     else:
-        df = df.loc[df['order_year'] == year]
-        if df.shape[0] == 0:
-            return 0
-        else:
-            return len(df[check_name].unique())
+        return len(df[check_name].unique())
 
 
 def year_order_month_count(uid, userid_grouped, flag, year):
     """ 每年去了几个月份 """
     if flag == 0:
-        return 2
+        return 0
 
     df = userid_grouped[uid]
+    df = df.loc[df['order_year'] == year]
     if df.shape[0] == 0:
-        return 2
+        return 0
     else:
-        df = df.loc[df['order_year'] == year]
-        if df.shape[0] == 0:
-            return 0
-        else:
-            return len(df['order_month'].unique())
+        return len(df['order_month'].unique())
 
 
 def year_order_month_most(uid, userid_grouped, flag, year):
     """ 每年一个月去的最多的次数 """
     if flag == 0:
-        return 2
+        return 0
 
     df = userid_grouped[uid]
+    df = df.loc[df['order_year'] == year]
+    df = df.groupby(['order_month']).count()['orderTime'].reset_index()
     if df.shape[0] == 0:
-        return 2
+        return 0
     else:
-        df = df.loc[df['order_year'] == year]
-        df = df.groupby(['order_month']).count()['orderTime'].reset_index()
-        if df.shape[0] == 0:
-            return 0
-        else:
-            return df['orderTime'].max()
+        return df['orderTime'].max()
 
 
 def year_most_order_month(uid, userid_grouped, flag, year):
@@ -139,42 +118,33 @@ def year_most_order_month(uid, userid_grouped, flag, year):
         return -1
 
     df = userid_grouped[uid]
+    df = df.loc[df['order_year'] == year]
+    df = df.groupby(['order_month']).count()['orderTime'].reset_index()
     if df.shape[0] == 0:
-        return 0
+        return -1
     else:
-        df = df.loc[df['order_year'] == year]
-        df = df.groupby(['order_month']).count()['orderTime'].reset_index()
-        if df.shape[0] == 0:
-            return 0
-        else:
-            return df.sort_values(by='orderTime', ascending=False)['order_month'].values[0]
+        return df.sort_values(by='orderTime', ascending=False)['order_month'].values[0]
 
 
 def year_good_order_count(uid, userid_grouped, flag, year):
     """ 每年精品订单数量 """
     if flag == 0:
-        return -1
+        return 0
 
     df = userid_grouped[uid]
-    if df.shape[0] == 0:
-        return 0
-    else:
-        df = df.loc[df['order_year'] == year]
-        return sum(df['orderType'])
+    df = df.loc[df['order_year'] == year]
+    return sum(df['orderType'])
 
 
 def last_time_checkname_ratio(uid, userid_grouped, flag, check_name):
     """ 最后一次 checkname 的占比 """
     if flag == 0:
-        return -1
+        return 0
 
     df = userid_grouped[uid]
-    if df.shape[0] == 0:
-        return 0
-    else:
-        last_check_name = df.iloc[-1][check_name]
-        last_count = df[check_name].tolist().count(last_check_name)
-        return 1.0 * last_count / df.shape[0]
+    last_check_name = df.iloc[-1][check_name]
+    last_count = df[check_name].tolist().count(last_check_name)
+    return 1.0 * last_count / df.shape[0]
 
 
 def build_order_history_features(df, history):
@@ -239,12 +209,16 @@ def build_order_history_features(df, history):
     print('比率特征')
     # 用户总订单数、精品订单数、精品订单比例
     features['2016_good_order_count'] = features.apply(lambda row: year_good_order_count(row['userid'], userid_grouped, row['has_history_flag'], 2016), axis=1)
-    features['2016_good_order_ratio'] = (features['2016_good_order_count'] + 1) / (features['2016_order_count'] + 2) - 0.5
+    features['2016_good_order_ratio'] = features.apply(lambda row: row['2016_good_order_count'] / row['2016_order_count'] if row['2016_order_count'] != 0 else 0, axis=1)
+
     features['2017_good_order_count'] = features.apply(lambda row: year_good_order_count(row['userid'], userid_grouped, row['has_history_flag'], 2017), axis=1)
-    features['2017_good_order_ratio'] = (features['2017_good_order_count'] + 1) / (features['2017_order_count'] + 2) - 0.5
+    features['2017_good_order_ratio'] = features.apply(lambda row: row['2017_good_order_count'] / row['2017_order_count'] if row['2017_order_count'] != 0 else 0, axis=1)
+
     features['total_order_count'] = features['2016_order_count'] + features['2017_order_count']
     features['total_good_order_count'] = features['2016_good_order_count'] + features['2017_good_order_count']
-    features['total_good_order_ratio'] = (features['total_good_order_count'] + 1) / (features['total_order_count'] + 2) - 0.5
+    features['total_good_order_ratio'] = features.apply(lambda row: row['total_good_order_count'] / row['total_order_count'] if row['total_order_count'] != 0 else 0, axis=1)
+    # has_good_order 强特！！
+    features['has_good_order'] = (features['total_good_order_ratio'] > 0).astype(int)
     features.drop(['2016_good_order_count', '2017_good_order_count', 'total_order_count', 'total_good_order_count'], axis=1, inplace=True)
 
     # cv 变差一点点，不到1个万分点
@@ -460,7 +434,7 @@ def main():
                              columns=orderHistory_test.columns)
 
     feature_name = 'user_order_history_features'
-    if not data_utils.is_feature_created(feature_name):
+    if data_utils.is_feature_created(feature_name):
         print('build train user_order_history_features')
         train_features = build_order_history_features(train, orderHistory_train)
         print('build test user_order_history_features')
