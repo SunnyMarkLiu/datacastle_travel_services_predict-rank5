@@ -469,7 +469,7 @@ def main():
         data_utils.save_features(train_features, test_features, feature_name)
 
     feature_name = 'user_order_history_features2'
-    if data_utils.is_feature_created(feature_name):
+    if not data_utils.is_feature_created(feature_name):
         print('build train user_order_history_features2')
         train_features = build_order_history_features2(train, orderHistory_train)
         print('build test user_order_history_features2')
@@ -479,7 +479,7 @@ def main():
         data_utils.save_features(train_features, test_features, feature_name)
 
     feature_name = 'user_order_history_features3'
-    if data_utils.is_feature_created(feature_name):
+    if not data_utils.is_feature_created(feature_name):
         orderHistory = pd.concat([orderHistory_train, orderHistory_test])
         print('build train user_order_history_features3')
         train_features = build_order_history_features3(train, orderHistory, orderHistory_train)
