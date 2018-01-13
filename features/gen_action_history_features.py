@@ -22,6 +22,7 @@ import math
 import time
 import numpy as np
 import pandas as pd
+from scipy.fftpack import fft
 from conf.configure import Configure
 from utils import data_utils
 
@@ -1181,6 +1182,26 @@ def build_action_history_features8(df, action, history):
     return features
 
 
+def create_action_sequence(uid, action_grouped):
+    df = action_grouped[uid]
+    sequence = df['actionTime'].values.tolist()
+    result = fft(sequence, len(sequence) + 2)
+    real = result.real
+    return real[0], real[1], real[2]
+
+
+def build_action_history_features9(df, action):
+    features = pd.DataFrame({'userid': df['userid']})
+    action_grouped = dict(list(action.groupby('userid')))
+
+    features['action_sequence'] = features.apply(lambda row: create_action_sequence(row['userid'], action_grouped), axis=1)
+    features['actiontype_seq_fft_real_0'] = features['action_sequence'].map(lambda x: x[0])
+    features['actiontype_seq_fft_real_1'] = features['action_sequence'].map(lambda x: x[1])
+    features['actiontype_seq_fft_real_2'] = features['action_sequence'].map(lambda x: x[2])
+    del features['action_sequence']
+
+    return features
+
 
 def main():
 
@@ -1288,6 +1309,15 @@ def main():
         train_features = build_action_history_features8(train, action_train, orderHistory_train)
         print('build test action history features8')
         test_features = build_action_history_features8(test, action_test, orderHistory_test)
+        print('save ', feature_name)
+        data_utils.save_features(train_features, test_features, feature_name)
+
+    feature_name = 'action_history_features9'
+    if data_utils.is_feature_created(feature_name):
+        print('build trainaction_history_features9')
+        train_features = build_action_history_features9(train, action_train)
+        print('build test action_history_features9')
+        test_features = build_action_history_features9(test, action_test)
         print('save ', feature_name)
         data_utils.save_features(train_features, test_features, feature_name)
 
