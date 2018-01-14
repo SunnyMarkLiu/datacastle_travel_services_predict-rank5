@@ -42,6 +42,7 @@ class Configure(object):
         'action_history_features9'    : {'on': 'userid', 'how': 'left'},
         # 'baseline_features'          : {'on': 'userid', 'how': 'left'},
         # 'word2vec_features'          : {'on': 'userid', 'how': 'left'},
+        'wxr_features'                : {'on': 'userid', 'how': 'left'}
     }
 
     # 数据清晰后的路径

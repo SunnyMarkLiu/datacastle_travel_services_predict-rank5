@@ -10,8 +10,6 @@ from __future__ import absolute_import, division, print_function
 import os
 import sys
 
-import cPickle
-
 module_path = os.path.abspath(os.path.join('..'))
 sys.path.append(module_path)
 
@@ -236,18 +234,6 @@ def main():
     train_features = built_comment_features(train, userComment_train)
     print('build test features')
     test_features = built_comment_features(test, userComment_test)
-
-    print('add comment score features')
-    with open('operate_2_train_comment_features.pkl', "rb") as f:
-        user_comment_train = cPickle.load(f)
-    with open('operate_2_test_comment_features.pkl', "rb") as f:
-        user_comment_test = cPickle.load(f)
-
-    user_comment_train.fillna(-1, inplace=True)
-    user_comment_test.fillna(-1, inplace=True)
-
-    train_features = train_features.merge(user_comment_train, on='userid', how='left')
-    test_features = test_features.merge(user_comment_test, on='userid', how='left')
 
     print('save ', feature_name)
     data_utils.save_features(train_features, test_features, feature_name)
