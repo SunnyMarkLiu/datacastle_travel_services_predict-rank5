@@ -10,6 +10,8 @@ from __future__ import absolute_import, division, print_function
 import os
 import sys
 
+import cPickle
+
 module_path = os.path.abspath(os.path.join('..'))
 sys.path.append(module_path)
 
@@ -155,7 +157,7 @@ def built_comment_features(df, comments):
     df_ids = comments['userid'].unique()
     userid_grouped = dict(list(comments.groupby('userid')))
 
-    print('基本特征')
+    # 基本特征
     features['has_comment_flag'] = features['userid'].map(lambda uid: uid in df_ids).astype(int)
     features['user_rating_sattistic'] = features.apply(lambda row: user_rating_sattistic(row['userid'], userid_grouped, row['has_comment_flag']), axis=1)
     # features['user_rating_mean'] = features['user_rating_sattistic'].map(lambda x: x[0])
@@ -193,7 +195,8 @@ def built_comment_features(df, comments):
 
     # 最后几次是否存在低于 5 分的评论
     # features['last_3_order_has_lower5_rating'] = features.apply(lambda row: last_3_order_has_lower5_rating(row['userid'], userid_grouped, row['has_comment_flag'], 3), axis=1)
-    print("标签特征")
+
+    # 标签特征
     # features['add_tags_ratio'] = features.apply(lambda row: add_tages_ratio(row['userid'], userid_grouped, row['has_comment_flag']), axis=1)
     # features['comment_keywords_count_sattistic'] = features.apply(lambda row: comment_tags_keywords_statistic(row['userid'], userid_grouped, row['has_comment_flag'], 'keywords_count'), axis=1)
     # features['comment_keywords_count_count_std'] = features['comment_keywords_count_sattistic'].map(lambda x: x[0])
@@ -233,6 +236,18 @@ def main():
     train_features = built_comment_features(train, userComment_train)
     print('build test features')
     test_features = built_comment_features(test, userComment_test)
+
+    print('add comment score features')
+    with open('operate_2_train_comment_features.pkl', "rb") as f:
+        user_comment_train = cPickle.load(f)
+    with open('operate_2_test_comment_features.pkl', "rb") as f:
+        user_comment_test = cPickle.load(f)
+
+    user_comment_train.fillna(-1, inplace=True)
+    user_comment_test.fillna(-1, inplace=True)
+
+    train_features = train_features.merge(user_comment_train, on='userid', how='left')
+    test_features = test_features.merge(user_comment_test, on='userid', how='left')
 
     print('save ', feature_name)
     data_utils.save_features(train_features, test_features, feature_name)
