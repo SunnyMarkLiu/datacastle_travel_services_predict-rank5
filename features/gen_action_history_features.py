@@ -22,6 +22,7 @@ import math
 import time
 import numpy as np
 import pandas as pd
+import pywt
 from scipy.fftpack import fft
 from conf.configure import Configure
 from utils import data_utils
@@ -1182,9 +1183,17 @@ def build_action_history_features8(df, action, history):
     return features
 
 
-def create_action_sequence(uid, action_grouped):
+def action_time_seq_fft(uid, action_grouped):
     df = action_grouped[uid]
     sequence = df['actionTime'].values.tolist()
+    result = fft(sequence, len(sequence) + 2)
+    real = result.real
+    return real[0], real[1], real[2]
+
+
+def action_type_seq_fft(uid, action_grouped):
+    df = action_grouped[uid]
+    sequence = df['actionType'].values.tolist()
     result = fft(sequence, len(sequence) + 2)
     real = result.real
     return real[0], real[1], real[2]
@@ -1194,11 +1203,17 @@ def build_action_history_features9(df, action):
     features = pd.DataFrame({'userid': df['userid']})
     action_grouped = dict(list(action.groupby('userid')))
 
-    features['action_sequence'] = features.apply(lambda row: create_action_sequence(row['userid'], action_grouped), axis=1)
-    features['actiontype_seq_fft_real_0'] = features['action_sequence'].map(lambda x: x[0])
-    features['actiontype_seq_fft_real_1'] = features['action_sequence'].map(lambda x: x[1])
-    features['actiontype_seq_fft_real_2'] = features['action_sequence'].map(lambda x: x[2])
-    del features['action_sequence']
+    features['action_time_seq_fft'] = features.apply(lambda row: action_time_seq_fft(row['userid'], action_grouped), axis=1)
+    features['actiontime_seq_fft_real_0'] = features['action_time_seq_fft'].map(lambda x: x[0])
+    features['actiontime_seq_fft_real_1'] = features['action_time_seq_fft'].map(lambda x: x[1])
+    features['actiontime_seq_fft_real_2'] = features['action_time_seq_fft'].map(lambda x: x[2])
+    del features['action_time_seq_fft']
+
+    # features['action_type_seq_fft'] = features.apply(lambda row: action_type_seq_fft(row['userid'], action_grouped), axis=1)
+    # features['actiontype_seq_fft_real_0'] = features['action_type_seq_fft'].map(lambda x: x[0])
+    # features['actiontype_seq_fft_real_1'] = features['action_type_seq_fft'].map(lambda x: x[1])
+    # features['actiontype_seq_fft_real_2'] = features['action_type_seq_fft'].map(lambda x: x[2])
+    # del features['action_type_seq_fft']
 
     return features
 
