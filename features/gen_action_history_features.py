@@ -1338,7 +1338,7 @@ def main():
         data_utils.save_features(train_features, test_features, feature_name)
 
     feature_name = 'baseline_features'
-    if data_utils.is_feature_created(feature_name):
+    if not data_utils.is_feature_created(feature_name):
         train_features, test_features = get_baseline_features()
         print('save ', feature_name)
         data_utils.save_features(train_features, test_features, feature_name)

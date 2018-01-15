@@ -72,8 +72,8 @@ def main():
         action_features_train = cPickle.load(f)
     with open('wxr_operate_3_test_action_features.pkl', "rb") as f:
         action_features_test = cPickle.load(f)
-    use_features = ['userid', 'avg_browse_num_after_last_order',
-                    'operate_num_after_last_order', 'avg_operate_num_after_last_order',
+    use_features = ['userid', 'avg_browse_num_after_last_order', 'browse_num_after_last_order',
+                    'operate_num_after_last_order', 'avg_operate_num_after_last_order', 'open_num_after_last_order',
                     'action_1_num_after_last_order', 'action_2_num_after_last_order', 'action_3_num_after_last_order',
                     'action_4_num_after_last_order', 'action_5_num_after_last_order', 'action_6_num_after_last_order',
                     'action_7_num_after_last_order', 'action_8_num_after_last_order', 'action_9_num_after_last_order']
