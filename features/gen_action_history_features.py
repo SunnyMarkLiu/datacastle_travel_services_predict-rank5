@@ -1060,14 +1060,14 @@ def get_baseline_features():
     used_features = ['userid',
                      'hasprovince',
                      'histord_ratio1_0',
-                     'histord_sum_cont1',
-                     'histord_sum_cont2',
-                     'histord_sum_cont3',
-                     'histord_sum_cont4',
-                     'histord_sum_cont5',
+                     # 'histord_sum_cont1',
+                     # 'histord_sum_cont2',
+                     # 'histord_sum_cont3',
+                     # 'histord_sum_cont4',
+                     # 'histord_sum_cont5',
                      'histord_time_last_1',
-                     'histord_time_last_1_month',
-                     'histord_time_last_1_year',
+                     # 'histord_time_last_1_month',
+                     # 'histord_time_last_1_year',
                      'histord_time_last_2',
                      'histord_time_last_2_month',
                      'histord_time_last_2_year',
@@ -1075,8 +1075,9 @@ def get_baseline_features():
                      'histord_time_last_3_month',
                      'histord_time_last_3_year',
                      'timespan_action_lastord',
-                     'timespan_lastord_1_2',
-                     'timespan_lastord_2_3', ]
+                     # 'timespan_lastord_1_2',
+                     # 'timespan_lastord_2_3',
+                     ]
 
     return train_features[used_features], test_features[used_features]
 
@@ -1337,7 +1338,7 @@ def main():
         data_utils.save_features(train_features, test_features, feature_name)
 
     feature_name = 'baseline_features'
-    if not data_utils.is_feature_created(feature_name):
+    if data_utils.is_feature_created(feature_name):
         train_features, test_features = get_baseline_features()
         print('save ', feature_name)
         data_utils.save_features(train_features, test_features, feature_name)
