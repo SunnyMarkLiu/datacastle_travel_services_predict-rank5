@@ -1328,7 +1328,7 @@ def main():
         data_utils.save_features(train_features, test_features, feature_name)
 
     feature_name = 'action_history_features9'
-    if data_utils.is_feature_created(feature_name):
+    if not data_utils.is_feature_created(feature_name):
         print('build trainaction_history_features9')
         train_features = build_action_history_features9(train, action_train)
         print('build test action_history_features9')

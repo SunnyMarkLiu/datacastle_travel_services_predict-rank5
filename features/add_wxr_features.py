@@ -52,6 +52,37 @@ def main():
     # train_features = train_features.merge(train_user_info, on='userid', how='left')
     # test_features = test_features.merge(test_user_info, on='userid', how='left')
 
+    print('add history features')
+    with open('wxr_operate_4_train_order_history_features.pkl', "rb") as f:
+        history_features_train = cPickle.load(f)
+    with open('wxr_operate_4_test_order_history_features.pkl', "rb") as f:
+        history_features_test = cPickle.load(f)
+
+    use_features = ['userid','avg_days_between_order', 'days_ratio_since_last_order','city_num', 'country_num', 'continent_num',
+                    'city_rich', 'city_avg_rich', 'country_rich', 'country_avg_rich', 'histord_time_last_1_year',
+                    'histord_time_last_1_month', 'histord_sum_cont1', 'histord_sum_cont2', 'histord_sum_cont3',
+                    'histord_sum_cont4', 'histord_sum_cont5', 'timespan_lastord_1_2', 'timespan_lastord_2_3']
+    history_features_train = history_features_train[use_features]
+    history_features_test = history_features_test[use_features]
+    train_features = train_features.merge(history_features_train, on='userid', how='left')
+    test_features = test_features.merge(history_features_test, on='userid', how='left')
+
+    print('add action features')
+    with open('wxr_operate_3_train_action_features.pkl', "rb") as f:
+        action_features_train = cPickle.load(f)
+    with open('wxr_operate_3_test_action_features.pkl', "rb") as f:
+        action_features_test = cPickle.load(f)
+    use_features = ['userid', 'avg_browse_num_after_last_order',
+                    'operate_num_after_last_order', 'avg_operate_num_after_last_order',
+                    'action_1_num_after_last_order', 'action_2_num_after_last_order', 'action_3_num_after_last_order',
+                    'action_4_num_after_last_order', 'action_5_num_after_last_order', 'action_6_num_after_last_order',
+                    'action_7_num_after_last_order', 'action_8_num_after_last_order', 'action_9_num_after_last_order']
+    action_features_train = action_features_train[use_features]
+    action_features_test = action_features_test[use_features]
+
+    train_features = train_features.merge(action_features_train, on='userid', how='left')
+    test_features = test_features.merge(action_features_test, on='userid', how='left')
+
     print('save ', feature_name)
     data_utils.save_features(train_features, test_features, feature_name)
 
