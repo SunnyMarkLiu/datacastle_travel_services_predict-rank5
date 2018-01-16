@@ -26,22 +26,29 @@ from utils import data_utils
 
 def feature_selection(train, test):
     """ 特征选择 """
-
-def feature_bincut_rank(train, test):
-    """ 对特征进行 bin、rank、count 等操作 """
-    # basic_user_info
-
-    # basic_user_action_features
     test['orderType'] = np.array([0] * test.shape[0])
     conbined_data = pd.concat([train, test])
 
-    # 对连续特征进行离散化
-    numerical_features = ['browse_product_ratio', 'browse_product2_ratio',
-                          'browse_product3_ratio', 'fillin_form5_ratio', 'fillin_form6_ratio',
-                          'fillin_form7_ratio', 'open_app_ratio', 'pay_money_ratio',
-                          'submit_order_ratio', 'action_counts']
-    for feature in numerical_features:
-        conbined_data[feature] = pd.cut(conbined_data[feature].values, bins=int(len(set(conbined_data[feature])) * 0.6)).codes
+    # drop_features = ['fillin_form7_ratio', 'submit_order_pay_money_ratio']
+    # conbined_data.drop(drop_features, axis=1, inplace=True)
+
+    train = conbined_data.iloc[:train.shape[0], :]
+    test = conbined_data.iloc[train.shape[0]:, :]
+    del test['orderType']
+    return train, test
+
+
+def discretize_features(train, test):
+    """ 连续特征离散化 """
+    test['orderType'] = np.array([0] * test.shape[0])
+    conbined_data = pd.concat([train, test])
+    # basic_user_info
+
+    # basic_user_action_features
+    features = data_utils.load_features('basic_user_action_features')[0].columns.values
+    for f in features:
+        if f != 'userid' and len(set(conbined_data[f])) > 900:
+            conbined_data[f] = pd.cut(conbined_data[f].values, bins=int(len(set(conbined_data[f])) * 0.85)).codes
 
     train = conbined_data.iloc[:train.shape[0], :]
     test = conbined_data.iloc[train.shape[0]:, :]
@@ -85,8 +92,11 @@ def load_train_test():
     # train.drop(droped_features, axis=1, inplace=True)
     # test.drop(droped_features, axis=1, inplace=True)
 
+    print('特征选择')
+    train, test = feature_selection(train, test)
+
     print('连续特征离散化')
-    train, test = feature_bincut_rank(train, test)
+    train, test = discretize_features(train, test)
 
 
     return train, test
