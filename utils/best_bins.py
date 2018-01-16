@@ -413,6 +413,31 @@ def _getNewBins(sub, i):
     return df
 
 
+def _groupCal(x, y, badlabel=1):
+    """
+    group calulate for x by y
+    middle proporcessing function for reduceCats
+    -------------------------------------
+    Params
+    x: pandas Series, which need to reduce category
+    y: pandas Series, 0-1 distribute dependent variable
+    badlabel: target label
+    ------------------------------------
+    Return
+    temp_cont: group calulate table
+    m: nrows of temp_cont
+    """
+
+    temp_cont = pd.crosstab(index=x, columns=y, margins=False)
+    temp_cont['total'] = temp_cont.sum(axis=1)
+    temp_cont['pdv1'] = temp_cont[badlabel] / temp_cont['total']
+
+    temp_cont['i'] = range(1, temp_cont.shape[0] + 1)
+    temp_cont['bin'] = 1
+    m = temp_cont.shape[0]
+    return temp_cont, m
+
+
 def binContVar(x, y, method, mmax=5, Acc=0.01, target=1, adjust=0.0001):
     """
     Optimal binings for contiouns var x by (y & method)
@@ -484,31 +509,6 @@ def binContVar(x, y, method, mmax=5, Acc=0.01, target=1, adjust=0.0001):
     data = data.drop('bin', axis=1)
     data.index = data['newbin']
     return data
-
-
-def _groupCal(x, y, badlabel=1):
-    """
-    group calulate for x by y
-    middle proporcessing function for reduceCats
-    -------------------------------------
-    Params
-    x: pandas Series, which need to reduce category
-    y: pandas Series, 0-1 distribute dependent variable
-    badlabel: target label
-    ------------------------------------
-    Return
-    temp_cont: group calulate table
-    m: nrows of temp_cont
-    """
-
-    temp_cont = pd.crosstab(index=x, columns=y, margins=False)
-    temp_cont['total'] = temp_cont.sum(axis=1)
-    temp_cont['pdv1'] = temp_cont[badlabel] / temp_cont['total']
-
-    temp_cont['i'] = range(1, temp_cont.shape[0] + 1)
-    temp_cont['bin'] = 1
-    m = temp_cont.shape[0]
-    return temp_cont, m
 
 
 def reduceCats(x, y, method=1, mmax=5, badlabel=1):
