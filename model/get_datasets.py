@@ -57,6 +57,38 @@ def discretize_features(train, test):
     return train, test
 
 
+def feature_interaction(train, test):
+    """ 特征交叉等操作 """
+    test['orderType'] = np.array([0] * test.shape[0])
+    conbined_data = pd.concat([train, test])
+
+    print('一些类别特征进行 one-hot')
+    # basic_user_info， bad！
+    # dummies = pd.get_dummies(conbined_data['province_code'], prefix='province_code')
+    # conbined_data[dummies.columns] = dummies
+    # del conbined_data['province_code']
+
+    # # basic_user_action_features， bad！
+    # dummies = pd.get_dummies(conbined_data['most_free_month'], prefix='most_free_month')
+    # conbined_data[dummies.columns] = dummies
+    # del conbined_data['most_free_month']
+
+    # user_order_history_features，improve cv a little
+    # dum_features = ['last_time_continent', 'last_time_country', 'last_time_city']
+    # for f in dum_features:
+    #     dummies = pd.get_dummies(conbined_data[f], prefix=f)
+    #     conbined_data[dummies.columns] = dummies
+    #     del conbined_data[f]
+
+    print('特征组合')
+    # conbined_data['has_good_order_x_country_rich'] = conbined_data['has_good_order'] * conbined_data['country_rich']
+
+    train = conbined_data.iloc[:train.shape[0], :]
+    test = conbined_data.iloc[train.shape[0]:, :]
+    del test['orderType']
+    return train, test
+
+
 def load_train_test():
     # 待预测订单的数据 （原始训练集和测试集）
     train = pd.read_csv(Configure.base_path + 'train/orderFuture_train.csv', encoding='utf8')
@@ -93,11 +125,13 @@ def load_train_test():
     # train.drop(droped_features, axis=1, inplace=True)
     # test.drop(droped_features, axis=1, inplace=True)
 
+    print('特征组合')
+    train, test = feature_interaction(train, test)
+
     print('特征选择')
     train, test = feature_selection(train, test)
 
     print('连续特征离散化')
     train, test = discretize_features(train, test)
-
 
     return train, test

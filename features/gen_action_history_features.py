@@ -7,7 +7,6 @@
 """
 from __future__ import absolute_import, division, print_function
 
-import hashlib
 import os
 import sys
 
@@ -18,11 +17,9 @@ sys.path.append(module_path)
 import warnings
 warnings.filterwarnings('ignore')
 
-import math
 import time
 import numpy as np
 import pandas as pd
-import pywt
 from scipy.fftpack import fft
 from conf.configure import Configure
 from utils import data_utils
@@ -557,7 +554,9 @@ def build_action_history_features3(df, action, history):
 
     action_grouped = dict(list(action.groupby('userid')))
 
+    print('getTagsFromActionByUserid...')
     features['statistic'] = features.apply(lambda row: getTagsFromActionByUserid(row['userid'], action_grouped), axis=1)
+    print('split statistic')
     features['actiontime_last_1_year'] = features['statistic'].map(lambda x: x[0])
     features['actiontime_last_1_month'] = features['statistic'].map(lambda x: x[1])
 
