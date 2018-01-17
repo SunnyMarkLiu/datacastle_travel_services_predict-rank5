@@ -79,9 +79,14 @@ def main():
                     'action_7_num_after_last_order', 'action_8_num_after_last_order', 'action_9_num_after_last_order']
     action_features_train = action_features_train[use_features]
     action_features_test = action_features_test[use_features]
-
     train_features = train_features.merge(action_features_train, on='userid', how='left')
     test_features = test_features.merge(action_features_test, on='userid', how='left')
+
+    print('add someother features')
+    some_other_train = pd.read_csv('some_other_train_features.csv')
+    some_other_test  = pd.read_csv('some_other_test_features.csv')
+    train_features = train_features.merge(some_other_train, on='userid', how='left')
+    test_features = test_features.merge(some_other_test, on='userid', how='left')
 
     print('save ', feature_name)
     data_utils.save_features(train_features, test_features, feature_name)

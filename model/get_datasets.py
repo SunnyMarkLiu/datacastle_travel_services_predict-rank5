@@ -42,13 +42,14 @@ def discretize_features(train, test):
     """ 连续特征离散化 """
     test['orderType'] = np.array([0] * test.shape[0])
     conbined_data = pd.concat([train, test])
-    # basic_user_info
 
     # basic_user_action_features
-    features = data_utils.load_features('basic_user_action_features')[0].columns.values
-    for f in features:
-        if f != 'userid' and len(set(conbined_data[f])) > 900:
-            conbined_data[f] = pd.cut(conbined_data[f].values, bins=int(len(set(conbined_data[f])) * 0.85)).codes
+    numerical_features = ['browse_product_ratio', 'browse_product2_ratio', 'browse_product3_ratio', 'fillin_form5_ratio', 'fillin_form6_ratio',
+                          'fillin_form7_ratio', 'open_app_ratio', 'pay_money_ratio', 'submit_order_ratio', 'open_app_pay_money_ratio',
+                          'browse_product_pay_money_ratio', 'browse_product2_pay_money_ratio', 'browse_product3_pay_money_ratio',
+                          'fillin_form5_pay_money_ratio', 'fillin_form6_pay_money_ratio', 'fillin_form7_pay_money_ratio','submit_order_pay_money_ratio']
+    for feature in numerical_features:
+        conbined_data[feature] = pd.cut(conbined_data[feature].values, bins=int(len(set(conbined_data[feature])) * 0.6)).codes
 
     train = conbined_data.iloc[:train.shape[0], :]
     test = conbined_data.iloc[train.shape[0]:, :]
