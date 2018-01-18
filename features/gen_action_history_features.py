@@ -1317,13 +1317,13 @@ def build_action_history_features10(df, action, history):
     features['order_vs_actiontype_8_ratio'] = features.apply(lambda row: order_vs_actiontype_ratio(row['userid'], action_grouped, history_grouped, row['has_history_flag'], 8), axis=1)
     features['order_vs_actiontype_9_ratio'] = features.apply(lambda row: order_vs_actiontype_ratio(row['userid'], action_grouped, history_grouped, row['has_history_flag'], 9), axis=1)
 
-    # print('距离上一次 order 到现在的 action type 的时间差的统计特征')
-    # features['last_order_timestamp_state'] = features.apply(lambda row: last_order_timestamp(row['userid'], history_grouped, row['has_history_flag']), axis=1)
-    # features['last_order_timestamp'] = features['last_order_timestamp_state'].map(lambda x: x[0])
-    # features['last_order_timestamp_from_now_delta'] = features['last_order_timestamp_state'].map(lambda x: x[1])
-    # features['last_order_timestamp_from_now_delta_vs_last_ratio'] = features['last_order_timestamp_from_now_delta'].astype(float) / features['last_order_timestamp']
-    # del features['last_order_timestamp_state']
-    #
+    print('距离上一次 order 到现在的 action type 的时间差的统计特征')
+    features['last_order_timestamp_state'] = features.apply(lambda row: last_order_timestamp(row['userid'], history_grouped, row['has_history_flag']), axis=1)
+    features['last_order_timestamp'] = features['last_order_timestamp_state'].map(lambda x: x[0])
+    features['last_order_timestamp_from_now_delta'] = features['last_order_timestamp_state'].map(lambda x: x[1])
+    features['last_order_timestamp_from_now_delta_vs_last_ratio'] = features['last_order_timestamp_from_now_delta'].astype(float) / features['last_order_timestamp']
+    del features['last_order_timestamp_state']
+
     # features['last_order_actiontime_statistic'] = features.apply(lambda row: last_order_actiontime_statistic(row['userid'], action_grouped, history_grouped, row['has_history_flag']), axis=1)
     # features['last_order_action_time_mean'] = features['last_order_actiontime_statistic'].map(lambda x: x[0])
     # features['last_order_action_time_std'] = features['last_order_actiontime_statistic'].map(lambda x: x[1])
@@ -1474,7 +1474,7 @@ def main():
     action_test = pd.read_csv(Configure.base_path + 'test/action_test.csv')
 
     feature_name = 'action_history_features10'
-    if data_utils.is_feature_created(feature_name):
+    if not data_utils.is_feature_created(feature_name):
         print('build train action history features10')
         train_features = build_action_history_features10(train, action_train, orderHistory_train)
         print('build test action history features10')
