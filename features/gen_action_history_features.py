@@ -1345,6 +1345,73 @@ def build_action_history_features10(df, action, history):
     return features
 
 
+def last_order_first_actiontype_time(uid, action_grouped, history_grouped, flag, action_type):
+    """ 最后一次 order 之后第一次 actiontype 的时间 """
+    if flag == 0:
+        return -1
+
+    action_df = action_grouped[uid]
+    action_df = action_df[action_df['actionTime'] > history_grouped[uid]['orderTime'].iat[-1]]
+    if action_df.shape[0] > 0:
+        action_df = action_df[action_df['actionType'] == action_type]
+        if action_df.shape[0] > 0:
+            return action_df['actionTime'].iat[0]
+        return -1
+    return -1
+
+
+def last_openapp_browse_count(uid, action_grouped):
+    """ 最后一次点击APP开始浏览量 """
+    action_df = action_grouped[uid]
+    action_df = action_df[action_df['actionType'] == 1]
+    if action_df.shape[0] == 0:
+        return 0
+
+    last_open_time = action_df['actionTime'].iat[-1]
+    action_df = action_df[action_df['actionTime'] > last_open_time]
+    return action_df[(action_df['actionType'] == 2) | (action_df['actionType'] == 3) | (action_df['actionType'] == 4)].shape[0]
+
+
+def last_openapp_fillform_count(uid, action_grouped):
+    """ 最后一次点击APP开始填写表单量 """
+    action_df = action_grouped[uid]
+    action_df = action_df[action_df['actionType'] == 1]
+    if action_df.shape[0] == 0:
+        return 0
+
+    last_open_time = action_df['actionTime'].iat[-1]
+    action_df = action_df[action_df['actionTime'] > last_open_time]
+    return action_df[(action_df['actionType'] == 5) | (action_df['actionType'] == 6) | (action_df['actionType'] == 7)].shape[0]
+
+
+def build_action_history_features11(df, action, history):
+    features = pd.DataFrame({'userid': df['userid']})
+    action_grouped = dict(list(action.groupby('userid')))
+    history['orderTime'] = history.orderTime.values.astype(np.int64) // 10 ** 9
+    history_grouped = dict(list(history.groupby('userid')))
+
+    history_uids = history['userid'].unique()
+    features['has_history_flag'] = features['userid'].map(lambda uid: uid in history_uids).astype(int)
+
+    # # 最后一次 order 之后第一次 actiontype 的时间
+    # # features['last_order_first_actiontype1_time'] = features.apply(lambda row: last_order_first_actiontype_time(row['userid'], action_grouped, history_grouped, row['has_history_flag'], 1), axis=1)
+    # # features['last_order_first_actiontype2_time'] = features.apply(lambda row: last_order_first_actiontype_time(row['userid'], action_grouped, history_grouped, row['has_history_flag'], 2), axis=1)
+    # features['last_order_first_actiontype3_time'] = features.apply(lambda row: last_order_first_actiontype_time(row['userid'], action_grouped, history_grouped, row['has_history_flag'], 3), axis=1)
+    # features['last_order_first_actiontype4_time'] = features.apply(lambda row: last_order_first_actiontype_time(row['userid'], action_grouped, history_grouped, row['has_history_flag'], 4), axis=1)
+    # # features['last_order_first_actiontype5_time'] = features.apply(lambda row: last_order_first_actiontype_time(row['userid'], action_grouped, history_grouped, row['has_history_flag'], 5), axis=1)
+    # # features['last_order_first_actiontype6_time'] = features.apply(lambda row: last_order_first_actiontype_time(row['userid'], action_grouped, history_grouped, row['has_history_flag'], 6), axis=1)
+    # features['last_order_first_actiontype7_time'] = features.apply(lambda row: last_order_first_actiontype_time(row['userid'], action_grouped, history_grouped, row['has_history_flag'], 7), axis=1)
+    # features['last_order_first_actiontype8_time'] = features.apply(lambda row: last_order_first_actiontype_time(row['userid'], action_grouped, history_grouped, row['has_history_flag'], 8), axis=1)
+    # # features['last_order_first_actiontype9_time'] = features.apply(lambda row: last_order_first_actiontype_time(row['userid'], action_grouped, history_grouped, row['has_history_flag'], 9), axis=1)
+
+    # 最后一次点击APP开始浏览量
+    features['last_openapp_browse_count'] = features.apply(lambda row: last_openapp_browse_count(row['userid'], action_grouped), axis=1)
+    # features['last_openapp_fillform_count'] = features.apply(lambda row: last_openapp_fillform_count(row['userid'], action_grouped), axis=1)
+
+    del features['has_history_flag']
+    return features
+
+
 def main():
 
     train = pd.read_csv(Configure.base_path + 'train/orderFuture_train.csv', encoding='utf8')
@@ -1482,6 +1549,14 @@ def main():
         print('save ', feature_name)
         data_utils.save_features(train_features, test_features, feature_name)
 
+    feature_name = 'action_history_features11'
+    if data_utils.is_feature_created(feature_name):
+        print('build train action history features11')
+        train_features = build_action_history_features11(train, action_train, orderHistory_train)
+        print('build test action history features11')
+        test_features = build_action_history_features11(test, action_test, orderHistory_test)
+        print('save ', feature_name)
+        data_utils.save_features(train_features, test_features, feature_name)
 
 
 if __name__ == "__main__":

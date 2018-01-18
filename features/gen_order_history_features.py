@@ -444,6 +444,7 @@ def build_order_history_features4(df, history):
     # 多次订单并且有精品的老用户
     features['multi_order_has_good_order'] = features.apply(lambda row: multi_order_has_good_order(row['userid'], history_grouped, row['has_history_flag']), axis=1)
 
+    # 多次订单并且都没有精品订单
     del features['has_history_flag']
     return features
 

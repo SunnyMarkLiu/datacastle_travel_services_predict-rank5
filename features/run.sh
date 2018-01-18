@@ -7,3 +7,4 @@ python gen_comment_features.py
 python gen_action_history_features.py
 python gen_word2vec_features.py
 python add_wxr_features.py
+python add_sqg_features.py

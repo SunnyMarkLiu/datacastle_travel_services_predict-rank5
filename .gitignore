@@ -92,6 +92,7 @@ ENV/
 
 # other
 input/*.csv
+features/*.csv
 input/*.pkl
 result/*.csv
 .idea
