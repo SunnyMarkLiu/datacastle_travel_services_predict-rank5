@@ -18,12 +18,15 @@ import warnings
 warnings.filterwarnings('ignore')
 
 import time
+import datetime
 import numpy as np
 import pandas as pd
 from scipy.fftpack import fft
 from conf.configure import Configure
 from utils import data_utils
 
+default_start_order_time = int(time.mktime(datetime.datetime(2016, 11, 01).timetuple()))
+default_end_order_time = int(time.mktime(datetime.datetime(2017, 9, 12).timetuple()))
 
 def compute_elaspe_time(time1, time2):
     """ 计算间隔时间 """
@@ -1218,6 +1221,130 @@ def build_action_history_features9(df, action):
     return features
 
 
+def goodorder_vs_actiontype_ratio(uid, action_grouped, history_grouped, flag, action_type):
+    """ 精品订单量与 action 操作数量的比值 """
+    if flag == 0:
+        return 0
+
+    history_df = history_grouped[uid]
+    action_df = action_grouped[uid]
+
+    action_type_df = action_df[action_df['actionType'] == action_type]
+
+    if action_type_df.shape[0] == 0:
+        return 0
+    else:
+        return 1.0 * sum(history_df['orderType']) / action_type_df.shape[0]
+
+
+def order_vs_actiontype_ratio(uid, action_grouped, history_grouped, flag, action_type):
+    """ 精品订单量与 action 操作数量的比值 """
+    if flag == 0:
+        return 0
+
+    history_df = history_grouped[uid]
+    action_df = action_grouped[uid]
+
+    action_type_df = action_df[action_df['actionType'] == action_type]
+
+    if action_type_df.shape[0] == 0:
+        return 0
+    else:
+        return 1.0 * history_df.shape[0] / action_type_df.shape[0]
+
+
+def last_order_timestamp(uid, history_grouped, flag):
+    if flag == 0:
+        return default_start_order_time, default_end_order_time - default_start_order_time
+
+    df = history_grouped[uid]
+    last_order_time = df['orderTime'].iat[-1]
+    return last_order_time, default_end_order_time - last_order_time
+
+
+def last_order_actiontime_statistic(uid, action_grouped, history_grouped, flag):
+    if flag == 0:
+        last_order_time = default_start_order_time
+    else:
+        last_order_time = history_grouped[uid]['orderTime'].iat[-1]
+
+    action_df = action_grouped[uid]
+    action_df = action_df[action_df['actionTime'] < last_order_time]
+    action_times = action_df['actionTime'].values
+    action_type1_times = action_df[action_df['actionType'] == 1]['actionTime'].values
+    action_type234_times = action_df[(action_df['actionType'] == 2) | (action_df['actionType'] == 3) | (action_df['actionType'] == 4)]['actionTime'].values
+    action_type5_times = action_df[action_df['actionType'] == 5]['actionTime'].values
+    action_type6_times = action_df[action_df['actionType'] == 6]['actionTime'].values
+    action_type7_times = action_df[action_df['actionType'] == 7]['actionTime'].values
+    action_type8_times = action_df[action_df['actionType'] == 8]['actionTime'].values
+
+    return np.mean(action_times), np.std(action_times), \
+           np.mean(action_type1_times), np.std(action_type1_times), \
+           np.mean(action_type234_times), np.std(action_type234_times), \
+           np.mean(action_type5_times), np.std(action_type5_times), \
+           np.mean(action_type6_times), np.std(action_type6_times), \
+           np.mean(action_type7_times), np.std(action_type7_times), \
+           np.mean(action_type8_times), np.std(action_type8_times)
+    
+    
+def build_action_history_features10(df, action, history):
+    features = pd.DataFrame({'userid': df['userid']})
+    action_grouped = dict(list(action.groupby('userid')))
+    history['orderTime'] = history.orderTime.values.astype(np.int64) // 10 ** 9
+    history_grouped = dict(list(history.groupby('userid')))
+
+    history_uids = history['userid'].unique()
+    features['has_history_flag'] = features['userid'].map(lambda uid: uid in history_uids).astype(int)
+
+    print('用户精品/总订单与浏览量比值')
+    features['goodorder_vs_actiontype_1_ratio'] = features.apply(lambda row: goodorder_vs_actiontype_ratio(row['userid'], action_grouped, history_grouped, row['has_history_flag'], 1), axis=1)
+    features['goodorder_vs_actiontype_2_ratio'] = features.apply(lambda row: goodorder_vs_actiontype_ratio(row['userid'], action_grouped, history_grouped, row['has_history_flag'], 2), axis=1)
+    features['goodorder_vs_actiontype_3_ratio'] = features.apply(lambda row: goodorder_vs_actiontype_ratio(row['userid'], action_grouped, history_grouped, row['has_history_flag'], 3), axis=1)
+    features['goodorder_vs_actiontype_4_ratio'] = features.apply(lambda row: goodorder_vs_actiontype_ratio(row['userid'], action_grouped, history_grouped, row['has_history_flag'], 4), axis=1)
+    features['goodorder_vs_actiontype_5_ratio'] = features.apply(lambda row: goodorder_vs_actiontype_ratio(row['userid'], action_grouped, history_grouped, row['has_history_flag'], 5), axis=1)
+    features['goodorder_vs_actiontype_6_ratio'] = features.apply(lambda row: goodorder_vs_actiontype_ratio(row['userid'], action_grouped, history_grouped, row['has_history_flag'], 6), axis=1)
+    features['goodorder_vs_actiontype_7_ratio'] = features.apply(lambda row: goodorder_vs_actiontype_ratio(row['userid'], action_grouped, history_grouped, row['has_history_flag'], 7), axis=1)
+    features['goodorder_vs_actiontype_8_ratio'] = features.apply(lambda row: goodorder_vs_actiontype_ratio(row['userid'], action_grouped, history_grouped, row['has_history_flag'], 8), axis=1)
+    features['goodorder_vs_actiontype_9_ratio'] = features.apply(lambda row: goodorder_vs_actiontype_ratio(row['userid'], action_grouped, history_grouped, row['has_history_flag'], 9), axis=1)
+
+    features['order_vs_actiontype_1_ratio'] = features.apply(lambda row: order_vs_actiontype_ratio(row['userid'], action_grouped, history_grouped, row['has_history_flag'], 1), axis=1)
+    features['order_vs_actiontype_2_ratio'] = features.apply(lambda row: order_vs_actiontype_ratio(row['userid'], action_grouped, history_grouped, row['has_history_flag'], 2), axis=1)
+    features['order_vs_actiontype_3_ratio'] = features.apply(lambda row: order_vs_actiontype_ratio(row['userid'], action_grouped, history_grouped, row['has_history_flag'], 3), axis=1)
+    features['order_vs_actiontype_4_ratio'] = features.apply(lambda row: order_vs_actiontype_ratio(row['userid'], action_grouped, history_grouped, row['has_history_flag'], 4), axis=1)
+    features['order_vs_actiontype_5_ratio'] = features.apply(lambda row: order_vs_actiontype_ratio(row['userid'], action_grouped, history_grouped, row['has_history_flag'], 5), axis=1)
+    features['order_vs_actiontype_6_ratio'] = features.apply(lambda row: order_vs_actiontype_ratio(row['userid'], action_grouped, history_grouped, row['has_history_flag'], 6), axis=1)
+    features['order_vs_actiontype_7_ratio'] = features.apply(lambda row: order_vs_actiontype_ratio(row['userid'], action_grouped, history_grouped, row['has_history_flag'], 7), axis=1)
+    features['order_vs_actiontype_8_ratio'] = features.apply(lambda row: order_vs_actiontype_ratio(row['userid'], action_grouped, history_grouped, row['has_history_flag'], 8), axis=1)
+    features['order_vs_actiontype_9_ratio'] = features.apply(lambda row: order_vs_actiontype_ratio(row['userid'], action_grouped, history_grouped, row['has_history_flag'], 9), axis=1)
+
+    # print('距离上一次 order 到现在的 action type 的时间差的统计特征')
+    # features['last_order_timestamp_state'] = features.apply(lambda row: last_order_timestamp(row['userid'], history_grouped, row['has_history_flag']), axis=1)
+    # features['last_order_timestamp'] = features['last_order_timestamp_state'].map(lambda x: x[0])
+    # features['last_order_timestamp_from_now_delta'] = features['last_order_timestamp_state'].map(lambda x: x[1])
+    # features['last_order_timestamp_from_now_delta_vs_last_ratio'] = features['last_order_timestamp_from_now_delta'].astype(float) / features['last_order_timestamp']
+    # del features['last_order_timestamp_state']
+    #
+    # features['last_order_actiontime_statistic'] = features.apply(lambda row: last_order_actiontime_statistic(row['userid'], action_grouped, history_grouped, row['has_history_flag']), axis=1)
+    # features['last_order_action_time_mean'] = features['last_order_actiontime_statistic'].map(lambda x: x[0])
+    # features['last_order_action_time_std'] = features['last_order_actiontime_statistic'].map(lambda x: x[1])
+    # # features['last_order_action1_time_mean'] = features['last_order_actiontime_statistic'].map(lambda x: x[2])
+    # # features['last_order_action1_time_std'] = features['last_order_actiontime_statistic'].map(lambda x: x[3])
+    # features['last_order_action234_time_mean'] = features['last_order_actiontime_statistic'].map(lambda x: x[4])
+    # features['last_order_action234_time_std'] = features['last_order_actiontime_statistic'].map(lambda x: x[5])
+    # features['last_order_action5_time_mean'] = features['last_order_actiontime_statistic'].map(lambda x: x[6])
+    # # features['last_order_action5_time_std'] = features['last_order_actiontime_statistic'].map(lambda x: x[7])
+    # features['last_order_action6_time_mean'] = features['last_order_actiontime_statistic'].map(lambda x: x[8])
+    # # features['last_order_action6_time_std'] = features['last_order_actiontime_statistic'].map(lambda x: x[9])
+    # features['last_order_action7_time_mean'] = features['last_order_actiontime_statistic'].map(lambda x: x[10])
+    # # features['last_order_action7_time_std'] = features['last_order_actiontime_statistic'].map(lambda x: x[11])
+    # features['last_order_action8_time_mean'] = features['last_order_actiontime_statistic'].map(lambda x: x[12])
+    # # features['last_order_action8_time_std'] = features['last_order_actiontime_statistic'].map(lambda x: x[13])
+    # del features['last_order_actiontime_statistic']
+
+    del features['has_history_flag']
+    return features
+
+
 def main():
 
     train = pd.read_csv(Configure.base_path + 'train/orderFuture_train.csv', encoding='utf8')
@@ -1343,6 +1470,18 @@ def main():
         data_utils.save_features(train_features, test_features, feature_name)
 
     # action 和 history 相结合构造特征
+    action_train = pd.read_csv(Configure.base_path + 'train/action_train.csv')
+    action_test = pd.read_csv(Configure.base_path + 'test/action_test.csv')
+
+    feature_name = 'action_history_features10'
+    if data_utils.is_feature_created(feature_name):
+        print('build train action history features10')
+        train_features = build_action_history_features10(train, action_train, orderHistory_train)
+        print('build test action history features10')
+        test_features = build_action_history_features10(test, action_test, orderHistory_test)
+        print('save ', feature_name)
+        data_utils.save_features(train_features, test_features, feature_name)
+
 
 
 if __name__ == "__main__":
