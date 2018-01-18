@@ -1384,6 +1384,24 @@ def last_openapp_fillform_count(uid, action_grouped):
     return action_df[(action_df['actionType'] == 5) | (action_df['actionType'] == 6) | (action_df['actionType'] == 7)].shape[0]
 
 
+def last_order_time_minus_actiontype_delta(uid, action_grouped, history_grouped, flag, action_type):
+    if flag == 0:
+        last_order_time = default_start_order_time
+    else:
+        last_order_time = history_grouped[uid]['orderTime'].iat[-1]
+
+    action_df = action_grouped[uid]
+    action_df = action_df[action_df['actionTime'] > last_order_time]
+    if action_df.shape[0] == 0:
+        return -1
+
+    action_df = action_df[action_df['actionType'] == action_type]
+    if action_df.shape[0] == 0:
+        return -1
+
+    return action_df['actionTime'].iat[-1] - last_order_time
+
+
 def build_action_history_features11(df, action, history):
     features = pd.DataFrame({'userid': df['userid']})
     action_grouped = dict(list(action.groupby('userid')))
@@ -1407,6 +1425,11 @@ def build_action_history_features11(df, action, history):
     # 最后一次点击APP开始浏览量
     features['last_openapp_browse_count'] = features.apply(lambda row: last_openapp_browse_count(row['userid'], action_grouped), axis=1)
     # features['last_openapp_fillform_count'] = features.apply(lambda row: last_openapp_fillform_count(row['userid'], action_grouped), axis=1)
+
+    # # 用户最后下订单时间减去最后一次点击5时间差
+    # features['last_order_time_minus_action5_delta'] = features.apply(lambda row: last_order_time_minus_actiontype_delta(row['userid'], action_grouped, history_grouped, row['has_history_flag'], 5), axis=1)
+    # features['last_order_time_minus_action1_delta'] = features.apply(lambda row: last_order_time_minus_actiontype_delta(row['userid'], action_grouped, history_grouped, row['has_history_flag'], 1), axis=1)
+    # features['last_order_time_minus_action6_delta'] = features.apply(lambda row: last_order_time_minus_actiontype_delta(row['userid'], action_grouped, history_grouped, row['has_history_flag'], 6), axis=1)
 
     del features['has_history_flag']
     return features
@@ -1550,7 +1573,7 @@ def main():
         data_utils.save_features(train_features, test_features, feature_name)
 
     feature_name = 'action_history_features11'
-    if data_utils.is_feature_created(feature_name):
+    if not data_utils.is_feature_created(feature_name):
         print('build train action history features11')
         train_features = build_action_history_features11(train, action_train, orderHistory_train)
         print('build test action history features11')
