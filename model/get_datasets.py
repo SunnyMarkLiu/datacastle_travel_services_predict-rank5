@@ -10,6 +10,8 @@ from __future__ import absolute_import, division, print_function
 import os
 import sys
 
+import cPickle
+
 module_path = os.path.abspath(os.path.join('..'))
 sys.path.append(module_path)
 
@@ -21,21 +23,40 @@ warnings.filterwarnings('ignore')
 import numpy as np
 import pandas as pd
 from conf.configure import Configure
-from utils import data_utils
+from utils import data_utils, xgb_feature_selector
+from sklearn.model_selection import train_test_split
 
 
-def feature_selection(train, test):
+def feature_selection(train, selected_size):
     """ 特征选择 """
-    test['orderType'] = np.array([0] * test.shape[0])
-    conbined_data = pd.concat([train, test])
+    train_df, _ = train_test_split(train, test_size=0.7, random_state=42, shuffle=True, stratify=train['orderType'])
+    selector = xgb_feature_selector.XgboostGreedyFeatureSelector(train_df.drop(['orderType'], axis=1), train_df['orderType'])
 
-    # drop_features = ['fillin_form7_ratio', 'submit_order_pay_money_ratio']
-    # conbined_data.drop(drop_features, axis=1, inplace=True)
+    xgb_params = {
+        'eta': 0.05,
+        'colsample_bytree': 0.8,
+        'max_depth': 4,
+        'subsample': 0.9,
+        'lambda': 2.0,
+        'scale_pos_weight': 1,
+        'eval_metric': 'auc',
+        'objective': 'binary:logistic',
+        'updater': 'grow_gpu',
+        'gpu_id': 0,
+        'nthread': -1,
+        'silent': 1,
+        'booster': 'gbtree'
+    }
+    base_features = ['actiontimespanlast_5_6', 'last_-1_x_actiontype', 'country_avg_rich', 'timespan_action6tolast',
+                     'timespanmin_last_3', 'actionratio_24_59', 'actiontimespancount_5_6', 'action_type_56_time_delta_std',
+                     'timespan_action24tolast']
 
-    train = conbined_data.iloc[:train.shape[0], :]
-    test = conbined_data.iloc[train.shape[0]:, :]
-    del test['orderType']
-    return train, test
+    best_subset_features = selector.select_best_subset_features(xgb_params=xgb_params, cv_nfold=4,
+                                                                selected_feature_size=int(train_df.shape[1] * selected_size),
+                                                                num_boost_round=1000, base_features=base_features,
+                                                                early_stopping_rounds=50, maximize=True,
+                                                                stratified=True, shuffle=True)
+    return best_subset_features
 
 
 def discretize_features(train, test):
@@ -128,10 +149,21 @@ def load_train_test():
     print('特征组合')
     train, test = feature_interaction(train, test)
 
-    print('特征选择')
-    train, test = feature_selection(train, test)
-
     print('连续特征离散化')
     train, test = discretize_features(train, test)
 
-    return train, test
+    print('贪心算法特征选择')
+    selected_size = 0.9
+    best_subset_features_path = 'best_subset_{}_features.pkl'.format(selected_size)
+    if not os.path.exists(best_subset_features_path):
+        best_subset_features = feature_selection(train, selected_size)
+        with open(best_subset_features_path, "wb") as f:
+            cPickle.dump(best_subset_features, f, -1)
+    else:
+        with open(best_subset_features_path, "rb") as f:
+            best_subset_features = cPickle.load(f)
+    #
+    # with open('./xgboost_best_subfeatures/best_subset_10_features_cv_0.956655386364.pkl', "rb") as f:
+    #     best_subset_features = cPickle.load(f)
+
+    return train, test, best_subset_features

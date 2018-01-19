@@ -30,7 +30,9 @@ def evaluate_score(predict, y_true):
 
 def main():
     print("load train test datasets")
-    train, test = load_train_test()
+    train, test, best_subset_features = load_train_test()
+    train = train[best_subset_features + ['orderType', 'userid']]
+    test = test[best_subset_features + ['userid']]
 
     y_train_all = train['orderType']
     id_test = test['userid']
