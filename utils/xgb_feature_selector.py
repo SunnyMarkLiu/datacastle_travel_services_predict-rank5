@@ -124,7 +124,7 @@ class XgboostGreedyFeatureSelector(object):
                 else:
                     end_i = (i + 1) * delta
 
-                print('thread_{} process features: {} ~ {}'.format(i, start_i, end_i))
+                # print('thread_{} process features: {} ~ {}'.format(i, start_i, end_i))
                 t = threading.Thread(target=_thread_clac_metric, name='thread_{}'.format(i), args=(left_selected_features[start_i: end_i],))
                 threads.append(t)
 

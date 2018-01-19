@@ -35,24 +35,24 @@ def main():
     print("load train test datasets")
     train, test = load_train_test()
 
-    print('贪心算法特征选择')
-    selected_size = 0.9
-    best_subset_features_path = Configure.xgboost_best_subfeatures + 'best_subset_{}_features.pkl'.format(selected_size)
-    if not os.path.exists(best_subset_features_path):
-
-        with open(Configure.xgboost_best_subfeatures + 'best_subset_11_features_cv_0.955255181818.pkl', "rb") as f:
-            print('load base_features: best_subset_11_features_cv_0.955255181818.pkl')
-            base_features = cPickle.load(f)
-
-        best_subset_features = xgboost_select_features(train, selected_size, Configure.xgboost_best_subfeatures, base_features)
-        with open(best_subset_features_path, "wb") as f:
-            cPickle.dump(best_subset_features, f, -1)
-    else:
-        with open(best_subset_features_path, "rb") as f:
-            best_subset_features = cPickle.load(f)
-
-    train = train[list(set(best_subset_features + ['orderType', 'userid']))]
-    test = test[list(set(best_subset_features + ['userid']))]
+    # print('贪心算法特征选择')
+    # selected_size = 0.9
+    # best_subset_features_path = Configure.xgboost_best_subfeatures + 'best_subset_{}_features.pkl'.format(selected_size)
+    # if not os.path.exists(best_subset_features_path):
+    #
+    #     with open(Configure.xgboost_best_subfeatures + 'best_subset_11_features_cv_0.955255181818.pkl', "rb") as f:
+    #         print('load base_features: best_subset_11_features_cv_0.955255181818.pkl')
+    #         base_features = cPickle.load(f)
+    #
+    #     best_subset_features = xgboost_select_features(train, selected_size, Configure.xgboost_best_subfeatures, base_features)
+    #     with open(best_subset_features_path, "wb") as f:
+    #         cPickle.dump(best_subset_features, f, -1)
+    # else:
+    #     with open(best_subset_features_path, "rb") as f:
+    #         best_subset_features = cPickle.load(f)
+    #
+    # train = train[list(set(best_subset_features + ['orderType', 'userid']))]
+    # test = test[list(set(best_subset_features + ['userid']))]
 
     y_train_all = train['orderType']
     id_test = test['userid']
@@ -78,7 +78,7 @@ def main():
         'eval_metric': 'auc',
         'objective': 'binary:logistic',
         'updater': 'grow_gpu',
-        'gpu_id': 0,
+        'gpu_id': 2,
         'nthread': -1,
         'silent': 1,
         'booster': 'gbtree'

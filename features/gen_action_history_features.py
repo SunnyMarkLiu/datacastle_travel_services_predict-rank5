@@ -1402,10 +1402,61 @@ def last_order_time_minus_actiontype_delta(uid, action_grouped, history_grouped,
     return action_df['actionTime'].iat[-1] - last_order_time
 
 
+def actiontype_statistic(uid, action_grouped):
+    action_df = action_grouped[uid]
+    actions = action_df['actionType'].values
+    return np.mean(actions), np.std(actions), actions.tolist()[0]
+
+
+def actiontype_timedelta_statistic2(uid, action_grouped):
+    """ 点击 actiontype 的时间间隔统计特征 """
+    action_df = action_grouped[uid]
+    if action_df.shape[0] < 3:
+        return -1, -1, -1, -1, -1, -1, -1
+
+    action_times = action_df['actionTime'].values
+    deltas = []
+    for i in range(len(action_times) - 1):
+        delta = action_times[i+1] - action_times[i]
+        deltas.append(delta)
+
+    last_one_action_diff = deltas[-1]
+    last_two_action_diff = -1
+    last_three_action_diff = -1
+    if len(deltas) > 1:
+        last_two_action_diff = deltas[-2]
+    if len(deltas) > 2:
+        last_three_action_diff = deltas[-3]
+    return np.mean(deltas), np.max(deltas), np.min(deltas), np.std(deltas), \
+           last_one_action_diff, last_two_action_diff, last_three_action_diff
+
+
+def actiontypedelta_statistic(uid, action_grouped):
+    """ 点击 actiontype 差值的统计特征 """
+    action_df = action_grouped[uid]
+    if action_df.shape[0] < 3:
+        return -1, -1, -1, -1, -1, -1, -1
+
+    action_types = action_df['actionType'].values
+    deltas = []
+    for i in range(len(action_types) - 1):
+        delta = action_types[i+1] - action_types[i]
+        deltas.append(delta)
+
+    last_one_action_diff = deltas[-1]
+    last_two_action_diff = -1
+    last_three_action_diff = -1
+    if len(deltas) > 1:
+        last_two_action_diff = deltas[-2]
+    if len(deltas) > 2:
+        last_three_action_diff = deltas[-3]
+    return np.mean(deltas), np.max(deltas), np.min(deltas), np.std(deltas), \
+           last_one_action_diff, last_two_action_diff, last_three_action_diff
+
+
 def build_action_history_features11(df, action, history):
     features = pd.DataFrame({'userid': df['userid']})
     action_grouped = dict(list(action.groupby('userid')))
-    history['orderTime'] = history.orderTime.values.astype(np.int64) // 10 ** 9
     history_grouped = dict(list(history.groupby('userid')))
 
     history_uids = history['userid'].unique()
@@ -1430,10 +1481,63 @@ def build_action_history_features11(df, action, history):
     # features['last_order_time_minus_action5_delta'] = features.apply(lambda row: last_order_time_minus_actiontype_delta(row['userid'], action_grouped, history_grouped, row['has_history_flag'], 5), axis=1)
     # features['last_order_time_minus_action1_delta'] = features.apply(lambda row: last_order_time_minus_actiontype_delta(row['userid'], action_grouped, history_grouped, row['has_history_flag'], 1), axis=1)
     # features['last_order_time_minus_action6_delta'] = features.apply(lambda row: last_order_time_minus_actiontype_delta(row['userid'], action_grouped, history_grouped, row['has_history_flag'], 6), axis=1)
+    #
+    # # 每个用户actionType的均值、方差
+    # features['actiontype_statistic'] = features.apply(lambda row: actiontype_statistic(row['userid'], action_grouped), axis=1)
+    # features['actiontype_mean'] = features['actiontype_statistic'].map(lambda x: x[0])
+    # features['actiontype_std'] = features['actiontype_statistic'].map(lambda x: x[1])
+    # features['actiontype_first'] = features['actiontype_statistic'].map(lambda x: x[2])
+    # del features['actiontype_statistic']
+
+    # features['actiontype_timedelta_statistic2'] = features.apply(lambda row: actiontype_timedelta_statistic2(row['userid'], action_grouped), axis=1)
+    # features['actiontype_timedelta_diff_mean'] = features['actiontype_timedelta_statistic2'].map(lambda x: x[0])
+    # features['actiontype_timedelta_diff_max'] = features['actiontype_timedelta_statistic2'].map(lambda x: x[1])
+    # features['actiontype_timedelta_diff_min'] = features['actiontype_timedelta_statistic2'].map(lambda x: x[2])
+    # features['actiontype_timedelta_diff_std'] = features['actiontype_timedelta_statistic2'].map(lambda x: x[3])
+    # features['actiontype_timedelta_diff_last1'] = features['actiontype_timedelta_statistic2'].map(lambda x: x[4])
+    # features['actiontype_timedelta_diff_last2'] = features['actiontype_timedelta_statistic2'].map(lambda x: x[5])
+    # features['actiontype_timedelta_diff_last3'] = features['actiontype_timedelta_statistic2'].map(lambda x: x[6])
+    # del features['actiontype_timedelta_statistic2']
+
+    # features['actiontypedelta_statistic'] = features.apply(lambda row: actiontypedelta_statistic(row['userid'], action_grouped), axis=1)
+    # features['actiontypedelta_diff_mean'] = features['actiontypedelta_statistic'].map(lambda x: x[0])
+    # features['actiontypedelta_diff_max'] = features['actiontypedelta_statistic'].map(lambda x: x[1])
+    # features['actiontypedelta_diff_min'] = features['actiontypedelta_statistic'].map(lambda x: x[2])
+    # features['actiontypedelta_diff_std'] = features['actiontypedelta_statistic'].map(lambda x: x[3])
+    # features['actiontypedelta_diff_last1'] = features['actiontypedelta_statistic'].map(lambda x: x[4])
+    # features['actiontypedelta_diff_last2'] = features['actiontypedelta_statistic'].map(lambda x: x[5])
+    # features['actiontypedelta_diff_last3'] = features['actiontypedelta_statistic'].map(lambda x: x[6])
+    # del features['actiontypedelta_statistic']
 
     del features['has_history_flag']
     return features
 
+
+def previous_latest_action_statistic(uid, action_grouped):
+    """ 历史上的今天/月、星期 """
+    df = action_grouped[uid]
+    last_action_month = df['action_month'].iat[-1]
+    last_action_action_weekofyear = df['action_weekofyear'].iat[-1]
+    last_action_action_weekday = df['action_weekday'].iat[-1]
+    last_action_action_day = df['action_day'].iat[-1]
+
+    return df[df['action_month'] == last_action_month].shape[0], df[df['action_weekofyear'] == last_action_action_weekofyear].shape[0], \
+           df[df['action_weekday'] == last_action_action_weekday].shape[0], df[df['action_day'] == last_action_action_day].shape[0]
+
+
+def build_action_history_features12(df, action, history):
+    features = pd.DataFrame({'userid': df['userid']})
+    action_grouped = dict(list(action.groupby('userid')))
+
+    # 最近一次点击app 的月份，历史上这个月份点击的次数
+    features['previous_latest_action_statistic'] = features.apply(lambda row: previous_latest_action_statistic(row['userid'], action_grouped), axis=1)
+    features['previous_latest_action_month_count'] = features['previous_latest_action_statistic'].map(lambda x: x[0])
+    features['previous_latest_action_weekofyear_count'] = features['previous_latest_action_statistic'].map(lambda x: x[1])
+    features['previous_latest_action_weekday_count'] = features['previous_latest_action_statistic'].map(lambda x: x[2])
+    features['previous_latest_action_day_count'] = features['previous_latest_action_statistic'].map(lambda x: x[3])
+    del features['previous_latest_action_statistic']
+
+    return features
 
 def main():
 
@@ -1578,6 +1682,22 @@ def main():
         train_features = build_action_history_features11(train, action_train, orderHistory_train)
         print('build test action history features11')
         test_features = build_action_history_features11(test, action_test, orderHistory_test)
+        print('save ', feature_name)
+        data_utils.save_features(train_features, test_features, feature_name)
+
+    feature_name = 'action_history_features12'
+    if not data_utils.is_feature_created(feature_name):
+        action_train = pd.read_csv(Configure.cleaned_path + 'cleaned_action_train.csv')
+        action_test = pd.read_csv(Configure.cleaned_path + 'cleaned_action_test.csv')
+        action_train['actionTime'] = pd.to_datetime(action_train['actionTime'])
+        action_test['actionTime'] = pd.to_datetime(action_test['actionTime'])
+        action_train.sort_values(by='actionTime', inplace=True)
+        action_test.sort_values(by='actionTime', inplace=True)
+
+        print('build train action history features12')
+        train_features = build_action_history_features12(train, action_train, orderHistory_train)
+        print('build test action history features12')
+        test_features = build_action_history_features12(test, action_test, orderHistory_test)
         print('save ', feature_name)
         data_utils.save_features(train_features, test_features, feature_name)
 

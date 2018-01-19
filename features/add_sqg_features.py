@@ -29,12 +29,17 @@ def main():
     # if data_utils.is_feature_created(feature_name):
     #     return
 
-    # print('add gen_feature_action7.csv')
-    # train_features = pd.read_csv('sqg_train_gen_feature_action7.csv')
-    # test_features = pd.read_csv('sqg_test_gen_feature_action7.csv')
-    #
-    # print('save ', feature_name)
-    # data_utils.save_features(train_features, test_features, feature_name)
+    print('add stage_one_features')
+    train_features = pd.read_csv('train_sqg_stage_one_features.csv')
+    test_features = pd.read_csv('test_sqg_stage_one_features.csv')
+
+    used_features = ['userid', 'click_3_rate', 'click_4_rate']
+
+    train_features = train_features[used_features]
+    test_features = test_features[used_features]
+
+    print('save ', feature_name)
+    data_utils.save_features(train_features, test_features, feature_name)
 
 
 if __name__ == "__main__":
