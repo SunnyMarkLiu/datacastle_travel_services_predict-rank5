@@ -14,12 +14,15 @@ module_path = os.path.abspath(os.path.join('..'))
 sys.path.append(module_path)
 import time
 
+import cPickle
 import numpy as np
 import pandas as pd
 import xgboost as xgb
 from sklearn.metrics import auc, roc_curve
 from get_datasets import load_train_test
 from utils import xgb_utils
+from conf.configure import Configure
+from model_feature_selector import xgboost_select_features
 
 
 def evaluate_score(predict, y_true):
@@ -30,9 +33,21 @@ def evaluate_score(predict, y_true):
 
 def main():
     print("load train test datasets")
-    train, test, best_subset_features = load_train_test()
-    train = train[best_subset_features + ['orderType', 'userid']]
-    test = test[best_subset_features + ['userid']]
+    train, test = load_train_test()
+
+    print('贪心算法特征选择')
+    selected_size = 0.9
+    best_subset_features_path = Configure.xgboost_best_subfeatures + 'best_subset_{}_features.pkl'.format(selected_size)
+    if not os.path.exists(best_subset_features_path):
+        best_subset_features = xgboost_select_features(train, selected_size, Configure.xgboost_best_subfeatures)
+        with open(best_subset_features_path, "wb") as f:
+            cPickle.dump(best_subset_features, f, -1)
+    else:
+        with open(best_subset_features_path, "rb") as f:
+            best_subset_features = cPickle.load(f)
+
+    train = train[list(set(best_subset_features + ['orderType', 'userid']))]
+    test = test[list(set(best_subset_features + ['userid']))]
 
     y_train_all = train['orderType']
     id_test = test['userid']

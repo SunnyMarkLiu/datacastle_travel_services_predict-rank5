@@ -58,8 +58,9 @@ class XgboostGreedyFeatureSelector(object):
 
 
     def select_best_subset_features(self, xgb_params, cv_nfold, selected_feature_size, num_boost_round, base_features,
-                                    early_stopping_rounds, maximize=True, stratified=True, shuffle=True):
+                                    save_tmp_features_path, early_stopping_rounds, maximize=True, stratified=True, shuffle=True):
         """
+        :param save_tmp_features_path: save tmp sub-features path
         :param base_features: features which start greedy search
         :param shuffle: shuffle the datas
         :param stratified: label balance
@@ -104,7 +105,10 @@ class XgboostGreedyFeatureSelector(object):
             metric_scores_historys.append(sorted(metric_scores)[-1][0])  # only add the biggest gain score
             print('current feature size: {}, mean cv metric score: {}'.format(len(best_subset_features), metric_scores_historys[-1]))
 
-            best_subset_features_path = './xgboost_best_subfeatures/best_subset_{}_features_cv_{}.pkl'.format(len(best_subset_features), metric_scores_historys[-1])
+            best_subset_features_path = save_tmp_features_path + '/best_subset_{}_features_cv_{}.pkl'.format(
+                                            len(best_subset_features),
+                                            metric_scores_historys[-1]
+                                        )
             with open(best_subset_features_path, "wb") as f:
                 cPickle.dump(best_subset_features, f, -1)
 

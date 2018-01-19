@@ -48,26 +48,9 @@ class Configure(object):
         # 'sqg_features'                : {'on': 'userid', 'how': 'left'}
     }
 
-    # 数据清晰后的路径
-    new_cleaned_path = base_path + 'new_cleaned/'
-    # 生成的特征的路径
-    new_features_path = base_path + 'new_features/'
-    # 生成的模型可训练和预测的数据集
-    new_datasets_path = base_path + 'new_datasets/'
-
-    # 待 merge 的特征（特征名：merge_on 的特征）
-    new_features = {
-        'basic_user_features'            : {'on': 'userid', 'how': 'left'},
-        'basic_history_features'         : {'on': ['userid', 'orderTime'], 'how': 'left'},
-        'basic_comment_features'         : {'on': ['userid', 'orderTime'], 'how': 'left'},
-
-        'basic_user_action_features': {'on': 'userid', 'how': 'left'},
-        'user_order_history_features': {'on': 'userid', 'how': 'left'},
-        'user_order_comment_features': {'on': 'userid', 'how': 'left'},
-        'action_history_features': {'on': 'userid', 'how': 'left'},
-        'action_history_features2': {'on': 'userid', 'how': 'left'},
-        'action_history_features3': {'on': 'userid', 'how': 'left'},
-    }
-
+    # 特征选择后各模型最佳特征保存路径
+    xgboost_best_subfeatures = '../model/xgboost_best_subfeatures/'
+    lightgbm_best_subfeatures = '../model/lightgbm_best_subfeatures/'
+    catboost_best_subfeatures = '../model/catboost_best_subfeatures/'
 
     submit_result_path = '../result/'
