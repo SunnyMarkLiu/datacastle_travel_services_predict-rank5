@@ -129,3 +129,12 @@ def load_571_all_feature_datasets():
         test = cPickle.load(f)
 
     return train, test
+
+
+def load_0_97210_datasets():
+    with open('train_0.97210.pkl', "rb") as f:
+        train = cPickle.load(f)
+    with open('test_0.97210.pkl', "rb") as f:
+        test = cPickle.load(f)
+
+    return train, test

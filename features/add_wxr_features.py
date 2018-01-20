@@ -26,8 +26,8 @@ from utils import data_utils
 
 def main():
     feature_name = 'wxr_features'
-    # if data_utils.is_feature_created(feature_name):
-    #     return
+    if data_utils.is_feature_created(feature_name):
+        return
 
     print('add comment score features')
     with open('wxr_train_comment_features.pkl', "rb") as f:

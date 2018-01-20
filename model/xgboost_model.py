@@ -19,7 +19,7 @@ import numpy as np
 import pandas as pd
 import xgboost as xgb
 from sklearn.metrics import auc, roc_curve
-from get_datasets import load_train_test, load_571_all_feature_datasets
+from get_datasets import load_train_test, load_571_all_feature_datasets, load_0_97210_datasets
 from utils import xgb_utils
 from conf.configure import Configure
 import model_feature_selector as feature_selector
@@ -33,7 +33,7 @@ def evaluate_score(predict, y_true):
 
 def main():
     print("load train test datasets")
-    train, test = load_train_test()
+    train, test = load_0_97210_datasets()
 
     # print('贪心算法特征选择')
     # selected_size = 0.9
@@ -60,7 +60,7 @@ def main():
 
     # print('贪心算法删除特征')
     # train, test = load_571_all_feature_datasets()
-    # remove_ratio = 0.3
+    # remove_ratio = 0.1
     # print('original feature counts: {}, after removed feature counts: {}'.format(train.shape[1] - 1, int((train.shape[1] - 1) * (1 - remove_ratio))))
     #
     # best_removed_features_path = Configure.xgboost_removed_subfeatures + 'best_removed_{}_features.pkl'.format(remove_ratio)
@@ -102,10 +102,10 @@ def main():
         'eval_metric': 'auc',
         'objective': 'binary:logistic',
         'updater': 'grow_gpu',
-        'gpu_id': 0,
+        'gpu_id': 2,
         'nthread': -1,
         'silent': 1,
-        'booster': 'gbtree'
+        'booster': 'gbtree',
     }
 
     print('---> cv train to choose best_num_boost_round')
@@ -148,10 +148,10 @@ def main():
     submission_path = '../result/{}_submission_{}.csv'.format('xgboost',
                                                                  time.strftime('%Y_%m_%d_%H_%M_%S',
                                                                                time.localtime(time.time())))
-    # # 规则设置（cool！）
-    # set_one_index = test[test['2016_2017_first_last_ordertype'] == 1].index
-    # print('set to one count:', len(set_one_index))
-    # df_sub.loc[set_one_index, 'orderType'] = 1
+    # 规则设置（cool！）
+    set_one_index = test[test['2016_2017_first_last_ordertype'] == 1].index
+    print('set to one count:', len(set_one_index))
+    df_sub.loc[set_one_index, 'orderType'] = 1
 
     df_sub.to_csv(submission_path, index=False, columns=['userid', 'orderType'])
     print('-------- predict and valid check  ------')

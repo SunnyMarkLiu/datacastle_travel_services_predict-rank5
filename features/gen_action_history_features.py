@@ -17,7 +17,6 @@ sys.path.append(module_path)
 import warnings
 warnings.filterwarnings('ignore')
 
-import math
 import time
 import datetime
 import numpy as np
@@ -83,7 +82,7 @@ def actiontype_timedelta_statistic(uid, action_grouped, actiontype):
     action_df = action_grouped[uid]
     action_df = action_df[action_df['actionType'] == actiontype]
     if action_df.shape[0] < 3:
-        return -1, -1, -1, -1, -1
+        return -1, -1, -1, -1
 
     action_times = action_df['actionTime'].values
     deltas = []
@@ -91,7 +90,7 @@ def actiontype_timedelta_statistic(uid, action_grouped, actiontype):
         delta = (action_times[i+1] - action_times[i]) / np.timedelta64(1,'s')
         deltas.append(delta)
 
-    return np.mean(deltas), np.max(deltas), np.min(deltas), np.std(deltas), np.median(deltas)
+    return np.mean(deltas), np.max(deltas), np.min(deltas), np.std(deltas)
 
 
 def build_action_history_features(df, action, history):
@@ -151,82 +150,52 @@ def build_action_history_features(df, action, history):
     features['open_app_max_delta'] = features['actiontype_timedelta_statistic'].map(lambda x: x[1])
     features['open_app_min_delta'] = features['actiontype_timedelta_statistic'].map(lambda x: x[2])
     features['open_app_std_delta'] = features['actiontype_timedelta_statistic'].map(lambda x: x[3])
-    # features['open_app_median_delta'] = features['actiontype_timedelta_statistic'].map(lambda x: x[4])
-    # features['open_app_extreme_delta'] = features['open_app_max_delta'] - features['open_app_min_delta']
-    # features['open_app_coeff_of_var'] = (features['open_app_std_delta'] + 0.1) / (features['open_app_mean_delta'] + 0.1)
 
     features['actiontype_timedelta_statistic'] = features.apply(lambda row: actiontype_timedelta_statistic(row['userid'], action_grouped, 'browse_product'), axis=1)
     features['browse_product_mean_delta'] = features['actiontype_timedelta_statistic'].map(lambda x: x[0])
     features['browse_product_max_delta'] = features['actiontype_timedelta_statistic'].map(lambda x: x[1])
     features['browse_product_min_delta'] = features['actiontype_timedelta_statistic'].map(lambda x: x[2])
     features['browse_product_std_delta'] = features['actiontype_timedelta_statistic'].map(lambda x: x[3])
-    # features['browse_product_median_delta'] = features['actiontype_timedelta_statistic'].map(lambda x: x[4])
-    # features['browse_product_extreme_delta'] = features['browse_product_max_delta'] - features['browse_product_min_delta']
-    # features['browse_product_coeff_of_var'] = (features['browse_product_std_delta'] + 0.1) / (features['browse_product_mean_delta'] + 0.1)
-
     features['actiontype_timedelta_statistic'] = features.apply(lambda row: actiontype_timedelta_statistic(row['userid'], action_grouped, 'browse_product2'), axis=1)
     features['browse_product2_mean_delta'] = features['actiontype_timedelta_statistic'].map(lambda x: x[0])
     features['browse_product2_max_delta'] = features['actiontype_timedelta_statistic'].map(lambda x: x[1])
     features['browse_product2_min_delta'] = features['actiontype_timedelta_statistic'].map(lambda x: x[2])
     features['browse_product2_std_delta'] = features['actiontype_timedelta_statistic'].map(lambda x: x[3])
-    # features['browse_product2_median_delta'] = features['actiontype_timedelta_statistic'].map(lambda x: x[4])
-    # features['browse_product2_extreme_delta'] = features['browse_product2_max_delta'] - features['browse_product2_min_delta']
-    # features['browse_product2_coeff_of_var'] = (features['browse_product2_std_delta'] + 0.1) / (features['browse_product2_mean_delta'] + 0.1)
-
     features['actiontype_timedelta_statistic'] = features.apply(lambda row: actiontype_timedelta_statistic(row['userid'], action_grouped, 'browse_product3'), axis=1)
     features['browse_product3_mean_delta'] = features['actiontype_timedelta_statistic'].map(lambda x: x[0])
     features['browse_product3_max_delta'] = features['actiontype_timedelta_statistic'].map(lambda x: x[1])
     features['browse_product3_min_delta'] = features['actiontype_timedelta_statistic'].map(lambda x: x[2])
     features['browse_product3_std_delta'] = features['actiontype_timedelta_statistic'].map(lambda x: x[3])
-    # features['browse_product3_median_delta'] = features['actiontype_timedelta_statistic'].map(lambda x: x[4])
-    # features['browse_product3_extreme_delta'] = features['browse_product3_max_delta'] - features['browse_product3_min_delta']
-    # features['browse_product3_coeff_of_var'] = (features['browse_product3_std_delta'] + 0.1) / (features['browse_product3_mean_delta'] + 0.1)
 
     features['actiontype_timedelta_statistic'] = features.apply(lambda row: actiontype_timedelta_statistic(row['userid'], action_grouped, 'fillin_form5'), axis=1)
     features['fillin_form5_mean_delta'] = features['actiontype_timedelta_statistic'].map(lambda x: x[0])
     features['fillin_form5_max_delta'] = features['actiontype_timedelta_statistic'].map(lambda x: x[1])
     features['fillin_form5_min_delta'] = features['actiontype_timedelta_statistic'].map(lambda x: x[2])
     features['fillin_form5_std_delta'] = features['actiontype_timedelta_statistic'].map(lambda x: x[3])
-    # features['fillin_form5_median_delta'] = features['actiontype_timedelta_statistic'].map(lambda x: x[4])
-    # features['fillin_form5_extreme_delta'] = features['fillin_form5_max_delta'] - features['fillin_form5_min_delta']
-    # features['fillin_form5_coeff_of_var'] = (features['fillin_form5_std_delta'] + 0.1) / (features['fillin_form5_mean_delta'] + 0.1)
 
     features['actiontype_timedelta_statistic'] = features.apply(lambda row: actiontype_timedelta_statistic(row['userid'], action_grouped, 'fillin_form6'), axis=1)
     features['fillin_form6_mean_delta'] = features['actiontype_timedelta_statistic'].map(lambda x: x[0])
     features['fillin_form6_max_delta'] = features['actiontype_timedelta_statistic'].map(lambda x: x[1])
     features['fillin_form6_min_delta'] = features['actiontype_timedelta_statistic'].map(lambda x: x[2])
     features['fillin_form6_std_delta'] = features['actiontype_timedelta_statistic'].map(lambda x: x[3])
-    # features['fillin_form6_median_delta'] = features['actiontype_timedelta_statistic'].map(lambda x: x[4])
-    # features['fillin_form6_extreme_delta'] = features['fillin_form6_max_delta'] - features['fillin_form6_min_delta']
-    # features['fillin_form6_coeff_of_var'] = (features['fillin_form6_std_delta'] + 0.1) / (features['fillin_form6_mean_delta'] + 0.1)
 
     features['actiontype_timedelta_statistic'] = features.apply(lambda row: actiontype_timedelta_statistic(row['userid'], action_grouped, 'fillin_form7'), axis=1)
     features['fillin_form7_mean_delta'] = features['actiontype_timedelta_statistic'].map(lambda x: x[0])
     features['fillin_form7_max_delta'] = features['actiontype_timedelta_statistic'].map(lambda x: x[1])
     features['fillin_form7_min_delta'] = features['actiontype_timedelta_statistic'].map(lambda x: x[2])
     features['fillin_form7_std_delta'] = features['actiontype_timedelta_statistic'].map(lambda x: x[3])
-    # features['fillin_form7_median_delta'] = features['actiontype_timedelta_statistic'].map(lambda x: x[4])
-    # features['fillin_form7_extreme_delta'] = features['fillin_form7_max_delta'] - features['fillin_form7_min_delta']
-    # features['fillin_form7_coeff_of_var'] = (features['fillin_form7_std_delta'] + 0.1) / (features['fillin_form7_mean_delta'] + 0.1)
 
     features['actiontype_timedelta_statistic'] = features.apply(lambda row: actiontype_timedelta_statistic(row['userid'], action_grouped, 'submit_order'), axis=1)
     features['submit_order_mean_delta'] = features['actiontype_timedelta_statistic'].map(lambda x: x[0])
     features['submit_order_max_delta'] = features['actiontype_timedelta_statistic'].map(lambda x: x[1])
     features['submit_order_min_delta'] = features['actiontype_timedelta_statistic'].map(lambda x: x[2])
     features['submit_order_std_delta'] = features['actiontype_timedelta_statistic'].map(lambda x: x[3])
-    # features['submit_order_median_delta'] = features['actiontype_timedelta_statistic'].map(lambda x: x[4])
-    # features['submit_order_extreme_delta'] = features['submit_order_max_delta'] - features['submit_order_min_delta']
-    # features['submit_order_coeff_of_var'] = (features['submit_order_std_delta'] + 0.1) / (features['submit_order_mean_delta'] + 0.1)
 
     features['actiontype_timedelta_statistic'] = features.apply(lambda row: actiontype_timedelta_statistic(row['userid'], action_grouped, 'pay_money'), axis=1)
     features['pay_money_mean_delta'] = features['actiontype_timedelta_statistic'].map(lambda x: x[0])
     features['pay_money_max_delta'] = features['actiontype_timedelta_statistic'].map(lambda x: x[1])
     features['pay_money_min_delta'] = features['actiontype_timedelta_statistic'].map(lambda x: x[2])
     features['pay_money_std_delta'] = features['actiontype_timedelta_statistic'].map(lambda x: x[3])
-    # features['pay_money_median_delta'] = features['actiontype_timedelta_statistic'].map(lambda x: x[4])
-    # features['pay_money_extreme_delta'] = features['pay_money_max_delta'] - features['pay_money_min_delta']
-    # features['pay_money_coeff_of_var'] = (features['pay_money_std_delta'] + 0.1) / (features['pay_money_mean_delta'] + 0.1)
-
     del features['actiontype_timedelta_statistic']
 
     del features['has_history_flag']
@@ -705,13 +674,13 @@ def diff_action_type_time_delta(uid, action_grouped, actiontypeA, actiontypeB):
         i+=1
     if len(timespan_list) > 0:
         if len(timespan_list) >= 3:
-            return np.min(timespan_list), np.max(timespan_list), np.mean(timespan_list), np.std(timespan_list), timespan_list[-3], timespan_list[-2], np.median(timespan_list)
+            return np.min(timespan_list), np.max(timespan_list), np.mean(timespan_list), np.std(timespan_list), timespan_list[-3], timespan_list[-2]
         elif len(timespan_list) == 2:
-            return np.min(timespan_list), np.max(timespan_list), np.mean(timespan_list), np.std(timespan_list), -999, timespan_list[-2], np.median(timespan_list)
+            return np.min(timespan_list), np.max(timespan_list), np.mean(timespan_list), np.std(timespan_list), -999, timespan_list[-2]
         else:
-            return np.min(timespan_list), np.max(timespan_list), np.mean(timespan_list), np.std(timespan_list), -999, -999, np.median(timespan_list)
+            return np.min(timespan_list), np.max(timespan_list), np.mean(timespan_list), np.std(timespan_list), -999, -999
     else:
-        return -999, -999, -999, -999, -999, -999, -999
+        return -999, -999, -999, -999, -999, -999
 
 
 def build_action_history_features4(df, action, history):
@@ -725,10 +694,6 @@ def build_action_history_features4(df, action, history):
     features['action_type_45_time_delta_std'] = features['diff_action_type_time_delta'].map(lambda x: x[3])
     features['action_type_45_time_delta_last2'] = features['diff_action_type_time_delta'].map(lambda x: x[4])
     features['action_type_45_time_delta_last3'] = features['diff_action_type_time_delta'].map(lambda x: x[5])
-    # features['action_type_45_time_delta_median'] = features['diff_action_type_time_delta'].map(lambda x: x[6])
-    # features['action_type_45_time_delta_extreme_delta'] = features['action_type_45_time_delta_max'] - features['action_type_45_time_delta_min']
-    # features['action_type_45_time_delta_coeff_of_var'] = (features['action_type_45_time_delta_std'] + 0.1) / (features['action_type_45_time_delta_mean'] + 0.1)
-
     features['diff_action_type_time_delta'] = features.apply(lambda row: diff_action_type_time_delta(row['userid'], action_grouped, 5, 6), axis=1)
     features['action_type_56_time_delta_min'] = features['diff_action_type_time_delta'].map(lambda x: x[0])
     features['action_type_56_time_delta_max'] = features['diff_action_type_time_delta'].map(lambda x: x[1])
@@ -736,10 +701,6 @@ def build_action_history_features4(df, action, history):
     features['action_type_56_time_delta_std'] = features['diff_action_type_time_delta'].map(lambda x: x[3])
     features['action_type_56_time_delta_last2'] = features['diff_action_type_time_delta'].map(lambda x: x[4])
     features['action_type_56_time_delta_last3'] = features['diff_action_type_time_delta'].map(lambda x: x[5])
-    # features['action_type_56_time_delta_median'] = features['diff_action_type_time_delta'].map(lambda x: x[6])
-    # features['action_type_56_time_delta_extreme_delta'] = features['action_type_56_time_delta_max'] - features['action_type_56_time_delta_min']
-    # features['action_type_56_time_delta_coeff_of_var'] = (features['action_type_56_time_delta_std'] + 0.1) / (features['action_type_56_time_delta_mean'] + 0.1)
-
     features['diff_action_type_time_delta'] = features.apply(lambda row: diff_action_type_time_delta(row['userid'], action_grouped, 6, 7), axis=1)
     features['action_type_67_time_delta_min'] = features['diff_action_type_time_delta'].map(lambda x: x[0])
     features['action_type_67_time_delta_max'] = features['diff_action_type_time_delta'].map(lambda x: x[1])
@@ -747,31 +708,18 @@ def build_action_history_features4(df, action, history):
     features['action_type_67_time_delta_std'] = features['diff_action_type_time_delta'].map(lambda x: x[3])
     # features['action_type_67_time_delta_last2'] = features['diff_action_type_time_delta'].map(lambda x: x[4])
     # features['action_type_67_time_delta_last3'] = features['diff_action_type_time_delta'].map(lambda x: x[5])
-    # features['action_type_67_time_delta_median'] = features['diff_action_type_time_delta'].map(lambda x: x[6])
-    # features['action_type_67_time_delta_extreme_delta'] = features['action_type_67_time_delta_max'] - features['action_type_67_time_delta_min']
-    # features['action_type_67_time_delta_coeff_of_var'] = (features['action_type_67_time_delta_std'] + 0.1) / (features['action_type_67_time_delta_mean'] + 0.1)
 
     features['diff_action_type_time_delta'] = features.apply(lambda row: diff_action_type_time_delta(row['userid'], action_grouped, 5, 8), axis=1)
     features['action_type_58_time_delta_min'] = features['diff_action_type_time_delta'].map(lambda x: x[0])
     features['action_type_58_time_delta_max'] = features['diff_action_type_time_delta'].map(lambda x: x[1])
     features['action_type_58_time_delta_mean'] = features['diff_action_type_time_delta'].map(lambda x: x[2])
     features['action_type_58_time_delta_std'] = features['diff_action_type_time_delta'].map(lambda x: x[3])
-    # features['action_type_58_time_delta_last2'] = features['diff_action_type_time_delta'].map(lambda x: x[4])
-    # features['action_type_58_time_delta_last3'] = features['diff_action_type_time_delta'].map(lambda x: x[5])
-    # features['action_type_58_time_delta_median'] = features['diff_action_type_time_delta'].map(lambda x: x[6])
-    # features['action_type_58_time_delta_extreme_delta'] = features['action_type_58_time_delta_max'] - features['action_type_58_time_delta_min']
-    # features['action_type_58_time_delta_coeff_of_var'] = (features['action_type_58_time_delta_std'] + 0.1) / (features['action_type_58_time_delta_mean'] + 0.1)
-
     features['diff_action_type_time_delta'] = features.apply(lambda row: diff_action_type_time_delta(row['userid'], action_grouped, 6, 8), axis=1)
     features['action_type_68_time_delta_min'] = features['diff_action_type_time_delta'].map(lambda x: x[0])
     features['action_type_68_time_delta_max'] = features['diff_action_type_time_delta'].map(lambda x: x[1])
     features['action_type_68_time_delta_mean'] = features['diff_action_type_time_delta'].map(lambda x: x[2])
     features['action_type_68_time_delta_std'] = features['diff_action_type_time_delta'].map(lambda x: x[3])
-    # features['action_type_68_time_delta_last2'] = features['diff_action_type_time_delta'].map(lambda x: x[4])
-    # features['action_type_68_time_delta_last3'] = features['diff_action_type_time_delta'].map(lambda x: x[5])
-    # features['action_type_68_time_delta_median'] = features['diff_action_type_time_delta'].map(lambda x: x[6])
-    # features['action_type_68_time_delta_extreme_delta'] = features['action_type_68_time_delta_max'] - features['action_type_68_time_delta_min']
-    # features['action_type_68_time_delta_coeff_of_var'] = (features['action_type_68_time_delta_std'] + 0.1) / (features['action_type_68_time_delta_mean'] + 0.1)
+
     del features['diff_action_type_time_delta']
     return features
 
@@ -1063,7 +1011,7 @@ def build_action_history_features7(df, action, history):
     # features['several_1days_had_action'] = np.log1p(features['several_1days_had_action'])
     #
     # features['several_2days_had_action'] = features.apply(lambda row: several_days_had_action(row['userid'], action_grouped, 2), axis=1)
-    # features['several_2days_had_action_lg_220'] = features['several_2days_had_action'].map(lambda x: int(x > 220))
+    # # features['several_2days_had_action_lg_220'] = features['several_2days_had_action'].map(lambda x: int(x > 220))
     # features['several_2days_had_action'] = np.log1p(features['several_2days_had_action'])
 
 
@@ -1379,18 +1327,18 @@ def build_action_history_features10(df, action, history):
     # features['last_order_actiontime_statistic'] = features.apply(lambda row: last_order_actiontime_statistic(row['userid'], action_grouped, history_grouped, row['has_history_flag']), axis=1)
     # features['last_order_action_time_mean'] = features['last_order_actiontime_statistic'].map(lambda x: x[0])
     # features['last_order_action_time_std'] = features['last_order_actiontime_statistic'].map(lambda x: x[1])
-    # features['last_order_action1_time_mean'] = features['last_order_actiontime_statistic'].map(lambda x: x[2])
-    # features['last_order_action1_time_std'] = features['last_order_actiontime_statistic'].map(lambda x: x[3])
+    # # features['last_order_action1_time_mean'] = features['last_order_actiontime_statistic'].map(lambda x: x[2])
+    # # features['last_order_action1_time_std'] = features['last_order_actiontime_statistic'].map(lambda x: x[3])
     # features['last_order_action234_time_mean'] = features['last_order_actiontime_statistic'].map(lambda x: x[4])
     # features['last_order_action234_time_std'] = features['last_order_actiontime_statistic'].map(lambda x: x[5])
     # features['last_order_action5_time_mean'] = features['last_order_actiontime_statistic'].map(lambda x: x[6])
-    # features['last_order_action5_time_std'] = features['last_order_actiontime_statistic'].map(lambda x: x[7])
+    # # features['last_order_action5_time_std'] = features['last_order_actiontime_statistic'].map(lambda x: x[7])
     # features['last_order_action6_time_mean'] = features['last_order_actiontime_statistic'].map(lambda x: x[8])
-    # features['last_order_action6_time_std'] = features['last_order_actiontime_statistic'].map(lambda x: x[9])
+    # # features['last_order_action6_time_std'] = features['last_order_actiontime_statistic'].map(lambda x: x[9])
     # features['last_order_action7_time_mean'] = features['last_order_actiontime_statistic'].map(lambda x: x[10])
-    # features['last_order_action7_time_std'] = features['last_order_actiontime_statistic'].map(lambda x: x[11])
+    # # features['last_order_action7_time_std'] = features['last_order_actiontime_statistic'].map(lambda x: x[11])
     # features['last_order_action8_time_mean'] = features['last_order_actiontime_statistic'].map(lambda x: x[12])
-    # features['last_order_action8_time_std'] = features['last_order_actiontime_statistic'].map(lambda x: x[13])
+    # # features['last_order_action8_time_std'] = features['last_order_actiontime_statistic'].map(lambda x: x[13])
     # del features['last_order_actiontime_statistic']
 
     del features['has_history_flag']
@@ -1436,76 +1384,6 @@ def last_openapp_fillform_count(uid, action_grouped):
     return action_df[(action_df['actionType'] == 5) | (action_df['actionType'] == 6) | (action_df['actionType'] == 7)].shape[0]
 
 
-def last_order_time_minus_actiontype_delta(uid, action_grouped, history_grouped, flag, action_type):
-    if flag == 0:
-        last_order_time = default_start_order_time
-    else:
-        last_order_time = history_grouped[uid]['orderTime'].iat[-1]
-
-    action_df = action_grouped[uid]
-    action_df = action_df[action_df['actionTime'] > last_order_time]
-    if action_df.shape[0] == 0:
-        return -1
-
-    action_df = action_df[action_df['actionType'] == action_type]
-    if action_df.shape[0] == 0:
-        return -1
-
-    return action_df['actionTime'].iat[-1] - last_order_time
-
-
-def actiontype_statistic(uid, action_grouped):
-    action_df = action_grouped[uid]
-    actions = action_df['actionType'].values
-    return np.mean(actions), np.std(actions), actions.tolist()[0]
-
-
-def actiontype_timedelta_statistic2(uid, action_grouped):
-    """ 点击 actiontype 的时间间隔统计特征 """
-    action_df = action_grouped[uid]
-    if action_df.shape[0] < 3:
-        return -1, -1, -1, -1, -1, -1, -1
-
-    action_times = action_df['actionTime'].values
-    deltas = []
-    for i in range(len(action_times) - 1):
-        delta = action_times[i+1] - action_times[i]
-        deltas.append(delta)
-
-    last_one_action_diff = deltas[-1]
-    last_two_action_diff = -1
-    last_three_action_diff = -1
-    if len(deltas) > 1:
-        last_two_action_diff = deltas[-2]
-    if len(deltas) > 2:
-        last_three_action_diff = deltas[-3]
-    return np.mean(deltas), np.max(deltas), np.min(deltas), np.std(deltas), \
-           last_one_action_diff, last_two_action_diff, last_three_action_diff
-
-
-def actiontypedelta_statistic(uid, action_grouped):
-    """ 点击 actiontype 差值的统计特征 """
-    action_df = action_grouped[uid]
-    if action_df.shape[0] < 3:
-        return -1, -1, -1, -1, -1, -1, -1
-
-    action_types = action_df['actionType'].values
-    deltas = []
-    for i in range(len(action_types) - 1):
-        delta = action_types[i+1] - action_types[i]
-        deltas.append(delta)
-
-    last_one_action_diff = deltas[-1]
-    last_two_action_diff = -1
-    last_three_action_diff = -1
-    if len(deltas) > 1:
-        last_two_action_diff = deltas[-2]
-    if len(deltas) > 2:
-        last_three_action_diff = deltas[-3]
-    return np.mean(deltas), np.max(deltas), np.min(deltas), np.std(deltas), \
-           last_one_action_diff, last_two_action_diff, last_three_action_diff
-
-
 def build_action_history_features11(df, action, history):
     features = pd.DataFrame({'userid': df['userid']})
     action_grouped = dict(list(action.groupby('userid')))
@@ -1516,120 +1394,21 @@ def build_action_history_features11(df, action, history):
     features['has_history_flag'] = features['userid'].map(lambda uid: uid in history_uids).astype(int)
 
     # # 最后一次 order 之后第一次 actiontype 的时间
-    # features['last_order_first_actiontype1_time'] = features.apply(lambda row: last_order_first_actiontype_time(row['userid'], action_grouped, history_grouped, row['has_history_flag'], 1), axis=1)
-    # features['last_order_first_actiontype2_time'] = features.apply(lambda row: last_order_first_actiontype_time(row['userid'], action_grouped, history_grouped, row['has_history_flag'], 2), axis=1)
+    # # features['last_order_first_actiontype1_time'] = features.apply(lambda row: last_order_first_actiontype_time(row['userid'], action_grouped, history_grouped, row['has_history_flag'], 1), axis=1)
+    # # features['last_order_first_actiontype2_time'] = features.apply(lambda row: last_order_first_actiontype_time(row['userid'], action_grouped, history_grouped, row['has_history_flag'], 2), axis=1)
     # features['last_order_first_actiontype3_time'] = features.apply(lambda row: last_order_first_actiontype_time(row['userid'], action_grouped, history_grouped, row['has_history_flag'], 3), axis=1)
     # features['last_order_first_actiontype4_time'] = features.apply(lambda row: last_order_first_actiontype_time(row['userid'], action_grouped, history_grouped, row['has_history_flag'], 4), axis=1)
-    # features['last_order_first_actiontype5_time'] = features.apply(lambda row: last_order_first_actiontype_time(row['userid'], action_grouped, history_grouped, row['has_history_flag'], 5), axis=1)
-    # features['last_order_first_actiontype6_time'] = features.apply(lambda row: last_order_first_actiontype_time(row['userid'], action_grouped, history_grouped, row['has_history_flag'], 6), axis=1)
+    # # features['last_order_first_actiontype5_time'] = features.apply(lambda row: last_order_first_actiontype_time(row['userid'], action_grouped, history_grouped, row['has_history_flag'], 5), axis=1)
+    # # features['last_order_first_actiontype6_time'] = features.apply(lambda row: last_order_first_actiontype_time(row['userid'], action_grouped, history_grouped, row['has_history_flag'], 6), axis=1)
     # features['last_order_first_actiontype7_time'] = features.apply(lambda row: last_order_first_actiontype_time(row['userid'], action_grouped, history_grouped, row['has_history_flag'], 7), axis=1)
     # features['last_order_first_actiontype8_time'] = features.apply(lambda row: last_order_first_actiontype_time(row['userid'], action_grouped, history_grouped, row['has_history_flag'], 8), axis=1)
-    # features['last_order_first_actiontype9_time'] = features.apply(lambda row: last_order_first_actiontype_time(row['userid'], action_grouped, history_grouped, row['has_history_flag'], 9), axis=1)
+    # # features['last_order_first_actiontype9_time'] = features.apply(lambda row: last_order_first_actiontype_time(row['userid'], action_grouped, history_grouped, row['has_history_flag'], 9), axis=1)
 
     # 最后一次点击APP开始浏览量
     features['last_openapp_browse_count'] = features.apply(lambda row: last_openapp_browse_count(row['userid'], action_grouped), axis=1)
     # features['last_openapp_fillform_count'] = features.apply(lambda row: last_openapp_fillform_count(row['userid'], action_grouped), axis=1)
 
-    # # 用户最后下订单时间减去最后一次点击5时间差
-    # features['last_order_time_minus_action5_delta'] = features.apply(lambda row: last_order_time_minus_actiontype_delta(row['userid'], action_grouped, history_grouped, row['has_history_flag'], 5), axis=1)
-    # features['last_order_time_minus_action1_delta'] = features.apply(lambda row: last_order_time_minus_actiontype_delta(row['userid'], action_grouped, history_grouped, row['has_history_flag'], 1), axis=1)
-    # features['last_order_time_minus_action6_delta'] = features.apply(lambda row: last_order_time_minus_actiontype_delta(row['userid'], action_grouped, history_grouped, row['has_history_flag'], 6), axis=1)
-
-    # # 每个用户actionType的均值、方差
-    # features['actiontype_statistic'] = features.apply(lambda row: actiontype_statistic(row['userid'], action_grouped), axis=1)
-    # features['actiontype_mean'] = features['actiontype_statistic'].map(lambda x: x[0])
-    # features['actiontype_std'] = features['actiontype_statistic'].map(lambda x: x[1])
-    # features['actiontype_first'] = features['actiontype_statistic'].map(lambda x: x[2])
-    # del features['actiontype_statistic']
-
-    # features['actiontype_timedelta_statistic2'] = features.apply(lambda row: actiontype_timedelta_statistic2(row['userid'], action_grouped), axis=1)
-    # features['actiontype_timedelta_diff_mean'] = features['actiontype_timedelta_statistic2'].map(lambda x: x[0])
-    # features['actiontype_timedelta_diff_max'] = features['actiontype_timedelta_statistic2'].map(lambda x: x[1])
-    # features['actiontype_timedelta_diff_min'] = features['actiontype_timedelta_statistic2'].map(lambda x: x[2])
-    # features['actiontype_timedelta_diff_std'] = features['actiontype_timedelta_statistic2'].map(lambda x: x[3])
-    # features['actiontype_timedelta_diff_last1'] = features['actiontype_timedelta_statistic2'].map(lambda x: x[4])
-    # features['actiontype_timedelta_diff_last2'] = features['actiontype_timedelta_statistic2'].map(lambda x: x[5])
-    # features['actiontype_timedelta_diff_last3'] = features['actiontype_timedelta_statistic2'].map(lambda x: x[6])
-    # del features['actiontype_timedelta_statistic2']
-
-    # features['actiontypedelta_statistic'] = features.apply(lambda row: actiontypedelta_statistic(row['userid'], action_grouped), axis=1)
-    # features['actiontypedelta_diff_mean'] = features['actiontypedelta_statistic'].map(lambda x: x[0])
-    # features['actiontypedelta_diff_max'] = features['actiontypedelta_statistic'].map(lambda x: x[1])
-    # features['actiontypedelta_diff_min'] = features['actiontypedelta_statistic'].map(lambda x: x[2])
-    # features['actiontypedelta_diff_std'] = features['actiontypedelta_statistic'].map(lambda x: x[3])
-    # features['actiontypedelta_diff_last1'] = features['actiontypedelta_statistic'].map(lambda x: x[4])
-    # features['actiontypedelta_diff_last2'] = features['actiontypedelta_statistic'].map(lambda x: x[5])
-    # features['actiontypedelta_diff_last3'] = features['actiontypedelta_statistic'].map(lambda x: x[6])
-    # del features['actiontypedelta_statistic']
-
-    # 最后一次action是否含6 或 7
-    # features['last_actiontype_is_6'] = features.apply(lambda row: int(action_grouped[row['userid']]['actionType'].iat[-1] == 6), axis=1)
-    # features['last_actiontype_is_7'] = features.apply(lambda row: int(action_grouped[row['userid']]['actionType'].iat[-1] == 7), axis=1)
-
-    # # 距离随后一次的 action type 的时间戳距离
-    # features['last_action_1_timestamp'] = features.apply(lambda row: last_action_timestamp(row['userid'], action_grouped, 1), axis=1)
-    # features['last_action_2_timestamp'] = features.apply(lambda row: last_action_timestamp(row['userid'], action_grouped, 2), axis=1)
-    # features['last_action_3_timestamp'] = features.apply(lambda row: last_action_timestamp(row['userid'], action_grouped, 3), axis=1)
-    # features['last_action_4_timestamp'] = features.apply(lambda row: last_action_timestamp(row['userid'], action_grouped, 4), axis=1)
-    # features['last_action_5_timestamp'] = features.apply(lambda row: last_action_timestamp(row['userid'], action_grouped, 5), axis=1)
-    # features['last_action_6_timestamp'] = features.apply(lambda row: last_action_timestamp(row['userid'], action_grouped, 6), axis=1)
-    # features['last_action_7_timestamp'] = features.apply(lambda row: last_action_timestamp(row['userid'], action_grouped, 7), axis=1)
-    # features['last_action_8_timestamp'] = features.apply(lambda row: last_action_timestamp(row['userid'], action_grouped, 8), axis=1)
-    # features['last_action_9_timestamp'] = features.apply(lambda row: last_action_timestamp(row['userid'], action_grouped, 9), axis=1)
-
-    # 最后一次订单后，最后一次action 和第一次action的时间差
-    # features['from_last_order_lastfirst_timedelta'] = features.apply(lambda row: from_last_order_lastfirst_timedelta(row['userid'], action_grouped, history_grouped, row['has_history_flag']), axis=1)
     del features['has_history_flag']
-    return features
-
-
-def from_last_order_lastfirst_timedelta(uid, action_grouped, history_grouped, flag):
-    if flag == 0:
-        return -1
-
-    a_df = action_grouped[uid]
-    h_df = history_grouped[uid]
-    last_order_time = h_df['orderTime'].iat[-1]
-    sub_action_df = a_df[a_df['actionTime'] > last_order_time]
-
-    if sub_action_df.shape[0] < 2:
-        return -1
-    actionTimes = sub_action_df['actionTime'].values.tolist()
-    return actionTimes[-1] - actionTimes[0]
-
-
-def previous_latest_action_statistic(uid, action_grouped):
-    """ 历史上的今天/月、星期 """
-    df = action_grouped[uid]
-    last_action_month = df['action_month'].iat[-1]
-    last_action_action_weekofyear = df['action_weekofyear'].iat[-1]
-    last_action_action_weekday = df['action_weekday'].iat[-1]
-    last_action_action_day = df['action_day'].iat[-1]
-
-    return df[df['action_month'] == last_action_month].shape[0], df[df['action_weekofyear'] == last_action_action_weekofyear].shape[0], \
-           df[df['action_weekday'] == last_action_action_weekday].shape[0], df[df['action_day'] == last_action_action_day].shape[0]
-
-
-def last_action_timestamp(uid, action_grouped, actiontype):
-    df = action_grouped[uid]
-    df = df[df['actionType'] == actiontype]
-    if df.shape[0] > 0:
-        return df['actionTime'].iat[-1]
-    return np.nan
-
-
-def build_action_history_features12(df, action, history):
-    features = pd.DataFrame({'userid': df['userid']})
-    action_grouped = dict(list(action.groupby('userid')))
-
-    # # 最近一次点击app 的month/weekofyear/weekdayday，历史上点击的次数
-    # features['previous_latest_action_statistic'] = features.apply(lambda row: previous_latest_action_statistic(row['userid'], action_grouped), axis=1)
-    # features['previous_latest_action_month_count'] = features['previous_latest_action_statistic'].map(lambda x: x[0])
-    # features['previous_latest_action_weekofyear_count'] = features['previous_latest_action_statistic'].map(lambda x: x[1])
-    # features['previous_latest_action_weekday_count'] = features['previous_latest_action_statistic'].map(lambda x: x[2])
-    # features['previous_latest_action_day_count'] = features['previous_latest_action_statistic'].map(lambda x: x[3])
-    # del features['previous_latest_action_statistic']
-
     return features
 
 
@@ -1776,22 +1555,6 @@ def main():
         train_features = build_action_history_features11(train, action_train, orderHistory_train)
         print('build test action history features11')
         test_features = build_action_history_features11(test, action_test, orderHistory_test)
-        print('save ', feature_name)
-        data_utils.save_features(train_features, test_features, feature_name)
-
-    feature_name = 'action_history_features12'
-    if not data_utils.is_feature_created(feature_name):
-        action_train = pd.read_csv(Configure.cleaned_path + 'cleaned_action_train.csv')
-        action_test = pd.read_csv(Configure.cleaned_path + 'cleaned_action_test.csv')
-        action_train['actionTime'] = pd.to_datetime(action_train['actionTime'])
-        action_test['actionTime'] = pd.to_datetime(action_test['actionTime'])
-        action_train.sort_values(by='actionTime', inplace=True)
-        action_test.sort_values(by='actionTime', inplace=True)
-
-        print('build train action history features12')
-        train_features = build_action_history_features12(train, action_train, orderHistory_train)
-        print('build test action history features12')
-        test_features = build_action_history_features12(test, action_test, orderHistory_test)
         print('save ', feature_name)
         data_utils.save_features(train_features, test_features, feature_name)
 
