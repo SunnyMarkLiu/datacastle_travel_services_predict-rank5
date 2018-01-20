@@ -10,6 +10,8 @@ from __future__ import absolute_import, division, print_function
 import os
 import sys
 
+import cPickle
+
 module_path = os.path.abspath(os.path.join('..'))
 sys.path.append(module_path)
 
@@ -116,5 +118,14 @@ def load_train_test():
 
     print('连续特征离散化')
     train, test = discretize_features(train, test)
+
+    return train, test
+
+
+def load_571_all_feature_datasets():
+    with open('all_571_features_train.pkl', "rb") as f:
+        train = cPickle.load(f)
+    with open('all_571_features_test.pkl', "rb") as f:
+        test = cPickle.load(f)
 
     return train, test

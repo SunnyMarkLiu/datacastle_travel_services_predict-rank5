@@ -54,4 +54,7 @@ class Configure(object):
     lightgbm_best_subfeatures = '../model/lightgbm_best_subfeatures/'
     catboost_best_subfeatures = '../model/catboost_best_subfeatures/'
 
+    # 特征选择后各模型最佳特征保存路径
+    xgboost_removed_subfeatures = '../model/xgboost_removed_subfeatures/'
+
     submit_result_path = '../result/'

@@ -21,6 +21,7 @@ sys.path.append(module_path)
 import warnings
 warnings.filterwarnings('ignore')
 
+import time
 from Queue import Queue
 import threading
 import xgboost as xgb
@@ -50,12 +51,111 @@ class XgboostGreedyFeatureSelector(object):
                            num_boost_round=num_boost_round,
                            early_stopping_rounds=early_stopping_rounds,
                            shuffle=shuffle,
-                           # verbose_eval=100,
+                           # verbose_eval=50,
                            # show_stdv=False,
                            )
         best_num_boost_rounds = len(cv_result)
         mean_test_auc = cv_result.loc[best_num_boost_rounds - 11: best_num_boost_rounds - 1, 'test-auc-mean'].mean()
         return mean_test_auc
+
+    def remove_worst_features(self, xgb_params, cv_nfold, remove_ratio, num_boost_round, thread_size, save_removed_features_path,
+                              early_stopping_rounds, stratified=True, shuffle=True, decrease_auc_threshold=0.0005):
+        """
+        remove worst features to improve score
+        """
+        original_features = self.X.columns.values.tolist()
+        should_removed_feature_count = int(len(original_features) * remove_ratio)
+
+        print('calc metric using original features')
+        base_metric_score = self._cross_validate_score(xgb_params=xgb_params, sub_features=original_features,
+                                                       nfold=cv_nfold, num_boost_round=num_boost_round,
+                                                       early_stopping_rounds=early_stopping_rounds,
+                                                       stratified=stratified, shuffle=shuffle)
+        print('base metric: ', base_metric_score)
+
+        removed_features = []
+
+        best_metric_score = base_metric_score
+        best_removed_features = removed_features
+
+        while len(removed_features) < should_removed_feature_count:
+
+            start = time.time()
+
+            left_selected_features = list(set(original_features) - set(removed_features))
+
+            metric_queue = Queue()
+
+            def _thread_clac_metric(thread_features):
+                for feature in thread_features:
+                    sub_features = list(set(left_selected_features) - {feature})
+                    # calc metric using current features
+                    metric_score = self._cross_validate_score(xgb_params=xgb_params, sub_features=sub_features,
+                                                              nfold=cv_nfold, num_boost_round=num_boost_round,
+                                                              early_stopping_rounds=early_stopping_rounds,
+                                                              stratified=stratified, shuffle=shuffle)
+                    metric_queue.put((metric_score, feature))
+                    if metric_queue.qsize() % 50 == 0:
+                        print("left: {}, processed: {}, mean cv test score: {:.5f}".format(
+                            len(left_selected_features), metric_queue.qsize(), metric_score))
+
+            # starting multi-thread to clac metric on GPU
+            threads = []
+            for i in range(thread_size):
+                delta = int(len(left_selected_features) / thread_size)
+                start_i = i * delta
+                if i == thread_size - 1:
+                    end_i = len(left_selected_features)
+                else:
+                    end_i = (i + 1) * delta
+
+                # print('thread_{} process features: {} ~ {}'.format(i, start_i, end_i))
+                t = threading.Thread(target=_thread_clac_metric, name='thread_{}'.format(i),
+                                     args=(left_selected_features[start_i: end_i],))
+                threads.append(t)
+
+            for thread in threads:
+                thread.start()
+
+            for thread in threads:
+                thread.join()  # wait for the thread to finish.
+
+            metric_scores = []
+            while not metric_queue.empty():
+                metric_scores.append(metric_queue.get())
+
+            metric_scores = sorted(metric_scores)
+
+            elapsed = (time.time() - start)
+
+            if best_metric_score < metric_scores[-1][0]:
+                print('===> remove {}, auc imporved from {} -> {}, cost {}s'.format(
+                    metric_scores[-1][1], best_metric_score, metric_scores[-1][0], elapsed))
+
+                removed_features.append(metric_scores[-1][1])  # only add the feature which get "the biggest gain score"
+                best_metric_score = metric_scores[-1][0]
+                best_removed_features = removed_features
+
+                best_subset_features_path = save_removed_features_path + '/best_cv_{}_removed_feature_count_{}.pkl'.format(
+                    best_metric_score,
+                    len(best_removed_features)
+                )
+                with open(best_subset_features_path, "wb") as f:
+                    cPickle.dump(best_removed_features, f, -1)
+
+            elif best_metric_score - metric_scores[-1][0] > decrease_auc_threshold:
+                print('===> remove {}, decrease auc a little, from {} -> {}, cost {}s'.format(
+                    metric_scores[-1][1], best_metric_score, metric_scores[-1][0], elapsed))
+
+                removed_features.append(metric_scores[-1][1])
+            else:
+                break
+
+            print('===> removed feature size:', len(best_removed_features))
+
+        print('===> final removed feature size:', len(best_removed_features))
+        return best_removed_features
+
 
 
     def select_best_subset_features(self, xgb_params, cv_nfold, selected_feature_size, num_boost_round, base_features,

@@ -18,11 +18,7 @@ import warnings
 
 warnings.filterwarnings('ignore')
 
-import numpy as np
-import pandas as pd
-from conf.configure import Configure
-from utils import data_utils
-from utils import data_utils, xgb_feature_selector
+from utils import xgb_feature_selector
 from sklearn.model_selection import train_test_split
 
 
@@ -56,3 +52,34 @@ def xgboost_select_features(train, selected_size, save_tmp_features_path, base_f
                                                                 stratified=True, shuffle=True,
                                                                 decrease_auc_threshold=decrease_auc_threshold)
     return best_subset_features
+
+
+def xgboost_remove_features(train, remove_ratio, save_removed_features_path, decrease_auc_threshold):
+    train_df, _ = train_test_split(train, test_size=0.9, random_state=42, shuffle=True, stratify=train['orderType'])
+    selector = xgb_feature_selector.XgboostGreedyFeatureSelector(train_df.drop(['orderType'], axis=1),
+                                                                 train_df['orderType'])
+    print('train data:', train_df.shape[0], ' order_type1 vs order_type0:',
+          1.0 * sum(train_df['orderType']) / (train_df.shape[0] - sum(train_df['orderType'])))
+
+    xgb_params = {
+        'eta': 0.1,
+        'colsample_bytree': 0.8,
+        'max_depth': 4,
+        'subsample': 0.9,
+        'lambda': 2.0,
+        'scale_pos_weight': 1,
+        'eval_metric': 'auc',
+        'objective': 'binary:logistic',
+        'updater': 'grow_gpu',
+        'gpu_id': 1,
+        'nthread': -1,
+        'silent': 1,
+        'booster': 'gbtree'
+    }
+
+    removed_features = selector.remove_worst_features(xgb_params=xgb_params, cv_nfold=3, remove_ratio=remove_ratio,
+                                                      num_boost_round=100, early_stopping_rounds=50, thread_size=10,
+                                                      save_removed_features_path=save_removed_features_path,
+                                                      stratified=True, shuffle=True,
+                                                      decrease_auc_threshold=decrease_auc_threshold)
+    return removed_features

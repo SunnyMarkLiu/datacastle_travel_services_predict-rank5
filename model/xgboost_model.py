@@ -19,10 +19,10 @@ import numpy as np
 import pandas as pd
 import xgboost as xgb
 from sklearn.metrics import auc, roc_curve
-from get_datasets import load_train_test
+from get_datasets import load_train_test, load_571_all_feature_datasets
 from utils import xgb_utils
 from conf.configure import Configure
-from model_feature_selector import xgboost_select_features
+import model_feature_selector as feature_selector
 
 
 def evaluate_score(predict, y_true):
@@ -58,6 +58,26 @@ def main():
     # train = train[list(set(best_subset_features + ['orderType', 'userid']))]
     # test = test[list(set(best_subset_features + ['userid']))]
 
+    # print('贪心算法删除特征')
+    # train, test = load_571_all_feature_datasets()
+    # remove_ratio = 0.3
+    # print('original feature counts: {}, after removed feature counts: {}'.format(train.shape[1] - 1, int((train.shape[1] - 1) * (1 - remove_ratio))))
+    #
+    # best_removed_features_path = Configure.xgboost_removed_subfeatures + 'best_removed_{}_features.pkl'.format(remove_ratio)
+    # if not os.path.exists(best_removed_features_path):
+    #
+    #     best_removed_features = feature_selector.xgboost_remove_features(train, remove_ratio,
+    #                                                                      Configure.xgboost_removed_subfeatures,
+    #                                                                      decrease_auc_threshold=0.0008)
+    #     with open(best_removed_features_path, "wb") as f:
+    #         cPickle.dump(best_removed_features, f, -1)
+    # else:
+    #     with open(best_removed_features_path, "rb") as f:
+    #         best_removed_features = cPickle.load(f)
+    #
+    # train.drop(best_removed_features, axis=1, inplace=True)
+    # test.drop(best_removed_features, axis=1, inplace=True)
+
     y_train_all = train['orderType']
     id_test = test['userid']
     del train['orderType']
@@ -82,7 +102,7 @@ def main():
         'eval_metric': 'auc',
         'objective': 'binary:logistic',
         'updater': 'grow_gpu',
-        'gpu_id': 2,
+        'gpu_id': 0,
         'nthread': -1,
         'silent': 1,
         'booster': 'gbtree'
