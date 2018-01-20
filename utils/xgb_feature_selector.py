@@ -59,9 +59,10 @@ class XgboostGreedyFeatureSelector(object):
 
 
     def select_best_subset_features(self, xgb_params, cv_nfold, selected_feature_size, num_boost_round, base_features,
-                                    thread_size, save_tmp_features_path, early_stopping_rounds,
-                                    maximize=True, stratified=True, shuffle=True):
+                                    thread_size, save_tmp_features_path, early_stopping_rounds, stratified=True,
+                                    shuffle=True, decrease_auc_threshold=0.001):
         """
+        :param decrease_auc_threshold: decrease threshold, default 0.001
         :param thread_size: multi thread
         :param save_tmp_features_path: save tmp sub-features path
         :param base_features: features which start greedy search
@@ -72,7 +73,6 @@ class XgboostGreedyFeatureSelector(object):
         :param cv_nfold: cv fold
         :param xgb_params: xgboost params
         :param selected_feature_size: int or float, select subset features (浮点数后期完善)
-        :param maximize: bool, Whether to maximize metric.
         :return:
         """
         total_x_features = set(self.X.columns.values.tolist())
@@ -90,8 +90,10 @@ class XgboostGreedyFeatureSelector(object):
             best_subset_features = []
             metric_scores_historys = []
 
-        while len(metric_scores_historys) <= 2 or (metric_scores_historys[-1] > metric_scores_historys[-2] if maximize
-                        else metric_scores_historys[-1] < metric_scores_historys[-2]):   # <=2 为初始条件；进行贪心的下一步的条件
+        while len(metric_scores_historys) <= 2 or \
+                (metric_scores_historys[-1] > metric_scores_historys[-2]) or \
+                    (metric_scores_historys[-2] - metric_scores_historys[-1] < decrease_auc_threshold):   # <=2 为初始条件；进行贪心的下一步的条件
+
             if len(best_subset_features) == selected_feature_size:
                 break
 
@@ -140,11 +142,11 @@ class XgboostGreedyFeatureSelector(object):
 
             best_subset_features.append(sorted(metric_scores)[-1][1])  # only add the feature which get "the biggest gain score"
             metric_scores_historys.append(sorted(metric_scores)[-1][0])  # only add the biggest gain score
-            print('current feature size: {}, mean cv metric score: {}'.format(len(best_subset_features), metric_scores_historys[-1]))
+            print('===>> add {}, current feature size: {}, mean cv metric score: {}'.format(best_subset_features[-1], len(best_subset_features), metric_scores_historys[-1]))
 
-            best_subset_features_path = save_tmp_features_path + '/best_subset_{}_features_cv_{}.pkl'.format(
-                                            len(best_subset_features),
-                                            metric_scores_historys[-1]
+            best_subset_features_path = save_tmp_features_path + '/best_cv_{}_feature_count_{}.pkl'.format(
+                                            metric_scores_historys[-1],
+                                            len(best_subset_features)
                                         )
             with open(best_subset_features_path, "wb") as f:
                 cPickle.dump(best_subset_features, f, -1)

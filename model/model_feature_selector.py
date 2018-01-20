@@ -26,7 +26,7 @@ from utils import data_utils, xgb_feature_selector
 from sklearn.model_selection import train_test_split
 
 
-def xgboost_select_features(train, selected_size, save_tmp_features_path, base_features):
+def xgboost_select_features(train, selected_size, save_tmp_features_path, base_features, decrease_auc_threshold):
     train_df, _ = train_test_split(train, test_size=0.7, random_state=42, shuffle=True, stratify=train['orderType'])
     selector = xgb_feature_selector.XgboostGreedyFeatureSelector(train_df.drop(['orderType'], axis=1),
                                                                  train_df['orderType'])
@@ -41,7 +41,7 @@ def xgboost_select_features(train, selected_size, save_tmp_features_path, base_f
         'eval_metric': 'auc',
         'objective': 'binary:logistic',
         'updater': 'grow_gpu',
-        'gpu_id': 0,
+        'gpu_id': 2,
         'nthread': -1,
         'silent': 1,
         'booster': 'gbtree'
@@ -52,6 +52,7 @@ def xgboost_select_features(train, selected_size, save_tmp_features_path, base_f
                                                                 num_boost_round=1000, base_features=base_features,
                                                                 thread_size=10,
                                                                 save_tmp_features_path=save_tmp_features_path,
-                                                                early_stopping_rounds=50, maximize=True,
-                                                                stratified=True, shuffle=True)
+                                                                early_stopping_rounds=50,
+                                                                stratified=True, shuffle=True,
+                                                                decrease_auc_threshold=decrease_auc_threshold)
     return best_subset_features
