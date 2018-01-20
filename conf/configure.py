@@ -37,16 +37,16 @@ class Configure(object):
         'action_history_features4'    : {'on': 'userid', 'how': 'left'},
         'action_history_features5'    : {'on': 'userid', 'how': 'left'},
         'action_history_features6'    : {'on': 'userid', 'how': 'left'},
-        'action_history_features7'   : {'on': 'userid', 'how': 'left'},
+        # 'action_history_features7'   : {'on': 'userid', 'how': 'left'},
         'action_history_features8'    : {'on': 'userid', 'how': 'left'},
         'action_history_features9'    : {'on': 'userid', 'how': 'left'},
         'action_history_features10'   : {'on': 'userid', 'how': 'left'},
         'action_history_features11'   : {'on': 'userid', 'how': 'left'},
-        'action_history_features12'   : {'on': 'userid', 'how': 'left'},
+        # 'action_history_features12'   : {'on': 'userid', 'how': 'left'},
         # 'baseline_features'          : {'on': 'userid', 'how': 'left'},
         # 'word2vec_features'          : {'on': 'userid', 'how': 'left'},
         'wxr_features'                : {'on': 'userid', 'how': 'left'},
-        'sqg_features'                : {'on': 'userid', 'how': 'left'}
+        # 'sqg_features'                : {'on': 'userid', 'how': 'left'}
     }
 
     # 特征选择后各模型最佳特征保存路径

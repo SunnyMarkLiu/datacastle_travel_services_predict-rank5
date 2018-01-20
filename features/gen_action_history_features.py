@@ -1457,6 +1457,7 @@ def actiontypedelta_statistic(uid, action_grouped):
 def build_action_history_features11(df, action, history):
     features = pd.DataFrame({'userid': df['userid']})
     action_grouped = dict(list(action.groupby('userid')))
+    history['orderTime'] = history.orderTime.values.astype(np.int64) // 10 ** 9
     history_grouped = dict(list(history.groupby('userid')))
 
     history_uids = history['userid'].unique()
@@ -1509,8 +1510,40 @@ def build_action_history_features11(df, action, history):
     # features['actiontypedelta_diff_last3'] = features['actiontypedelta_statistic'].map(lambda x: x[6])
     # del features['actiontypedelta_statistic']
 
+    # 最后一次action是否含6 或 7
+    # features['last_actiontype_is_6'] = features.apply(lambda row: int(action_grouped[row['userid']]['actionType'].iat[-1] == 6), axis=1)
+    # features['last_actiontype_is_7'] = features.apply(lambda row: int(action_grouped[row['userid']]['actionType'].iat[-1] == 7), axis=1)
+
+    # # 距离随后一次的 action type 的时间戳距离
+    # features['last_action_1_timestamp'] = features.apply(lambda row: last_action_timestamp(row['userid'], action_grouped, 1), axis=1)
+    # features['last_action_2_timestamp'] = features.apply(lambda row: last_action_timestamp(row['userid'], action_grouped, 2), axis=1)
+    # features['last_action_3_timestamp'] = features.apply(lambda row: last_action_timestamp(row['userid'], action_grouped, 3), axis=1)
+    # features['last_action_4_timestamp'] = features.apply(lambda row: last_action_timestamp(row['userid'], action_grouped, 4), axis=1)
+    # features['last_action_5_timestamp'] = features.apply(lambda row: last_action_timestamp(row['userid'], action_grouped, 5), axis=1)
+    # features['last_action_6_timestamp'] = features.apply(lambda row: last_action_timestamp(row['userid'], action_grouped, 6), axis=1)
+    # features['last_action_7_timestamp'] = features.apply(lambda row: last_action_timestamp(row['userid'], action_grouped, 7), axis=1)
+    # features['last_action_8_timestamp'] = features.apply(lambda row: last_action_timestamp(row['userid'], action_grouped, 8), axis=1)
+    # features['last_action_9_timestamp'] = features.apply(lambda row: last_action_timestamp(row['userid'], action_grouped, 9), axis=1)
+
+    # 最后一次订单后，最后一次action 和第一次action的时间差
+    # features['from_last_order_lastfirst_timedelta'] = features.apply(lambda row: from_last_order_lastfirst_timedelta(row['userid'], action_grouped, history_grouped, row['has_history_flag']), axis=1)
     del features['has_history_flag']
     return features
+
+
+def from_last_order_lastfirst_timedelta(uid, action_grouped, history_grouped, flag):
+    if flag == 0:
+        return -1
+
+    a_df = action_grouped[uid]
+    h_df = history_grouped[uid]
+    last_order_time = h_df['orderTime'].iat[-1]
+    sub_action_df = a_df[a_df['actionTime'] > last_order_time]
+
+    if sub_action_df.shape[0] < 2:
+        return -1
+    actionTimes = sub_action_df['actionTime'].values.tolist()
+    return actionTimes[-1] - actionTimes[0]
 
 
 def previous_latest_action_statistic(uid, action_grouped):
@@ -1525,19 +1558,28 @@ def previous_latest_action_statistic(uid, action_grouped):
            df[df['action_weekday'] == last_action_action_weekday].shape[0], df[df['action_day'] == last_action_action_day].shape[0]
 
 
+def last_action_timestamp(uid, action_grouped, actiontype):
+    df = action_grouped[uid]
+    df = df[df['actionType'] == actiontype]
+    if df.shape[0] > 0:
+        return df['actionTime'].iat[-1]
+    return np.nan
+
+
 def build_action_history_features12(df, action, history):
     features = pd.DataFrame({'userid': df['userid']})
     action_grouped = dict(list(action.groupby('userid')))
 
-    # 最近一次点击app 的月份，历史上这个月份点击的次数
-    features['previous_latest_action_statistic'] = features.apply(lambda row: previous_latest_action_statistic(row['userid'], action_grouped), axis=1)
-    features['previous_latest_action_month_count'] = features['previous_latest_action_statistic'].map(lambda x: x[0])
-    features['previous_latest_action_weekofyear_count'] = features['previous_latest_action_statistic'].map(lambda x: x[1])
-    features['previous_latest_action_weekday_count'] = features['previous_latest_action_statistic'].map(lambda x: x[2])
-    features['previous_latest_action_day_count'] = features['previous_latest_action_statistic'].map(lambda x: x[3])
-    del features['previous_latest_action_statistic']
+    # # 最近一次点击app 的month/weekofyear/weekdayday，历史上点击的次数
+    # features['previous_latest_action_statistic'] = features.apply(lambda row: previous_latest_action_statistic(row['userid'], action_grouped), axis=1)
+    # features['previous_latest_action_month_count'] = features['previous_latest_action_statistic'].map(lambda x: x[0])
+    # features['previous_latest_action_weekofyear_count'] = features['previous_latest_action_statistic'].map(lambda x: x[1])
+    # features['previous_latest_action_weekday_count'] = features['previous_latest_action_statistic'].map(lambda x: x[2])
+    # features['previous_latest_action_day_count'] = features['previous_latest_action_statistic'].map(lambda x: x[3])
+    # del features['previous_latest_action_statistic']
 
     return features
+
 
 def main():
 
@@ -1677,7 +1719,7 @@ def main():
         data_utils.save_features(train_features, test_features, feature_name)
 
     feature_name = 'action_history_features11'
-    if not data_utils.is_feature_created(feature_name):
+    if data_utils.is_feature_created(feature_name):
         print('build train action history features11')
         train_features = build_action_history_features11(train, action_train, orderHistory_train)
         print('build test action history features11')
