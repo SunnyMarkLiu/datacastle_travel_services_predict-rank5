@@ -35,49 +35,6 @@ def main():
     print("load train test datasets")
     train, test = load_0_97210_datasets()
 
-    # print('贪心算法特征选择')
-    # selected_size = 0.9
-    # print('original feature counts: {}, after selected count: {}'.format(train.shape[1] - 1, int((train.shape[1] - 1) * selected_size)))
-    #
-    # best_subset_features_path = Configure.xgboost_best_subfeatures + 'best_subset_{}_features.pkl'.format(selected_size)
-    # if not os.path.exists(best_subset_features_path):
-    #
-    #     # baseline 特征基础上选取前 80 个特征作为 base_features
-    #     baseline_imp_features = pd.read_csv('baseline_features_importances_0.97210.csv')
-    #     base_features = baseline_imp_features['feature'].values.tolist()[:80]
-    #     print('base_features:', len(base_features))
-    #     print(np.array(base_features))
-    #     decrease_auc_threshold = 0.001
-    #     best_subset_features = xgboost_select_features(train, selected_size, Configure.xgboost_best_subfeatures, base_features, decrease_auc_threshold)
-    #     with open(best_subset_features_path, "wb") as f:
-    #         cPickle.dump(best_subset_features, f, -1)
-    # else:
-    #     with open(best_subset_features_path, "rb") as f:
-    #         best_subset_features = cPickle.load(f)
-    #
-    # train = train[list(set(best_subset_features + ['orderType', 'userid']))]
-    # test = test[list(set(best_subset_features + ['userid']))]
-
-    print('贪心算法删除特征')
-    # train, test = load_571_all_feature_datasets()
-    remove_ratio = 0.1
-    print('original feature counts: {}, after removed feature counts: {}'.format(train.shape[1] - 1, int((train.shape[1] - 1) * (1 - remove_ratio))))
-
-    best_removed_features_path = Configure.xgboost_removed_subfeatures + 'best_removed_{}_features.pkl'.format(remove_ratio)
-    if not os.path.exists(best_removed_features_path):
-
-        best_removed_features = feature_selector.xgboost_remove_features(train, remove_ratio,
-                                                                         Configure.xgboost_removed_subfeatures,
-                                                                         decrease_auc_threshold=0.0008)
-        with open(best_removed_features_path, "wb") as f:
-            cPickle.dump(best_removed_features, f, -1)
-    else:
-        with open(best_removed_features_path, "rb") as f:
-            best_removed_features = cPickle.load(f)
-
-    train.drop(best_removed_features, axis=1, inplace=True)
-    test.drop(best_removed_features, axis=1, inplace=True)
-
     y_train_all = train['orderType']
     id_test = test['userid']
     del train['orderType']
@@ -148,10 +105,10 @@ def main():
     submission_path = '../result/{}_submission_{}.csv'.format('xgboost',
                                                                  time.strftime('%Y_%m_%d_%H_%M_%S',
                                                                                time.localtime(time.time())))
-    # 规则设置（cool！）
-    set_one_index = test[test['2016_2017_first_last_ordertype'] == 1].index
-    print('set to one count:', len(set_one_index))
-    df_sub.loc[set_one_index, 'orderType'] = 1
+    # # 规则设置
+    # df_sub['orderType'] = df_sub.apply(lambda row: 1 if row['2016_2017_first_last_ordertype'] == 1 else row['orderType'], axis=1)
+    # df_sub['orderType'] = df_sub.apply(lambda row: 0 if ((row['2016_2017_first_last_ordertype'] == 0) and (row['orderType'] < 0.001)) else row['orderType'], axis=1)
+    # df_sub = df_sub[['userid', 'orderType']]
 
     df_sub.to_csv(submission_path, index=False, columns=['userid', 'orderType'])
     print('-------- predict and valid check  ------')
