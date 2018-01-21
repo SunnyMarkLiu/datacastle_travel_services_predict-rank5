@@ -138,3 +138,22 @@ def load_0_97210_datasets():
         test = cPickle.load(f)
 
     return train, test
+
+
+def load_datasets():
+    train, test = load_0_97210_datasets()
+    print('baseline features:', test.shape[1])
+
+    # 加载特征， 并合并
+    features_merged_dict = Configure.new_features
+    for feature_name in features_merged_dict:
+        print('merge', feature_name)
+        train_feature, test_feature = data_utils.load_features(feature_name)
+        train = train.merge(train_feature,
+                            on=features_merged_dict[feature_name]['on'],
+                            how=features_merged_dict[feature_name]['how'])
+        test = test.merge(test_feature,
+                          on=features_merged_dict[feature_name]['on'],
+                          how=features_merged_dict[feature_name]['how'])
+
+    return train, test

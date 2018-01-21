@@ -19,7 +19,7 @@ import numpy as np
 import pandas as pd
 import xgboost as xgb
 from sklearn.metrics import auc, roc_curve
-from get_datasets import load_train_test, load_571_all_feature_datasets, load_0_97210_datasets
+from get_datasets import load_train_test, load_571_all_feature_datasets, load_0_97210_datasets, load_datasets
 from utils import xgb_utils
 from conf.configure import Configure
 import model_feature_selector as feature_selector
@@ -33,11 +33,15 @@ def evaluate_score(predict, y_true):
 
 def main():
     print("load train test datasets")
-    train, test = load_0_97210_datasets()
+    train, test = load_datasets()
 
     y_train_all = train['orderType']
     id_test = test['userid']
     del train['orderType']
+
+    # 线下变好了
+    # train.drop(['2016_2017_first_last_ordertype', 'has_good_order'], axis=1, inplace=True)
+    # test.drop(['2016_2017_first_last_ordertype', 'has_good_order'], axis=1, inplace=True)
 
     df_columns = train.columns.values
     print('train: {}, test: {}, feature count: {}, orderType 1:0 = {}'.format(train.shape[0], test.shape[0], len(df_columns), 1.0*sum(y_train_all) / len(y_train_all)))
@@ -59,7 +63,7 @@ def main():
         'eval_metric': 'auc',
         'objective': 'binary:logistic',
         'updater': 'grow_gpu',
-        'gpu_id': 2,
+        'gpu_id': 0,
         'nthread': -1,
         'silent': 1,
         'booster': 'gbtree',

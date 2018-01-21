@@ -49,6 +49,11 @@ class Configure(object):
         # 'sqg_features'                : {'on': 'userid', 'how': 'left'}
     }
 
+    # 新提取的特征
+    new_features = {
+        # 'order_history_features'     : {'on': 'userid', 'how': 'left'},
+    }
+
     # 特征选择后各模型最佳特征保存路径
     xgboost_best_subfeatures = '../model/xgboost_best_subfeatures/'
     lightgbm_best_subfeatures = '../model/lightgbm_best_subfeatures/'
