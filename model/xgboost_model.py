@@ -58,25 +58,25 @@ def main():
     # train = train[list(set(best_subset_features + ['orderType', 'userid']))]
     # test = test[list(set(best_subset_features + ['userid']))]
 
-    # print('贪心算法删除特征')
+    print('贪心算法删除特征')
     # train, test = load_571_all_feature_datasets()
-    # remove_ratio = 0.1
-    # print('original feature counts: {}, after removed feature counts: {}'.format(train.shape[1] - 1, int((train.shape[1] - 1) * (1 - remove_ratio))))
-    #
-    # best_removed_features_path = Configure.xgboost_removed_subfeatures + 'best_removed_{}_features.pkl'.format(remove_ratio)
-    # if not os.path.exists(best_removed_features_path):
-    #
-    #     best_removed_features = feature_selector.xgboost_remove_features(train, remove_ratio,
-    #                                                                      Configure.xgboost_removed_subfeatures,
-    #                                                                      decrease_auc_threshold=0.0008)
-    #     with open(best_removed_features_path, "wb") as f:
-    #         cPickle.dump(best_removed_features, f, -1)
-    # else:
-    #     with open(best_removed_features_path, "rb") as f:
-    #         best_removed_features = cPickle.load(f)
-    #
-    # train.drop(best_removed_features, axis=1, inplace=True)
-    # test.drop(best_removed_features, axis=1, inplace=True)
+    remove_ratio = 0.1
+    print('original feature counts: {}, after removed feature counts: {}'.format(train.shape[1] - 1, int((train.shape[1] - 1) * (1 - remove_ratio))))
+
+    best_removed_features_path = Configure.xgboost_removed_subfeatures + 'best_removed_{}_features.pkl'.format(remove_ratio)
+    if not os.path.exists(best_removed_features_path):
+
+        best_removed_features = feature_selector.xgboost_remove_features(train, remove_ratio,
+                                                                         Configure.xgboost_removed_subfeatures,
+                                                                         decrease_auc_threshold=0.0008)
+        with open(best_removed_features_path, "wb") as f:
+            cPickle.dump(best_removed_features, f, -1)
+    else:
+        with open(best_removed_features_path, "rb") as f:
+            best_removed_features = cPickle.load(f)
+
+    train.drop(best_removed_features, axis=1, inplace=True)
+    test.drop(best_removed_features, axis=1, inplace=True)
 
     y_train_all = train['orderType']
     id_test = test['userid']

@@ -80,7 +80,9 @@ class XgboostGreedyFeatureSelector(object):
 
         while len(removed_features) < should_removed_feature_count:
 
-            start = time.time()
+            print('left removed features:', should_removed_feature_count - len(removed_features))
+
+            start = time.clock()
 
             left_selected_features = list(set(original_features) - set(removed_features))
 
@@ -126,7 +128,7 @@ class XgboostGreedyFeatureSelector(object):
 
             metric_scores = sorted(metric_scores)
 
-            elapsed = (time.time() - start)
+            elapsed = (time.clock() - start)
 
             if best_metric_score < metric_scores[-1][0]:
                 print('===> remove {}, auc imporved from {} -> {}, cost {}s'.format(
@@ -143,12 +145,11 @@ class XgboostGreedyFeatureSelector(object):
                 with open(best_subset_features_path, "wb") as f:
                     cPickle.dump(best_removed_features, f, -1)
 
-            elif best_metric_score - metric_scores[-1][0] > decrease_auc_threshold:
+            elif best_metric_score - metric_scores[-1][0] < decrease_auc_threshold:     # 下降在一定范围内继续迭代
                 print('===> remove {}, decrease auc a little, from {} -> {}, cost {}s'.format(
                     metric_scores[-1][1], best_metric_score, metric_scores[-1][0], elapsed))
-
                 removed_features.append(metric_scores[-1][1])
-            else:
+            else:   # 下降超出范围，结束迭代
                 break
 
             print('===> removed feature size:', len(best_removed_features))
