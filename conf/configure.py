@@ -51,7 +51,7 @@ class Configure(object):
 
     # 新提取的特征
     new_features = {
-        # 'order_history_features'     : {'on': 'userid', 'how': 'left'},
+        'advance_action_features'     : {'on': 'userid', 'how': 'left'},
     }
 
     # 特征选择后各模型最佳特征保存路径

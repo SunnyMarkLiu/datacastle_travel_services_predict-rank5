@@ -49,11 +49,25 @@ def gen_history_features(df, history):
     #给trade表打标签，若id在login表中，则打标签为1，否则为0
     features['has_history_flag'] = features['userid'].map(lambda uid: uid in df_ids).astype(int)
 
-    features['history_order_type_sum'] = features.apply(lambda row: order_type_sum(row['userid'], history_grouped, row['has_history_flag']), axis=1)
-    features['history_order_type_sum_lg0'] = features['history_order_type_sum'].map(lambda x: int(x>0))
+    features['history_order_type_sum'] = features.apply(
+        lambda row: order_type_sum(row['userid'], history_grouped, row['has_history_flag']), axis=1)
+    features['history_order_type_sum_lg0'] = features['history_order_type_sum'].map(lambda x: int(x > 2500))
     del features['history_order_type_sum']
 
     del features['has_history_flag']
+    return features
+
+
+def total_action_count(uid, action_grouped):
+    df = action_grouped[uid]
+    return df.shape[0]
+
+
+def gen_action_features(df, action):
+    features = pd.DataFrame({'userid': df['userid']})
+    action_grouped = dict(list(action.groupby('userid')))
+
+
     return features
 
 
@@ -63,14 +77,16 @@ def main():
     test = pd.read_csv(Configure.base_path + 'test/orderFuture_test.csv', encoding='utf8')
     orderHistory_train = pd.read_csv(Configure.cleaned_path + 'cleaned_orderHistory_train.csv', encoding='utf8')
     orderHistory_test = pd.read_csv(Configure.cleaned_path + 'cleaned_orderHistory_test.csv', encoding='utf8')
+    action_train = pd.read_csv(Configure.cleaned_path + 'cleaned_action_train.csv')
+    action_test = pd.read_csv(Configure.cleaned_path + 'cleaned_action_test.csv')
 
     orderHistory_train['city'] = orderHistory_train['city'].astype(str)
     orderHistory_test['city'] = orderHistory_test['city'].astype(str)
     orderHistory_train['orderTime'] = pd.to_datetime(orderHistory_train['orderTime'])
     orderHistory_test['orderTime'] = pd.to_datetime(orderHistory_test['orderTime'])
 
-    feature_name = 'order_history_features'
-    if data_utils.is_feature_created(feature_name):
+    feature_name = 'advance_order_history_features'
+    if not data_utils.is_feature_created(feature_name):
         print('build train order_history_features')
         train_features = gen_history_features(train, orderHistory_train)
         print('build test order_history_features')
@@ -78,7 +94,16 @@ def main():
         print('save ', feature_name)
         data_utils.save_features(train_features, test_features, feature_name)
 
+    feature_name = 'advance_action_features'
+    if data_utils.is_feature_created(feature_name):
+        print('build train advance_action_features')
+        train_features = gen_action_features(train, action_train)
+        print('build test advance_action_features')
+        test_features = gen_action_features(test, action_test)
+        print('save ', feature_name)
+        data_utils.save_features(train_features, test_features, feature_name)
+
 
 if __name__ == "__main__":
-    print("========== gen history features2 ==========")
+    print("========== gen advance features ==========")
     main()

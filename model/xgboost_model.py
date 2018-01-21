@@ -35,9 +35,17 @@ def main():
     print("load train test datasets")
     train, test = load_datasets()
 
+    submit_df = pd.DataFrame({'userid': test['userid']})
+    # submit_df['2016_2017_first_last_ordertype'] = test['2016_2017_first_last_ordertype']
+    #
+    # # 剔除规则筛选的类别为 1 和类别为 0 的训练集和测试集
+    # print('训练集规则过滤类别1：{}'.format(sum(train['2016_2017_first_last_ordertype'] == 1)))
+    # print('测试集规则过滤类别1：{}'.format(sum(test['2016_2017_first_last_ordertype'] == 1)))
+    #
+    # train = train[train['2016_2017_first_last_ordertype'] != 1]  # 2016_2017_first_last_ordertype = 1，则为类别 1
     y_train_all = train['orderType']
-    id_test = test['userid']
-    del train['orderType']
+
+    train.drop(['orderType'], axis=1, inplace=True)
 
     # 线下变好了
     # train.drop(['2016_2017_first_last_ordertype', 'has_good_order'], axis=1, inplace=True)
@@ -105,18 +113,21 @@ def main():
 
     print('---> predict test')
     y_pred = model.predict(dtest)
-    df_sub = pd.DataFrame({'userid': id_test, 'orderType': y_pred})
+
+    submit_df['orderType'] = y_pred
     submission_path = '../result/{}_submission_{}.csv'.format('xgboost',
                                                                  time.strftime('%Y_%m_%d_%H_%M_%S',
                                                                                time.localtime(time.time())))
-    # # 规则设置
-    # df_sub['orderType'] = df_sub.apply(lambda row: 1 if row['2016_2017_first_last_ordertype'] == 1 else row['orderType'], axis=1)
-    # df_sub['orderType'] = df_sub.apply(lambda row: 0 if ((row['2016_2017_first_last_ordertype'] == 0) and (row['orderType'] < 0.001)) else row['orderType'], axis=1)
-    # df_sub = df_sub[['userid', 'orderType']]
 
-    df_sub.to_csv(submission_path, index=False, columns=['userid', 'orderType'])
+    # # 规则设置
+    # submit_df['orderType'] = submit_df.apply(lambda row: 1 if row['2016_2017_first_last_ordertype'] == 1 else row['orderType'], axis=1)
+    # # 概率阈值需要调
+    # # df_sub['orderType'] = df_sub.apply(lambda row: 0 if ((row['2016_2017_first_last_ordertype'] == 0) and (row['orderType'] < 0.001)) else row['orderType'], axis=1)
+    # submit_df = submit_df[['userid', 'orderType']]
+
+    submit_df.to_csv(submission_path, index=False, columns=['userid', 'orderType'])
     print('-------- predict and valid check  ------')
-    print('test  count mean: {:.6f} , std: {:.6f}'.format(np.mean(df_sub['orderType']), np.std(df_sub['orderType'])))
+    print('test  count mean: {:.6f} , std: {:.6f}'.format(np.mean(submit_df['orderType']), np.std(submit_df['orderType'])))
     print('done.')
 
 

@@ -22,7 +22,7 @@ import pandas as pd
 import lightgbm as lgbm
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import auc, roc_curve
-from get_datasets import load_train_test
+from get_datasets import load_train_test, load_datasets
 from IPython.display import display
 
 
@@ -34,7 +34,7 @@ def evaluate_score(predict, y_true):
 
 def main():
     print("load train test datasets")
-    train, test = load_train_test()
+    train, test = load_datasets()
 
     y_train_all = train['orderType']
     id_test = test['userid']
