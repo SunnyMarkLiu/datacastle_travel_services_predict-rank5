@@ -22,6 +22,8 @@ import time
 import datetime
 import numpy as np
 import pandas as pd
+from sklearn import decomposition
+from sklearn.feature_extraction.text import TfidfVectorizer
 from conf.configure import Configure
 from utils import data_utils
 
@@ -47,23 +49,38 @@ def gen_history_features(df, history):
     #给trade表打标签，若id在login表中，则打标签为1，否则为0
     features['has_history_flag'] = features['userid'].map(lambda uid: uid in df_ids).astype(int)
 
-    features['history_order_type_sum'] = features.apply(lambda row: order_type_sum(row['userid'], history_grouped, row['has_history_flag']), axis=1)
-    features['history_order_type_sum_lg0'] = features['history_order_type_sum'].map(lambda x: int(x > 0))
-    del features['history_order_type_sum']
+    """ history_order_type_sum 和 history_order_type_sum_lg0 后期再加上"""
+    # features['history_order_type_sum'] = features.apply(lambda row: order_type_sum(row['userid'], history_grouped, row['has_history_flag']), axis=1)
+    # features['history_order_type_sum_lg0'] = features['history_order_type_sum'].map(lambda x: int(x > 0))
+    # del features['history_order_type_sum']
 
     del features['has_history_flag']
     return features
 
 
-def total_action_count(uid, action_grouped):
+def gen_actiontype_sequence(uid, action_grouped):
+    """ 用户订单历史结果构成的序列 """
     df = action_grouped[uid]
-    return df.shape[0]
+    sequence = ' '.join(df['actionType'].astype(str).values.tolist())
+    return sequence
 
 
 def gen_action_features(df, action):
     features = pd.DataFrame({'userid': df['userid']})
     action_grouped = dict(list(action.groupby('userid')))
 
+    features['action_sequence'] = features.apply(lambda row: gen_actiontype_sequence(row['userid'], action_grouped), axis=1)
+    action_texts = features['action_sequence'].values
+    vectorizer = TfidfVectorizer(stop_words=None)
+    dtm = vectorizer.fit_transform(action_texts)
+    # vocab = np.array(vectorizer.get_feature_names())
+    # clf = decomposition.NMF(n_components=20, random_state=1)
+    # doctopic = clf.fit_transform(dtm)
+    # doctopic = doctopic / np.sum(doctopic, axis=1, keepdims=True)
+    doctopic = pd.DataFrame(dtm.toarray(), columns=['topic_model_{}'.format(i) for i in range(9)])
+    features = pd.concat([features, doctopic], axis=1)
+
+    del features['action_sequence']
 
     return features
 
@@ -83,7 +100,7 @@ def main():
     orderHistory_test['orderTime'] = pd.to_datetime(orderHistory_test['orderTime'])
 
     feature_name = 'advance_order_history_features'
-    if data_utils.is_feature_created(feature_name):
+    if not data_utils.is_feature_created(feature_name):
         print('build train advance_order_history_features')
         train_features = gen_history_features(train, orderHistory_train)
         print('build test advance_order_history_features')
