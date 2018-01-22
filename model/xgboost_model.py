@@ -36,23 +36,22 @@ def main():
     train, test = load_datasets()
 
     submit_df = pd.DataFrame({'userid': test['userid']})
-    # submit_df['2016_2017_first_last_ordertype'] = test['2016_2017_first_last_ordertype']
+    # submit_df['history_order_type_sum_lg0'] = test['history_order_type_sum_lg0']
     #
     # # 剔除规则筛选的类别为 1 和类别为 0 的训练集和测试集
-    # print('训练集规则过滤类别1：{}'.format(sum(train['2016_2017_first_last_ordertype'] == 1)))
-    # print('测试集规则过滤类别1：{}'.format(sum(test['2016_2017_first_last_ordertype'] == 1)))
+    # print('训练集规则过滤类别1：{}'.format(sum(train['history_order_type_sum_lg0'] == 1)))
+    # print('测试集规则过滤类别1：{}'.format(sum(test['history_order_type_sum_lg0'] == 1)))
     #
-    # train = train[train['2016_2017_first_last_ordertype'] != 1]  # 2016_2017_first_last_ordertype = 1，则为类别 1
+    # train = train[train['history_order_type_sum_lg0'] != 1]  # 2016_2017_first_last_ordertype = 1，则为类别 1
+    # del train['history_order_type_sum_lg0']
+    # del test['history_order_type_sum_lg0']
+
     y_train_all = train['orderType']
 
     train.drop(['orderType'], axis=1, inplace=True)
 
-    # 线下变好了
-    # train.drop(['2016_2017_first_last_ordertype', 'has_good_order'], axis=1, inplace=True)
-    # test.drop(['2016_2017_first_last_ordertype', 'has_good_order'], axis=1, inplace=True)
-
     df_columns = train.columns.values
-    print('train: {}, test: {}, feature count: {}, orderType 1:0 = {}'.format(train.shape[0], test.shape[0], len(df_columns), 1.0*sum(y_train_all) / len(y_train_all)))
+    print('train: {}, test: {}, feature count: {}, orderType 1:0 = {:.5f}'.format(train.shape[0], test.shape[0], len(df_columns), 1.0*sum(y_train_all) / len(y_train_all)))
     # print('feature check before modeling...')
     # feature_util.feature_check_before_modeling(train, test, df_columns)
 
@@ -101,7 +100,7 @@ def main():
     # print('num_boost_round = ', num_boost_round)
 
     print('mean_train_auc = {:.7f} , mean_test_auc = {:.7f}\n'.format(mean_train_logloss, mean_test_logloss))
-    print('---> training on total dataset to predict test and submit')
+    print('---> training on total dataset')
 
     model = xgb.train(dict(xgb_params),
                       dtrain_all,
@@ -120,9 +119,9 @@ def main():
                                                                                time.localtime(time.time())))
 
     # # 规则设置
-    # submit_df['orderType'] = submit_df.apply(lambda row: 1 if row['2016_2017_first_last_ordertype'] == 1 else row['orderType'], axis=1)
+    # submit_df['orderType'] = submit_df.apply(lambda row: 1 if row['history_order_type_sum_lg0'] == 1 else row['orderType'], axis=1)
     # # 概率阈值需要调
-    # # df_sub['orderType'] = df_sub.apply(lambda row: 0 if ((row['2016_2017_first_last_ordertype'] == 0) and (row['orderType'] < 0.001)) else row['orderType'], axis=1)
+    # # df_sub['orderType'] = df_sub.apply(lambda row: 0 if ((row['history_order_type_sum_lg0'] == 0) and (row['orderType'] < 0.001)) else row['orderType'], axis=1)
     # submit_df = submit_df[['userid', 'orderType']]
 
     submit_df.to_csv(submission_path, index=False, columns=['userid', 'orderType'])
