@@ -144,33 +144,23 @@ def load_datasets():
     print('load baseline features')
     train, test = load_0_97210_datasets()
 
-    # # 这些特征 和 性能更好的 history_order_type_sum_lg0 存在共线性
-    # train.drop(['2016_2017_first_last_ordertype', 'has_good_order', 'multi_order_has_good_order', 'total_good_order_ratio',
-    #             'goodorder_vs_actiontype_6_ratio', 'goodorder_vs_actiontype_5_ratio', 'goodorder_vs_actiontype_1_ratio',
-    #             'goodorder_vs_actiontype_2_ratio', 'goodorder_vs_actiontype_3_ratio', 'goodorder_vs_actiontype_4_ratio',
-    #             'goodorder_vs_actiontype_7_ratio', 'goodorder_vs_actiontype_8_ratio', 'goodorder_vs_actiontype_9_ratio',
-    #             '2017_good_order_ratio', '2016_good_order_ratio', 'avg_rating_type1'], axis=1, inplace=True)
-    #
-    # test.drop(['2016_2017_first_last_ordertype', 'has_good_order', 'multi_order_has_good_order', 'total_good_order_ratio',
-    #             'goodorder_vs_actiontype_6_ratio', 'goodorder_vs_actiontype_5_ratio', 'goodorder_vs_actiontype_1_ratio',
-    #             'goodorder_vs_actiontype_2_ratio', 'goodorder_vs_actiontype_3_ratio', 'goodorder_vs_actiontype_4_ratio',
-    #             'goodorder_vs_actiontype_7_ratio', 'goodorder_vs_actiontype_8_ratio', 'goodorder_vs_actiontype_9_ratio',
-    #             '2017_good_order_ratio', '2016_good_order_ratio', 'avg_rating_type1'], axis=1, inplace=True)
-
-    # history_order_type_sum 线上线下都变好了，有一点过拟合
-    # train.drop(['history_order_type_sum'], axis=1, inplace=True)
-    # test.drop(['history_order_type_sum'], axis=1, inplace=True)
+    # 这些特征 和 性能更好的 history_order_type_sum_lg0 存在共线性
+    # train.drop(['2016_2017_first_last_ordertype'], axis=1, inplace=True)
+    # test.drop(['2016_2017_first_last_ordertype'], axis=1, inplace=True)
 
     # 加载特征， 并合并
     features_merged_dict = Configure.new_features
     for feature_name in features_merged_dict:
         print('merge', feature_name)
         train_feature, test_feature = data_utils.load_features(feature_name)
-        train = train.merge(train_feature,
-                            on=features_merged_dict[feature_name]['on'],
-                            how=features_merged_dict[feature_name]['how'])
-        test = test.merge(test_feature,
-                          on=features_merged_dict[feature_name]['on'],
-                          how=features_merged_dict[feature_name]['how'])
+        train = pd.merge(train, train_feature,
+                         on=features_merged_dict[feature_name]['on'],
+                         how=features_merged_dict[feature_name]['how'])
+        test = pd.merge(test, test_feature,
+                        on=features_merged_dict[feature_name]['on'],
+                        how=features_merged_dict[feature_name]['how'])
+
+    train.drop(['history_order_type_sum_lg0'], axis=1, inplace=True)
+    test.drop(['history_order_type_sum_lg0'], axis=1, inplace=True)
 
     return train, test

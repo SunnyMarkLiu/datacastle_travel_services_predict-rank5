@@ -51,8 +51,9 @@ class Configure(object):
 
     # 新提取的特征
     new_features = {
-        # 'advance_order_history_features' : {'on': 'userid', 'how': 'left'},
-        # 'advance_action_features'        : {'on': 'userid', 'how': 'left'},
+        'advance_order_history_features'    : {'on': 'userid', 'how': 'left'},
+        # 'advance_action_features'           : {'on': 'userid', 'how': 'left'},
+        'other_features1'                   : {'on': 'userid', 'how': 'left'},
         # 'sqg_features'                : {'on': 'userid', 'how': 'left'}
     }
 
