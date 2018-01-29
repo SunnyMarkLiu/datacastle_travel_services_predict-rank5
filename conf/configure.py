@@ -46,7 +46,6 @@ class Configure(object):
         # 'baseline_features'          : {'on': 'userid', 'how': 'left'},
         # 'word2vec_features'          : {'on': 'userid', 'how': 'left'},
         'wxr_features'                : {'on': 'userid', 'how': 'left'},
-        # 'sqg_features'                : {'on': 'userid', 'how': 'left'}
     }
 
     # 新提取的特征

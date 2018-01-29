@@ -22,7 +22,6 @@ import time
 import datetime
 import numpy as np
 import pandas as pd
-from scipy.fftpack import fft
 from conf.configure import Configure
 from utils import data_utils
 
@@ -492,7 +491,7 @@ def main():
         data_utils.save_features(train_features, test_features, feature_name)
 
     feature_name = 'advance_action_features1'
-    if data_utils.is_feature_created(feature_name):
+    if not data_utils.is_feature_created(feature_name):
         print('build train advance_action_features1')
         train_features = gen_action_features1(train, action_train)
         print('build test advance_action_features1')
