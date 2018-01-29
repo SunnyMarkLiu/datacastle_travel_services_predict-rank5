@@ -351,6 +351,7 @@ def build_time_features(action_df):
     # 训练集和测试集最后一天是 2017-09-11
     now = datetime.datetime(2017, 9, 12)
     action_df['days_from_now'] = action_df['actionTime2'].map(lambda order: (now - order).days)
+    action_df['date'] = action_df['actionTime2'].dt.date
 
     action_df['action_year'] = action_df['actionTime2'].dt.year
     action_df['action_month'] = action_df['actionTime2'].dt.month
@@ -455,6 +456,96 @@ def gen_action_features1(df, action):
     return features
 
 
+def get_peak_data(uid, action_grouped):
+    """ action type 操作波峰检测 """
+    action_df = action_grouped[uid]
+    action_size_df = action_df.groupby(['userid', 'date']).size().reset_index(name='day_click_count')
+
+    # 波峰值,用户最频繁使用app的一天
+    action_peak_time = []
+    action_peak_count = []
+
+    # 波谷值，表明用户开始逐渐增加使用app的频率
+    action_low_peak_time = []
+    action_low_peak_count = []
+
+    if len(action_size_df) > 3:
+        first_action_count = action_size_df['day_click_count'].iat[0]
+        first_action_time = action_size_df['date'].iat[0]
+        pre_action_count = first_action_count
+        pre_action_time = first_action_time
+
+        upstate = True
+
+        # 如果第一天count大于k,则认为是一个峰值
+        if first_action_count > 2:
+            action_peak_time.append(first_action_time)
+            action_peak_count.append(first_action_count)
+        else:
+            action_low_peak_time.append(first_action_time)
+            action_low_peak_count.append(first_action_count)
+        # 寻找峰值以及谷值
+        for i, row in action_size_df.iterrows():
+            current_count = row.day_click_count
+            current_time = row.date
+            if upstate:
+                if current_count >= pre_action_count:
+                    pre_action_count = current_count
+                    pre_action_time = current_time
+                else:
+                    # 这里可以根据实际情况设置一个阈值，当大于一定的数量,再判定为峰值，这个阈值先设为0,后期可以调整
+                    if np.abs(pre_action_count - current_count) > 0:
+                        action_peak_time.append(pre_action_time)
+                        action_peak_count.append(pre_action_count)
+                        pre_action_count = current_count
+                        pre_action_time = current_time
+                        upstate = False
+                    else:
+                        pre_action_count = current_count
+                        pre_action_time = current_time
+            else:
+                if upstate == False:
+                    if current_count <= pre_action_count:
+                        pre_action_count = current_count
+                        pre_action_time = current_time
+                    else:
+                        if np.abs(current_count - pre_action_count) > 0:
+                            upstate = True
+
+                            action_low_peak_time.append(pre_action_time)
+                            action_low_peak_count.append(pre_action_count)
+                            pre_action_count = current_count
+                            pre_action_time = current_time
+        # 这里求一下峰值时间差，使用秒进行表示
+        action_time_diff = []
+        if len(action_peak_count) > 0:
+            for i in range(len(action_peak_time) - 1):
+                action_time_diff.append((action_peak_time[i + 1] - action_peak_time[i]).days * 24 * 60 * 60)
+            if len(action_time_diff) > 0:
+                return len(action_peak_count), np.min(action_time_diff), np.max(action_time_diff), np.std(action_time_diff)
+            else:
+                return 0, 0, 0, 0,
+        else:
+            return 0, 0, 0, 0
+
+    else:
+        return 0, 0, 0, 0, 0
+
+
+def gen_action_features2(df, action):
+    features = pd.DataFrame({'userid': df['userid']})
+    action_grouped = dict(list(action.groupby('userid')))
+
+    # features['action_peak_static'] = features.apply(lambda row: get_peak_data(row['userid'], action_grouped), axis=1)
+    # features['action_peak_count'] = features['action_peak_static'].map(lambda x: x[0])
+    # features['action_peak_min_difftime'] = features['action_peak_static'].map(lambda x: x[1])
+    # features['action_peak_max_difftime'] = features['action_peak_static'].map(lambda x: x[2])
+    # features['action_peak_std_difftime'] = features['action_peak_static'].map(lambda x: x[3])
+    # del features['action_peak_static']
+
+    return features
+
+
 def main():
     # 待预测订单的数据 （原始训练集和测试集）
     train = pd.read_csv(Configure.base_path + 'train/orderFuture_train.csv', encoding='utf8')
@@ -496,6 +587,15 @@ def main():
         train_features = gen_action_features1(train, action_train)
         print('build test advance_action_features1')
         test_features = gen_action_features1(test, action_test)
+        print('save ', feature_name)
+        data_utils.save_features(train_features, test_features, feature_name)
+
+    feature_name = 'advance_action_features2'
+    if not data_utils.is_feature_created(feature_name):
+        print('build train advance_action_features2')
+        train_features = gen_action_features2(train, action_train)
+        print('build test advance_action_features2')
+        test_features = gen_action_features2(test, action_test)
         print('save ', feature_name)
         data_utils.save_features(train_features, test_features, feature_name)
 

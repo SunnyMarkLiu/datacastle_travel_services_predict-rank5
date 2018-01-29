@@ -19,7 +19,7 @@ import numpy as np
 import pandas as pd
 import xgboost as xgb
 from sklearn.metrics import auc, roc_curve
-from get_datasets import load_train_test, load_571_all_feature_datasets, load_0_97210_datasets, load_datasets
+from get_datasets import load_train_test, load_571_all_feature_datasets, load_datasets
 from utils import xgb_utils
 from conf.configure import Configure
 import model_feature_selector as feature_selector
@@ -70,7 +70,7 @@ def main():
         'eval_metric': 'auc',
         'objective': 'binary:logistic',
         'updater': 'grow_gpu',
-        'gpu_id': 0,
+        'gpu_id':2,
         'nthread': -1,
         'silent': 1,
         'booster': 'gbtree',

@@ -53,6 +53,7 @@ class Configure(object):
         'advance_order_history_features'    : {'on': 'userid', 'how': 'left'},
         # 'advance_action_features'           : {'on': 'userid', 'how': 'left'},
         'advance_action_features1'          : {'on': 'userid', 'how': 'left'},
+        # 'advance_action_features2'          : {'on': 'userid', 'how': 'left'},    # 波峰检测
         'other_features1'                   : {'on': 'userid', 'how': 'left'},
         # 'sqg_features'                      : {'on': 'userid', 'how': 'left'}
     }
