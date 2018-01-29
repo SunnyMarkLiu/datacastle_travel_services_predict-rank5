@@ -22,6 +22,7 @@ import time
 import datetime
 import numpy as np
 import pandas as pd
+from scipy.fftpack import fft
 from conf.configure import Configure
 from utils import data_utils
 
@@ -366,6 +367,95 @@ def build_time_features(action_df):
     return action_df
 
 
+def g_h_filter(data, x0, dx=1, g=3. / 10, h=1. / 3, dt=1., pred=None):
+    x = x0
+    results = []
+    for z in data:
+        x_est = x + (dx * dt)
+        dx = dx
+        if pred is not None:
+            pred.append(x_est)
+        residual = z - x_est
+        dx = dx + h * residual / dt
+        x = x_est + g * residual
+        results.append(x)
+    return np.array(results)
+
+
+def action_tpye_kalman(uid, action_grouped):
+    df = action_grouped[uid]
+    sequence = df['actionType'].values.tolist()
+    first = df['actionType'].iat[0]
+    real = g_h_filter(sequence, first)
+    real_0 = real[0]
+    real_1 = real_2 = 0
+    if len(real) > 1:
+        real_1 = real[1]
+        if len(real) > 2:
+            real_2 = real[2]
+    return real_0, real_1, real_2, np.std(real), np.mean(real), np.max(real), np.min(real)
+
+
+def gen_action_in_hot_time(uid, action_grouped):
+    action_df = action_grouped[uid]
+    action_time = []
+    pre_time = action_df['actionTime'].iat[0]
+    action_time.append(pre_time)
+    # 这里首先做的简单一点儿,首先取出来用户第一个操作频率间隔
+    for i, row in action_df.iterrows():
+        if row.actionTime < (pre_time + 1296000):
+            pre_time = row.actionTime
+
+        else:
+            pre_time = row.actionTime
+            action_time.append(row.actionTime)
+    if len(action_time) > 0:
+        return np.std(action_time), np.mean(action_time), np.max(action_time), np.min(action_time)
+    else:
+        return 0, 0, 0, 0
+
+
+def gen_action_max_diff_vs_count(uid, action_grouped):
+    action_df = action_grouped[uid]
+    if len(action_df) > 0:
+        max_count = action_df.shape[0]
+        min_action_time = action_df['actionTime'].iat[0]
+        max_action_time = action_df['actionTime'].iat[-1]
+        time_diff = max_action_time - min_action_time
+        if time_diff != 0:
+            return 1.0 * time_diff / max_count
+        else:
+            return 0
+    else:
+        return 0
+
+
+def gen_action_features1(df, action):
+    features = pd.DataFrame({'userid': df['userid']})
+    action_grouped = dict(list(action.groupby('userid')))
+
+    features['action_tpye_kalman'] = features.apply(lambda row: action_tpye_kalman(row['userid'], action_grouped), axis=1)
+    features['actiontype_seq_kalman_real_0'] = features['action_tpye_kalman'].map(lambda x: x[0])
+    features['actiontype_seq_kalman_real_1'] = features['action_tpye_kalman'].map(lambda x: x[1])
+    features['actiontype_seq_kalman_real_2'] = features['action_tpye_kalman'].map(lambda x: x[2])
+    features['actiontype_seq_kalman_std'] = features['action_tpye_kalman'].map(lambda x: x[3])
+    features['actiontype_seq_kalman_mean'] = features['action_tpye_kalman'].map(lambda x: x[4])
+    features['actiontype_seq_kalman_max'] = features['action_tpye_kalman'].map(lambda x: x[5])
+    features['actiontype_seq_kalman_min'] = features['action_tpye_kalman'].map(lambda x: x[6])
+    del features['action_tpye_kalman']
+
+    # features['action_time_static_in_hottime'] = features.apply(lambda row: gen_action_in_hot_time(row['userid'], action_grouped), axis=1)
+    # features['actiontime_hottime_std'] = features['action_time_static_in_hottime'].map(lambda x: x[0])
+    # features['actiontime_hottime_mean'] = features['action_time_static_in_hottime'].map(lambda x: x[1])
+    # features['actiontime_hottime_max'] = features['action_time_static_in_hottime'].map(lambda x: x[2])
+    # features['actiontime_hottime_min'] = features['action_time_static_in_hottime'].map(lambda x: x[3])
+    # del features['action_time_static_in_hottime']
+
+    # features['action_max_diff_vs_count'] = features.apply(lambda row: gen_action_max_diff_vs_count(row['userid'], action_grouped), axis=1)
+
+    return features
+
+
 def main():
     # 待预测订单的数据 （原始训练集和测试集）
     train = pd.read_csv(Configure.base_path + 'train/orderFuture_train.csv', encoding='utf8')
@@ -398,6 +488,15 @@ def main():
         train_features = gen_action_features(train, action_train)
         print('build test advance_action_features')
         test_features = gen_action_features(test, action_test)
+        print('save ', feature_name)
+        data_utils.save_features(train_features, test_features, feature_name)
+
+    feature_name = 'advance_action_features1'
+    if data_utils.is_feature_created(feature_name):
+        print('build train advance_action_features1')
+        train_features = gen_action_features1(train, action_train)
+        print('build test advance_action_features1')
+        test_features = gen_action_features1(test, action_test)
         print('save ', feature_name)
         data_utils.save_features(train_features, test_features, feature_name)
 
