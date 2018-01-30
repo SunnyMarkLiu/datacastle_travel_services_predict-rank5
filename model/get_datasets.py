@@ -163,4 +163,14 @@ def load_datasets():
     train.drop(['history_order_type_sum_lg0'], axis=1, inplace=True)
     test.drop(['history_order_type_sum_lg0'], axis=1, inplace=True)
 
+    # train, test = remove_some_features(train, test)
+
+    return train, test
+
+def remove_some_features(train, test):
+    removed_features = []
+    
+    train.drop(removed_features, axis=1, inplace=True)
+    test.drop(removed_features, axis=1, inplace=True)
+
     return train, test

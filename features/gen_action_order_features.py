@@ -331,7 +331,7 @@ def main():
         data_utils.save_features(train_features, test_features, feature_name)
 
     feature_name = 'action_order_features2'
-    if data_utils.is_feature_created(feature_name):
+    if not data_utils.is_feature_created(feature_name):
         print('build train action_order_features2')
         train_features = build_action_order_features2(train, train_action_grouped)
         print('build test action_order_features2')

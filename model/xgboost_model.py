@@ -14,12 +14,11 @@ module_path = os.path.abspath(os.path.join('..'))
 sys.path.append(module_path)
 import time
 
-import cPickle
 import numpy as np
 import pandas as pd
 import xgboost as xgb
 from sklearn.metrics import auc, roc_curve
-from get_datasets import load_train_test, load_571_all_feature_datasets, load_datasets
+from get_datasets import load_train_test, load_datasets
 from utils import xgb_utils
 from conf.configure import Configure
 import model_feature_selector as feature_selector
