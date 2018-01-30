@@ -11,6 +11,8 @@ import sys
 module_path = os.path.abspath(os.path.join('..'))
 sys.path.append(module_path)
 
+import time
+import datetime
 
 class Configure(object):
     base_path = '/d_2t/lq/competitions/data_castle/Datacastle_Travel_Services_Predict/'
@@ -70,3 +72,6 @@ class Configure(object):
     xgboost_removed_subfeatures = '../model/xgboost_removed_subfeatures/'
 
     submit_result_path = '../result/'
+
+    default_start_order_time = int(time.mktime(datetime.datetime(2016, 11, 01).timetuple()))
+    default_end_order_time = int(time.mktime(datetime.datetime(2017, 9, 12).timetuple()))

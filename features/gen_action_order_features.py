@@ -142,35 +142,156 @@ def three_gram_statistic(uid, action_grouped):
            action_678_ratio, action_789_ratio, last_sum, last2_sum
 
 
+def two_gram_time_statistic(uid, action_grouped, actiontype1, actiontype2):
+    action_df = action_grouped[uid]
+
+    action_types = action_df['actionType'].values.tolist()
+    action_times = action_df['actionTime'].values.tolist()
+
+    two_gram_words = []
+    two_gram_times = []
+    for i in range(len(action_types) - 1):
+        two_gram_words.append((action_types[i], action_types[i+1]))
+        two_gram_times.append((action_times[i] + action_times[i+1]) / 2.0)
+
+    times = []
+    for types, action_time in zip(two_gram_words, two_gram_times):
+        if types == (actiontype1, actiontype2):
+            times.append(action_time)
+
+    if len(times) > 0:
+        return np.mean(times), np.max(times), np.min(times), np.std(times), times[-1]
+    return Configure.default_start_order_time, Configure.default_start_order_time, \
+           Configure.default_start_order_time, -999, Configure.default_start_order_time
+
+
+def three_gram_time_statistic(uid, action_grouped, actiontype1, actiontype2, actiontype3):
+    action_df = action_grouped[uid]
+
+    action_types = action_df['actionType'].values.tolist()
+    action_times = action_df['actionTime'].values.tolist()
+
+    three_gram_words = []
+    three_gram_times = []
+    for i in range(len(action_types) - 2):
+        three_gram_words.append((action_types[i], action_types[i+1], action_types[i+2]))
+        three_gram_times.append((action_times[i] + action_times[i+1] + action_types[i+2]) / 3.0)
+
+    times = []
+    for types, action_time in zip(three_gram_words, three_gram_times):
+        if types == (actiontype1, actiontype2, actiontype3):
+            times.append(action_time)
+
+    if len(times) > 0:
+        return np.mean(times), np.max(times), np.min(times), np.std(times), times[-1]
+    return Configure.default_start_order_time, Configure.default_start_order_time, \
+           Configure.default_start_order_time, -999, Configure.default_start_order_time
+
+
 def build_action_order_features2(df, action_grouped):
     features = pd.DataFrame({'userid': df['userid']})
 
     # 2-gram 方式统计 5~9 先后出现的次数和最后一次出现的时间等统计特征
     print('two_gram_statistic')
     features['two_gram_statistic'] = features.apply(lambda row: two_gram_statistic(row['userid'], action_grouped), axis=1)
-    # features['two_gram_action_12_ratio'] = features['two_gram_statistic'].map(lambda x: x[0])
     features['two_gram_action_23_ratio'] = features['two_gram_statistic'].map(lambda x: x[1])
     features['two_gram_action_34_ratio'] = features['two_gram_statistic'].map(lambda x: x[2])
     features['two_gram_action_45_ratio'] = features['two_gram_statistic'].map(lambda x: x[3])
-    # features['two_gram_action_56_ratio'] = features['two_gram_statistic'].map(lambda x: x[4])
-    # features['two_gram_action_67_ratio'] = features['two_gram_statistic'].map(lambda x: x[5])
-    # features['two_gram_action_78_ratio'] = features['two_gram_statistic'].map(lambda x: x[6])
     features['two_gram_action_89_ratio'] = features['two_gram_statistic'].map(lambda x: x[7])
     features['two_gram_last_sum'] = features['two_gram_statistic'].map(lambda x: x[8])
-    # features['two_gram_last2_sum'] = features['two_gram_statistic'].map(lambda x: x[9])
     del features['two_gram_statistic']
     # 3-gram 方式统计 5~9 先后出现的次数和最后一次出现的时间等统计特征
+    print('three_gram_statistic')
     features['three_gram_statistic'] = features.apply(lambda row: three_gram_statistic(row['userid'], action_grouped), axis=1)
     features['three_gram_action_123_ratio'] = features['three_gram_statistic'].map(lambda x: x[0])
-    # features['three_gram_action_234_ratio'] = features['three_gram_statistic'].map(lambda x: x[1])
-    # features['three_gram_action_345_ratio'] = features['three_gram_statistic'].map(lambda x: x[2])
     features['three_gram_action_456_ratio'] = features['three_gram_statistic'].map(lambda x: x[3])
-    # features['three_gram_action_567_ratio'] = features['three_gram_statistic'].map(lambda x: x[4])
-    # features['three_gram_action_678_ratio'] = features['three_gram_statistic'].map(lambda x: x[5])
     features['three_gram_action_789_ratio'] = features['three_gram_statistic'].map(lambda x: x[6])
-    # features['three_gram_last_sum'] = features['three_gram_statistic'].map(lambda x: x[7])
-    # features['three_gram_last2_sum'] = features['three_gram_statistic'].map(lambda x: x[8])
     del features['three_gram_statistic']
+
+    # 2-gram 方式统计某种组合的时间统计特征
+    print('two_gram_time_statistic')
+    features['two_gram_time_statistic'] = features.apply(lambda row: two_gram_time_statistic(row['userid'], action_grouped, 1, 2), axis=1)
+    features['two_gram_12_time_mean'] = features['two_gram_time_statistic'].map(lambda x: x[0])
+    features['two_gram_12_time_max'] = features['two_gram_time_statistic'].map(lambda x: x[1])
+    features['two_gram_12_time_min'] = features['two_gram_time_statistic'].map(lambda x: x[2])
+    features['two_gram_12_time_std'] = features['two_gram_time_statistic'].map(lambda x: x[3])
+    features['two_gram_12_last_time'] = features['two_gram_time_statistic'].map(lambda x: x[4])
+
+    features['two_gram_time_statistic'] = features.apply(lambda row: two_gram_time_statistic(row['userid'], action_grouped, 2, 3), axis=1)
+    features['two_gram_23_time_mean'] = features['two_gram_time_statistic'].map(lambda x: x[0])
+    features['two_gram_23_time_min'] = features['two_gram_time_statistic'].map(lambda x: x[2])
+    features['two_gram_23_time_std'] = features['two_gram_time_statistic'].map(lambda x: x[3])
+
+    features['two_gram_time_statistic'] = features.apply(lambda row: two_gram_time_statistic(row['userid'], action_grouped, 3, 4), axis=1)
+    features['two_gram_34_time_max'] = features['two_gram_time_statistic'].map(lambda x: x[1])
+    features['two_gram_34_time_min'] = features['two_gram_time_statistic'].map(lambda x: x[2])
+
+    features['two_gram_time_statistic'] = features.apply(lambda row: two_gram_time_statistic(row['userid'], action_grouped, 4, 5), axis=1)
+    features['two_gram_45_time_mean'] = features['two_gram_time_statistic'].map(lambda x: x[0])
+    features['two_gram_45_time_max'] = features['two_gram_time_statistic'].map(lambda x: x[1])
+    features['two_gram_45_time_std'] = features['two_gram_time_statistic'].map(lambda x: x[3])
+    features['two_gram_45_last_time'] = features['two_gram_time_statistic'].map(lambda x: x[4])
+
+    features['two_gram_time_statistic'] = features.apply(lambda row: two_gram_time_statistic(row['userid'], action_grouped, 6, 7), axis=1)
+    features['two_gram_67_time_std'] = features['two_gram_time_statistic'].map(lambda x: x[3])
+
+    features['two_gram_time_statistic'] = features.apply(lambda row: two_gram_time_statistic(row['userid'], action_grouped, 8, 9), axis=1)
+    features['two_gram_89_time_max'] = features['two_gram_time_statistic'].map(lambda x: x[1])
+    features['two_gram_89_last_time'] = features['two_gram_time_statistic'].map(lambda x: x[4])
+    del features['two_gram_time_statistic']
+
+    # 2-gram 方式统计某种组合的时间统计特征
+    print('three_gram_time_statistic')
+    features['three_gram_time_statistic'] = features.apply(lambda row: three_gram_time_statistic(row['userid'], action_grouped, 1, 2, 3), axis=1)
+    features['three_gram_123_time_mean'] = features['three_gram_time_statistic'].map(lambda x: x[0])
+    # features['three_gram_123_time_max'] = features['three_gram_time_statistic'].map(lambda x: x[1])
+    # features['three_gram_123_time_min'] = features['three_gram_time_statistic'].map(lambda x: x[2])
+    # features['three_gram_123_time_std'] = features['three_gram_time_statistic'].map(lambda x: x[3])
+    # features['three_gram_123_last_time'] = features['three_gram_time_statistic'].map(lambda x: x[4])
+
+    # features['three_gram_time_statistic'] = features.apply(lambda row: three_gram_time_statistic(row['userid'], action_grouped, 2, 3, 4), axis=1)
+    # features['three_gram_234_time_mean'] = features['three_gram_time_statistic'].map(lambda x: x[0])
+    # features['three_gram_234_time_max'] = features['three_gram_time_statistic'].map(lambda x: x[1])
+    # features['three_gram_234_time_min'] = features['three_gram_time_statistic'].map(lambda x: x[2])
+    # features['three_gram_234_time_std'] = features['three_gram_time_statistic'].map(lambda x: x[3])
+    # features['three_gram_234_last_time'] = features['three_gram_time_statistic'].map(lambda x: x[4])
+
+    # features['three_gram_time_statistic'] = features.apply(lambda row: three_gram_time_statistic(row['userid'], action_grouped, 3, 4, 5), axis=1)
+    # features['three_gram_345_time_mean'] = features['three_gram_time_statistic'].map(lambda x: x[0])
+    # features['three_gram_345_time_max'] = features['three_gram_time_statistic'].map(lambda x: x[1])
+    # features['three_gram_345_time_min'] = features['three_gram_time_statistic'].map(lambda x: x[2])
+    # features['three_gram_345_time_std'] = features['three_gram_time_statistic'].map(lambda x: x[3])
+    # features['three_gram_345_last_time'] = features['three_gram_time_statistic'].map(lambda x: x[4])
+
+    features['three_gram_time_statistic'] = features.apply(lambda row: three_gram_time_statistic(row['userid'], action_grouped, 4, 5, 6), axis=1)
+    features['three_gram_456_time_mean'] = features['three_gram_time_statistic'].map(lambda x: x[0])
+    features['three_gram_456_time_max'] = features['three_gram_time_statistic'].map(lambda x: x[1])
+    features['three_gram_456_time_min'] = features['three_gram_time_statistic'].map(lambda x: x[2])
+    # features['three_gram_456_time_std'] = features['three_gram_time_statistic'].map(lambda x: x[3])
+    # features['three_gram_456_last_time'] = features['three_gram_time_statistic'].map(lambda x: x[4])
+
+    features['three_gram_time_statistic'] = features.apply(lambda row: three_gram_time_statistic(row['userid'], action_grouped, 5, 6, 7), axis=1)
+    # features['three_gram_567_time_mean'] = features['three_gram_time_statistic'].map(lambda x: x[0])
+    features['three_gram_567_time_max'] = features['three_gram_time_statistic'].map(lambda x: x[1])
+    features['three_gram_567_time_min'] = features['three_gram_time_statistic'].map(lambda x: x[2])
+    features['three_gram_567_time_std'] = features['three_gram_time_statistic'].map(lambda x: x[3])
+    features['three_gram_567_last_time'] = features['three_gram_time_statistic'].map(lambda x: x[4])
+
+    # features['three_gram_time_statistic'] = features.apply(lambda row: three_gram_time_statistic(row['userid'], action_grouped, 6, 7, 8), axis=1)
+    # features['three_gram_678_time_mean'] = features['three_gram_time_statistic'].map(lambda x: x[0])
+    # features['three_gram_678_time_max'] = features['three_gram_time_statistic'].map(lambda x: x[1])
+    # features['three_gram_678_time_min'] = features['three_gram_time_statistic'].map(lambda x: x[2])
+    # features['three_gram_678_time_std'] = features['three_gram_time_statistic'].map(lambda x: x[3])
+    # features['three_gram_678_last_time'] = features['three_gram_time_statistic'].map(lambda x: x[4])
+
+    features['three_gram_time_statistic'] = features.apply(lambda row: three_gram_time_statistic(row['userid'], action_grouped, 7, 8, 9), axis=1)
+    features['three_gram_789_time_mean'] = features['three_gram_time_statistic'].map(lambda x: x[0])
+    features['three_gram_789_time_max'] = features['three_gram_time_statistic'].map(lambda x: x[1])
+    features['three_gram_789_time_min'] = features['three_gram_time_statistic'].map(lambda x: x[2])
+    # features['three_gram_789_time_std'] = features['three_gram_time_statistic'].map(lambda x: x[3])
+    features['three_gram_789_last_time'] = features['three_gram_time_statistic'].map(lambda x: x[4])
+
+    del features['three_gram_time_statistic']
 
     return features
 
@@ -210,7 +331,7 @@ def main():
         data_utils.save_features(train_features, test_features, feature_name)
 
     feature_name = 'action_order_features2'
-    if not data_utils.is_feature_created(feature_name):
+    if data_utils.is_feature_created(feature_name):
         print('build train action_order_features2')
         train_features = build_action_order_features2(train, train_action_grouped)
         print('build test action_order_features2')
