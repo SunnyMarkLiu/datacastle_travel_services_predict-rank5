@@ -56,6 +56,9 @@ class Configure(object):
         # 'advance_action_features2'          : {'on': 'userid', 'how': 'left'},    # 波峰检测
         'other_features1'                   : {'on': 'userid', 'how': 'left'},
         # 'sqg_features'                      : {'on': 'userid', 'how': 'left'}
+
+        'action_order_features1'            : {'on': 'userid', 'how': 'left'},
+        'action_order_features2'            : {'on': 'userid', 'how': 'left'},
     }
 
     # 特征选择后各模型最佳特征保存路径
