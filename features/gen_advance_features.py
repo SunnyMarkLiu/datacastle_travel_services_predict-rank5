@@ -21,6 +21,7 @@ warnings.filterwarnings('ignore')
 import time
 import datetime
 import numpy as np
+import cPickle
 import pandas as pd
 from conf.configure import Configure
 from utils import data_utils
@@ -598,6 +599,29 @@ def main():
         test_features = gen_action_features2(test, action_test)
         print('save ', feature_name)
         data_utils.save_features(train_features, test_features, feature_name)
+
+    # feature_name = 'advance_action_features3'
+    # if not data_utils.is_feature_created(feature_name):
+    #     print('add sqg action features')
+    #     train_features = pd.read_csv('train_sqg_stage_three.csv')
+    #     test_features = pd.read_csv('test_sqg_stage_three.csv')
+    #
+    #     print('add wxr action features')
+    #     with open('wxr_operate_0_train_action_features.pkl', "rb") as f:
+    #         action_features_train = cPickle.load(f)
+    #     with open('wxr_operate_0_test_action_features.pkl', "rb") as f:
+    #         action_features_test = cPickle.load(f)
+    #     train_features = pd.merge(train_features, action_features_train, on='userid', how='left')
+    #     test_features = pd.merge(test_features, action_features_test, on='userid', how='left')
+    #
+    #     with open('wxr_operate_1_train_action_features.pkl', "rb") as f:
+    #         action_features_train = cPickle.load(f)
+    #     with open('wxr_operate_1_test_action_features.pkl', "rb") as f:
+    #         action_features_test = cPickle.load(f)
+    #     train_features = pd.merge(train_features, action_features_train, on='userid', how='left')
+    #     test_features = pd.merge(test_features, action_features_test, on='userid', how='left')
+    #
+    #     data_utils.save_features(train_features, test_features, feature_name)
 
 
 if __name__ == "__main__":

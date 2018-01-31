@@ -55,7 +55,8 @@ class Configure(object):
         'advance_order_history_features'    : {'on': 'userid', 'how': 'left'},
         # 'advance_action_features'           : {'on': 'userid', 'how': 'left'},
         'advance_action_features1'          : {'on': 'userid', 'how': 'left'},
-        # 'advance_action_features2'          : {'on': 'userid', 'how': 'left'},    # 波峰检测
+        # 'advance_action_features2'          : {'on': 'userid', 'how': 'left'},    # 波峰检测，无效
+        # 'advance_action_features3'          : {'on': 'userid', 'how': 'left'},    # 国哥和睿神的特征，无效
         'other_features1'                   : {'on': 'userid', 'how': 'left'},
         # 'sqg_features'                      : {'on': 'userid', 'how': 'left'}
 
