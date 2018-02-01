@@ -54,33 +54,36 @@ def main():
     # print('feature check before modeling...')
     # feature_util.feature_check_before_modeling(train, test, df_columns)
 
-    # scale_pos_weight = (np.sum(y_train_all == 0) / np.sum(y_train_all == 1))
-    scale_pos_weight = 1
-    print('scale_pos_weight = ', scale_pos_weight)
-
     xgb_params = {
         'eta': 0.01,
         'min_child_weight': 20,
         'colsample_bytree': 0.5,
-        'max_depth': 8,
+        'max_depth': 10,
         'subsample': 0.9,
         'lambda': 2.0,
-        'scale_pos_weight': scale_pos_weight,
+        'scale_pos_weight': 1,
         'eval_metric': 'auc',
         'objective': 'binary:logistic',
         'updater': 'grow_gpu',
-        'gpu_id':2,
+        'gpu_id':0,
         'nthread': -1,
         'silent': 1,
         'booster': 'gbtree',
     }
+
+    # xgb_params = {'alpha': 1e-05,
+    #               'gamma': 4,
+    #               'lambda': 10,
+    #               'max_depth': 10,
+    #               'min_child_weight': 10,
+    #               }
 
     print('---> cv train to choose best_num_boost_round')
     dtrain_all = xgb.DMatrix(train.values, y_train_all, feature_names=df_columns)
     dtest = xgb.DMatrix(test, feature_names=df_columns)
 
     # 4-折 valid 为 10077 和 测试集大小一致
-    nfold = 3
+    nfold = 5
     cv_result = xgb.cv(dict(xgb_params),
                        dtrain_all,
                        nfold=nfold,

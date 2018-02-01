@@ -20,10 +20,8 @@ import time
 import numpy as np
 import pandas as pd
 import lightgbm as lgbm
-from sklearn.model_selection import train_test_split
 from sklearn.metrics import auc, roc_curve
-from get_datasets import load_train_test, load_datasets
-from IPython.display import display
+from get_datasets import load_datasets
 
 
 def evaluate_score(predict, y_true):
@@ -45,30 +43,23 @@ def main():
     # print('feature check before modeling...')
     # feature_util.feature_check_before_modeling(train, test, df_columns)
 
-    scale_pos_weight = (np.sum(y_train_all == 0) / np.sum(y_train_all == 1)) - 1
-    # print('scale_pos_weight = ', scale_pos_weight)
-
     d_train = lgbm.Dataset(train, label=y_train_all)
 
     lgbm_params = {
         'boosting_type': 'gbdt',
         'objective': 'binary',
-        'nthread': -1,
-        'subsample': 0.75,
-        'subsample_freq': 1,
-        'colsample_bytree': 0.6,
-        'min_split_gain': 0.4,
-
-        'num_leaves': 2 ** 6,
-        'learning_rate': 0.015,
-        'max_depth': 10,
-
-        'reg_alpha': 0.1,
-        'reg_lambda': 0.1,
-
-        'scale_pos_weight': 1,
-        'early_stopping_round': 20,
         'metric': 'auc',
+        'learning_rate': 0.01,
+        'num_leaves': 2 ** 6,
+        'min_child_weight': 5,
+        'min_split_gain': 0,
+        'feature_fraction': 0.5,
+        'bagging_fraction': 0.9,
+        'lambda_l1': 0.5,
+        'lambda_l2': 0.5,
+        'bagging_seed': 10,
+        'feature_fraction_seed': 10,
+        'nthread': -1,
         'verbose': 0
     }
 
