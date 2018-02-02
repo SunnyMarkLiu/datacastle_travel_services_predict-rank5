@@ -168,7 +168,11 @@ def load_datasets():
     return train, test
 
 def remove_some_features(train, test):
-    removed_features = []
+    removed_features = ['open_app_pay_money_ratio', 'browse_product_pay_money_ratio', 'browse_product2_pay_money_ratio',
+                        'fillin_form5_pay_money_ratio', 'fillin_form6_pay_money_ratio', 'fillin_form7_pay_money_ratio',
+                        'submit_order_pay_money_ratio', '2016_year_pay_money_count', '2017_year_pay_money_count',
+                        'last_time_order_year', 'last_time_order_day', 'last_time_order_weekday', 'last_time_continent',
+                        'last_time_country', 'last_time_order_now_has_submited_order', ]
     
     train.drop(removed_features, axis=1, inplace=True)
     test.drop(removed_features, axis=1, inplace=True)

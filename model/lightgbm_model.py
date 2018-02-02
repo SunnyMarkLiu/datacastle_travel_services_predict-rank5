@@ -43,18 +43,21 @@ def main():
     # print('feature check before modeling...')
     # feature_util.feature_check_before_modeling(train, test, df_columns)
 
-    d_train = lgbm.Dataset(train, label=y_train_all)
+    dtrain = lgbm.Dataset(train, label=y_train_all)
 
     lgbm_params = {
         'boosting_type': 'gbdt',
         'objective': 'binary',
         'metric': 'auc',
         'learning_rate': 0.01,
+
         'num_leaves': 2 ** 6,
         'min_child_weight': 5,
+
         'min_split_gain': 0,
         'feature_fraction': 0.5,
         'bagging_fraction': 0.9,
+
         'lambda_l1': 0.5,
         'lambda_l2': 0.5,
         'bagging_seed': 10,
@@ -64,17 +67,19 @@ def main():
     }
 
     cv_results = lgbm.cv(lgbm_params,
-                         d_train,
-                         num_boost_round=20000,
+                         dtrain,
                          nfold=5,
-                         early_stopping_rounds=200,
-                         verbose_eval=20)
+                         stratified=True,
+                         num_boost_round=20000,
+                         early_stopping_rounds=100,
+                         verbose_eval=20
+                         )
 
     best_num_boost_rounds = len(cv_results['auc-mean'])
     print('best_num_boost_rounds =', best_num_boost_rounds)
     # train model
     print('training on total training data...')
-    model = lgbm.train(lgbm_params, d_train, num_boost_round=best_num_boost_rounds)
+    model = lgbm.train(lgbm_params, dtrain, num_boost_round=best_num_boost_rounds)
 
     print('predict submit...')
     y_pred = model.predict(test)

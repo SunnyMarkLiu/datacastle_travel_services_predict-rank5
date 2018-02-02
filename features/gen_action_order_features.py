@@ -305,6 +305,52 @@ def generate_new_action(action, history):
     return action
 
 
+def diff_action_type_time_delta(uid, action_grouped, actiontypeA, actiontypeB):
+
+    df_action_of_userid = action_grouped[uid]
+
+    timespan_list = []
+    i = 0
+    while i < (len(df_action_of_userid)-1):
+        if df_action_of_userid['actionType'].iat[i] == actiontypeA:
+            timeA = df_action_of_userid['actionTime'].iat[i]
+            for j in range(i+1, len(df_action_of_userid)):
+                if df_action_of_userid['actionType'].iat[j] == actiontypeA:
+                    timeA = df_action_of_userid['actionTime'].iat[j]
+                    continue
+                if df_action_of_userid['actionType'].iat[j] == actiontypeB:
+                    timeB = df_action_of_userid['actionTime'].iat[j]
+                    timespan_list.append(timeB-timeA)
+                    i = j
+        i+=1
+    if len(timespan_list) > 0:
+        if len(timespan_list) >= 3:
+            return np.min(timespan_list), np.max(timespan_list), np.mean(timespan_list), np.std(timespan_list), timespan_list[-3], timespan_list[-2]
+        elif len(timespan_list) == 2:
+            return np.min(timespan_list), np.max(timespan_list), np.mean(timespan_list), np.std(timespan_list), -999, timespan_list[-2]
+        else:
+            return np.min(timespan_list), np.max(timespan_list), np.mean(timespan_list), np.std(timespan_list), -999, -999
+    else:
+        return -999, -999, -999, -999, -999, -999
+
+
+def build_action_order_features3(df, action_grouped):
+    features = pd.DataFrame({'userid': df['userid']})
+
+    actiontypeA = 1
+    actiontypeB = 2
+    features['diff_action_type_time_delta'] = features.apply(lambda row: diff_action_type_time_delta(row['userid'], action_grouped, actiontypeA, actiontypeA), axis=1)
+    features['action_type_{}_time_delta_min'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta'].map(lambda x: x[0])
+    features['action_type_{}_time_delta_max'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta'].map(lambda x: x[1])
+    features['action_type_{}_time_delta_mean'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta'].map(lambda x: x[2])
+    features['action_type_{}_time_delta_std'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta'].map(lambda x: x[3])
+    features['action_type_{}_time_delta_last2'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta'].map(lambda x: x[4])
+    features['action_type_{}_time_delta_last3'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta'].map(lambda x: x[5])
+
+    del features['diff_action_type_time_delta']
+    return features
+
+
 def main():
     train = pd.read_csv(Configure.base_path + 'train/orderFuture_train.csv', encoding='utf8')
     test = pd.read_csv(Configure.base_path + 'test/orderFuture_test.csv', encoding='utf8')
@@ -336,6 +382,15 @@ def main():
         train_features = build_action_order_features2(train, train_action_grouped)
         print('build test action_order_features2')
         test_features = build_action_order_features2(test, test_action_grouped)
+        print('save ', feature_name)
+        data_utils.save_features(train_features, test_features, feature_name)
+
+    feature_name = 'action_order_features3'
+    if not data_utils.is_feature_created(feature_name):
+        print('build train action_order_features3')
+        train_features = build_action_order_features3(train, train_action_grouped)
+        print('build test action_order_features3')
+        test_features = build_action_order_features3(test, test_action_grouped)
         print('save ', feature_name)
         data_utils.save_features(train_features, test_features, feature_name)
 

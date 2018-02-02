@@ -12,12 +12,12 @@ import sys
 
 module_path = os.path.abspath(os.path.join('..'))
 sys.path.append(module_path)
-import time
 
 import numpy as np
 import pandas as pd
 import xgboost as xgb
 from sklearn.metrics import auc, roc_curve
+from sklearn.model_selection import train_test_split
 from get_datasets import load_datasets
 from utils import xgb_utils
 
@@ -32,30 +32,26 @@ def main():
     print("load train test datasets")
     train, test = load_datasets()
 
+    rm_features = ['open_app_pay_money_ratio', 'browse_product_pay_money_ratio', 'browse_product2_pay_money_ratio', 'fillin_form5_pay_money_ratio',
+                   'fillin_form6_pay_money_ratio', 'fillin_form7_pay_money_ratio', 'submit_order_pay_money_ratio',
+                   '2016_year_pay_money_count', '2017_year_pay_money_count',
+                   'last_time_order_year', 'last_time_order_day', 'last_time_order_weekday', 'last_time_continent', 'last_time_country',
+                   'last_time_order_now_has_submited_order',]
+
+    train.drop(rm_features, axis=1, inplace=True)
+    test.drop(rm_features, axis=1, inplace=True)
+
+    train, _ = train_test_split(train, test_size=0.7, random_state=42, shuffle=True, stratify=train['orderType'])
+    print('train:', train.shape)
+
     submit_df = pd.DataFrame({'userid': test['userid']})
-    # submit_df['history_order_type_sum_lg0'] = test['history_order_type_sum_lg0']
-    #
-    # # 剔除规则筛选的类别为 1 和类别为 0 的训练集和测试集
-    # print('训练集规则过滤类别1：{}'.format(sum(train['history_order_type_sum_lg0'] == 1)))
-    # print('测试集规则过滤类别1：{}'.format(sum(test['history_order_type_sum_lg0'] == 1)))
-    #
-    # train = train[train['history_order_type_sum_lg0'] != 1]  # 2016_2017_first_last_ordertype = 1，则为类别 1
-    # del train['history_order_type_sum_lg0']
-    # del test['history_order_type_sum_lg0']
 
     y_train_all = train['orderType']
-
     train.drop(['orderType'], axis=1, inplace=True)
-
     df_columns = train.columns.values
-    print('train: {}, test: {}, feature count: {}, orderType 1:0 = {:.5f}'.format(
-        train.shape[0], test.shape[0], len(df_columns), 1.0*sum(y_train_all) / len(y_train_all)))
-
-    # print('feature check before modeling...')
-    # feature_util.feature_check_before_modeling(train, test, df_columns)
 
     xgb_params = {
-        'eta': 0.01,
+        'eta': 0.1,
         'min_child_weight': 20,
         'colsample_bytree': 0.5,
         'max_depth': 10,
@@ -109,17 +105,6 @@ def main():
     y_pred = model.predict(dtest, ntree_limit=model.best_ntree_limit)
 
     submit_df['orderType'] = y_pred
-    submission_path = '../result/{}_submission_{}.csv'.format('xgboost',
-                                                                 time.strftime('%Y_%m_%d_%H_%M_%S',
-                                                                               time.localtime(time.time())))
-
-    # # 规则设置
-    # submit_df['orderType'] = submit_df.apply(lambda row: 1 if row['history_order_type_sum_lg0'] == 1 else row['orderType'], axis=1)
-    # # 概率阈值需要调
-    # # df_sub['orderType'] = df_sub.apply(lambda row: 0 if ((row['history_order_type_sum_lg0'] == 0) and (row['orderType'] < 0.001)) else row['orderType'], axis=1)
-    # submit_df = submit_df[['userid', 'orderType']]
-
-    submit_df.to_csv(submission_path, index=False, columns=['userid', 'orderType'])
     print('-------- predict and valid check  ------')
     print('test  count mean: {:.6f} , std: {:.6f}'.format(np.mean(submit_df['orderType']), np.std(submit_df['orderType'])))
     print('done.')
