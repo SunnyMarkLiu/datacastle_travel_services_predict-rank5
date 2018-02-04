@@ -104,6 +104,12 @@ def main():
     print('save feature importances')
     importances = xgb_utils.get_xgb_importance(model, df_columns)
     importances.to_csv('../features/features_importances.csv', index=False, columns=['feature', 'importance'])
+    importances = xgb_utils.get_xgb_importance_by_weights(model, df_columns)
+    importances.to_csv('../features/features_weights.csv', index=False, columns=['feature', 'weights'])
+    importances = xgb_utils.get_xgb_importance_by_gains(model, df_columns)
+    importances.to_csv('../features/features_gains.csv', index=False, columns=['feature', 'gains'])
+    importances = xgb_utils.get_xgb_importance_by_covers(model, df_columns)
+    importances.to_csv('../features/features_covers.csv', index=False, columns=['feature', 'covers'])
 
     print('---> predict test')
     y_pred = model.predict(dtest, ntree_limit=model.best_ntree_limit)

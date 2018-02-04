@@ -41,3 +41,45 @@ def get_xgb_importance(clf, features):
     impdf = features_imp.sort_values(by='importance', ascending=False).reset_index(drop=True)
     impdf['importance'] /= impdf['importance'].sum()
     return impdf
+
+
+def get_xgb_importance_by_weights(clf, features):
+
+    weughts_imp = clf.get_score(importance_type='weight')
+
+    weights = []
+    for f in features:
+        weights.append(weughts_imp.get(f, 0))
+
+    features_imp = pd.DataFrame({'feature': features, 'weights': weights})
+    impdf = features_imp.sort_values(by='weights', ascending=False).reset_index(drop=True)
+
+    return impdf
+
+
+def get_xgb_importance_by_gains(clf, features):
+
+    gains_imp = clf.get_score(importance_type='gain')
+
+    gains = []
+    for f in features:
+        gains.append(gains_imp.get(f, 0))
+
+    features_imp = pd.DataFrame({'feature': features, 'gains': gains})
+    impdf = features_imp.sort_values(by='gains', ascending=False).reset_index(drop=True)
+
+    return impdf
+
+
+def get_xgb_importance_by_covers(clf, features):
+
+    covers_imp = clf.get_score(importance_type='cover')
+
+    covers = []
+    for f in features:
+        covers.append(covers_imp.get(f, 0))
+
+    features_imp = pd.DataFrame({'feature': features, 'covers': covers})
+
+    impdf = features_imp.sort_values(by='covers', ascending=False).reset_index(drop=True)
+    return impdf

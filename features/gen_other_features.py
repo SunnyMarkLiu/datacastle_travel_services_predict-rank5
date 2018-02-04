@@ -18,9 +18,7 @@ import warnings
 
 warnings.filterwarnings('ignore')
 
-import numpy as np
 import pandas as pd
-from conf.configure import Configure
 from utils import data_utils
 
 
@@ -37,9 +35,24 @@ def main():
     train = train_features[used_features]
     test = test_features[used_features]
 
+    train_features = pd.read_csv('other_feature2/type_typevalue_train.csv')
+    test_features = pd.read_csv('other_feature2/type_typevalue_test.csv')
+    train = pd.merge(train, train_features, on='userid', how='left')
+    test = pd.merge(test, test_features, on='userid', how='left')
+
+    # train_features = pd.read_csv('other_feature2/type_type_train.csv')
+    # test_features = pd.read_csv('other_feature2/type_type_test.csv')
+    # train = pd.merge(train, train_features, on='userid', how='left')
+    # test = pd.merge(test, test_features, on='userid', how='left')
+
+    # train_features = pd.read_csv('other_feature2/actiontype_cloest_train.csv')
+    # test_features = pd.read_csv('other_feature2/actiontype_cloest_test.csv')
+    # train = pd.merge(train, train_features, on='userid', how='left')
+    # test = pd.merge(test, test_features, on='userid', how='left')
+
     data_utils.save_features(train, test, feature_name)
 
 
 if __name__ == "__main__":
-    print("========== 合并 github 开源特征1 ==========")
+    print("========== 合并其他队友特征 ==========")
     main()

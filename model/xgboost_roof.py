@@ -111,19 +111,20 @@ def main(options):
         pred_train_full[val_index] = predict_valid
         pred_test_full += predict_test
 
-    print('Mean cv auc:', np.mean(cv_scores))
+    mean_cv_scores = np.mean(cv_scores)
+    print('Mean cv auc:', mean_cv_scores)
 
     print("saving train predictions for ensemble")
     train_pred_df = pd.DataFrame({'userid': id_train})
     train_pred_df[predict_feature] = pred_train_full
-    train_pred_df.to_csv("./ensemble/xgb_roof{}_predict_train_{}.csv".format(roof_flod, predict_feature),
+    train_pred_df.to_csv("./ensemble/xgb_roof{}_predict_train_cv{}_{}.csv".format(roof_flod, mean_cv_scores, predict_feature),
                          index=False, columns=['userid', predict_feature])
 
     print("saving test predictions for ensemble")
     pred_test_full = pred_test_full / float(roof_flod)
     test_pred_df = pd.DataFrame({'userid': id_test})
     test_pred_df[predict_feature] = pred_test_full
-    test_pred_df.to_csv("./ensemble/xgb_roof{}_predict_test_{}.csv".format(roof_flod, predict_feature),
+    test_pred_df.to_csv("./ensemble/xgb_roof{}_predict_test_cv{}_{}.csv".format(roof_flod, mean_cv_scores, predict_feature),
                         index=False, columns=['userid', predict_feature])
 
 
