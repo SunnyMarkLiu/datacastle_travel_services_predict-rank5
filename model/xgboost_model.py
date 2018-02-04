@@ -65,7 +65,7 @@ def main():
         'eval_metric': 'auc',
         'objective': 'binary:logistic',
         'updater': 'grow_gpu',
-        'gpu_id':0,
+        'gpu_id':2,
         'nthread': -1,
         'silent': 1,
         'booster': 'gbtree',

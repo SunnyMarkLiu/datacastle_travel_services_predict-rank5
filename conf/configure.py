@@ -62,7 +62,7 @@ class Configure(object):
 
         'action_order_features1'            : {'on': 'userid', 'how': 'left'},
         'action_order_features2'            : {'on': 'userid', 'how': 'left'},
-        'action_order_features3'            : {'on': 'userid', 'how': 'left'},
+        # 'action_order_features3'            : {'on': 'userid', 'how': 'left'},
     }
 
     # 特征选择后各模型最佳特征保存路径

@@ -45,26 +45,22 @@ def main():
 
     dtrain = lgbm.Dataset(train, label=y_train_all)
 
-    lgbm_params = {
-        'boosting_type': 'gbdt',
-        'objective': 'binary',
-        'metric': 'auc',
-        'learning_rate': 0.01,
-
-        'num_leaves': 2 ** 6,
-        'min_child_weight': 5,
-
-        'min_split_gain': 0,
-        'feature_fraction': 0.5,
-        'bagging_fraction': 0.9,
-
-        'lambda_l1': 0.5,
-        'lambda_l2': 0.5,
-        'bagging_seed': 10,
-        'feature_fraction_seed': 10,
-        'nthread': -1,
-        'verbose': 0
-    }
+    lgbm_params = {'bagging_fraction': 0.6,
+                   'bagging_seed': 10,
+                   'boosting_type': 'gbdt',
+                   'feature_fraction': 0.5,
+                   'feature_fraction_seed': 10,
+                   'lambda_l1': 0.5,
+                   'lambda_l2': 0.5,
+                   'learning_rate': 0.01,
+                   'max_bin': 255,
+                   'metric': 'auc',
+                   'min_child_weight': 4,
+                   'min_split_gain': 0,
+                   'nthread': -1,
+                   'num_leaves': 64,
+                   'objective': 'binary',
+                   'verbose': 0}
 
     cv_results = lgbm.cv(lgbm_params,
                          dtrain,

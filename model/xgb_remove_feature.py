@@ -14,6 +14,7 @@ import sys
 module_path = os.path.abspath(os.path.join('..'))
 sys.path.append(module_path)
 
+import pandas as pd
 import xgboost as xgb
 from sklearn.metrics import auc, roc_curve
 from get_datasets import load_datasets
@@ -60,19 +61,18 @@ def main():
     removed_features = []
     max_test_auc = 0
 
+    features_imp = pd.read_csv('0.97299_features_importances.csv')
+    impdf = features_imp.sort_values(by='importance', ascending=True).reset_index(drop=True)
+
     process_count = 0
-    all_features = ['total_feature'] + all_features
+    all_features = ['total_feature'] + impdf['feature'].values.tolist()
     for feature in all_features:
         if feature != 'total_feature':
-            all_features.remove(feature)
-        else:
-            all_features.remove('total_feature')
-
-        print('process count:', process_count, ', total:', len(all_features))
-        process_count += 1
-        train_df = train[all_features]
-
-        dtrain_all = xgb.DMatrix(train_df.values, y_train_all, feature_names=all_features)
+            process_count += 1
+            removed_features.append(feature)
+        train_df = train[list(set(train.columns.values) - set(removed_features))]
+        print('process count:', process_count, ', feature count:', train_df.shape[1])
+        dtrain_all = xgb.DMatrix(train_df.values, y_train_all, feature_names=train_df.columns.values)
 
         # 4-折 valid 为 10077 和 测试集大小一致
         nfold = 5
@@ -88,17 +88,16 @@ def main():
 
         if mean_test_auc > max_test_auc:
             if feature != 'total_feature':
-                removed_features.append(feature)
                 print('==> remove {}, mean_test_auc: {:.7f} --> {:.7f}'.format(feature, max_test_auc, mean_test_auc))
-                print('removed features:', removed_features)
+                print('removed features count:', len(removed_features), ',', removed_features)
             max_test_auc = mean_test_auc
-        else:
-            all_features.append(feature)
+        else:   # 输出该特征 auc 下降
+            removed_features.remove(feature)
 
     with open('removed_features.pkl', "wb") as f:
         cPickle.dump(removed_features, f, -1)
 
 
 if __name__ == '__main__':
-    print('========== xgboost 模型训练 ==========')
+    print('========== xgboost remove features ==========')
     main()

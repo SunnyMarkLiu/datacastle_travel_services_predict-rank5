@@ -160,6 +160,11 @@ def load_datasets():
                         on=features_merged_dict[feature_name]['on'],
                         how=features_merged_dict[feature_name]['how'])
 
+    # # 按照规则，讲测试集中的类别为1的测试数据添加到训练集中，线上爆炸！
+    # sample_pos_test = test[test['history_order_type_sum_lg0'] == 1]
+    # sample_pos_test['orderType'] = 1
+    # train = pd.concat([train, sample_pos_test], axis=0)
+
     train.drop(['history_order_type_sum_lg0'], axis=1, inplace=True)
     test.drop(['history_order_type_sum_lg0'], axis=1, inplace=True)
 
@@ -168,11 +173,10 @@ def load_datasets():
     return train, test
 
 def remove_some_features(train, test):
-    removed_features = ['open_app_pay_money_ratio', 'browse_product_pay_money_ratio', 'browse_product2_pay_money_ratio',
-                        'fillin_form5_pay_money_ratio', 'fillin_form6_pay_money_ratio', 'fillin_form7_pay_money_ratio',
-                        'submit_order_pay_money_ratio', '2016_year_pay_money_count', '2017_year_pay_money_count',
-                        'last_time_order_year', 'last_time_order_day', 'last_time_order_weekday', 'last_time_continent',
-                        'last_time_country', 'last_time_order_now_has_submited_order', ]
+    removed_features = ['age_lg00', 'action_7_num_after_last_order', '2016_order_month_count', '2017_good_order_ratio',
+                        'age_lg60', 'pre_90days_order_city_count', 'last_time_order_now_has_paied_money',
+                        'histord_sum_cont5', 'gender_woman']
+
     
     train.drop(removed_features, axis=1, inplace=True)
     test.drop(removed_features, axis=1, inplace=True)
