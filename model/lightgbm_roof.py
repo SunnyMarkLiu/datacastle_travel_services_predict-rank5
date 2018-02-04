@@ -12,13 +12,12 @@ import pandas as pd
 import lightgbm as lgb
 from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import auc, roc_curve
-from model.get_datasets import load_train_test
-from conf.configure import Configure
+from model.get_datasets import load_datasets
 
 
 # 构建模型输入
 def pre_train():
-    train_all, test = load_train_test()
+    train_all, test = load_datasets()
     # train_all.fillna(-1,inplace=True)
     # test.fillna(-1,inplace=True)
 
@@ -101,14 +100,14 @@ def main():
     print("saving train predictions for ensemble")
     train_pred_df = pd.DataFrame({'userid': id_train})
     train_pred_df['lightgbm_orderType'] = pred_train_full
-    train_pred_df.to_csv(Configure.base_path + "/ensemble/lightgbm_roof{}_predict_train.csv".format(roof_flod),
+    train_pred_df.to_csv("./ensemble/lightgbm_roof{}_predict_train.csv".format(roof_flod),
                          index=False, columns=['userid', 'lightgbm_orderType'])
 
     print("saving test predictions for ensemble")
     pred_test_full = pred_test_full / float(roof_flod)
     test_pred_df = pd.DataFrame({'userid': id_test})
     test_pred_df['lightgbm_orderType'] = pred_test_full
-    test_pred_df.to_csv(Configure.base_path + "/ensemble/lightgbm_roof{}_predict_test.csv".format(roof_flod),
+    test_pred_df.to_csv("./ensemble/lightgbm_roof{}_predict_test.csv".format(roof_flod),
                         index=False, columns=['userid', 'lightgbm_orderType'])
 
 
