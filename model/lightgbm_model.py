@@ -45,20 +45,21 @@ def main():
 
     dtrain = lgbm.Dataset(train, label=y_train_all)
 
-    lgbm_params = {'bagging_fraction': 0.6,
+    lgbm_params = {'bagging_fraction': 0.7,
                    'bagging_seed': 10,
                    'boosting_type': 'gbdt',
-                   'feature_fraction': 0.5,
+                   'feature_fraction': 0.9,
                    'feature_fraction_seed': 10,
                    'lambda_l1': 0.5,
                    'lambda_l2': 0.5,
                    'learning_rate': 0.01,
                    'max_bin': 255,
                    'metric': 'auc',
-                   'min_child_weight': 4,
+                   'min_child_weight': 1,
                    'min_split_gain': 0,
-                   'nthread': -1,
+                   'min_sum_hessian_in_leaf': 0.1,
                    'num_leaves': 64,
+                   'num_thread': -1,
                    'objective': 'binary',
                    'verbose': 0}
 
@@ -68,11 +69,14 @@ def main():
                          stratified=True,
                          num_boost_round=20000,
                          early_stopping_rounds=100,
-                         verbose_eval=20
+                         verbose_eval=50
                          )
 
     best_num_boost_rounds = len(cv_results['auc-mean'])
     print('best_num_boost_rounds =', best_num_boost_rounds)
+    mean_test_auc = np.mean(cv_results['auc-mean'][best_num_boost_rounds - 6: best_num_boost_rounds - 1])
+    print('mean_test_auc = {:.7f}\n'.format(mean_test_auc))
+
     # train model
     print('training on total training data...')
     model = lgbm.train(lgbm_params, dtrain, num_boost_round=best_num_boost_rounds)

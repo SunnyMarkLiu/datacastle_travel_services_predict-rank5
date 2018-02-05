@@ -173,11 +173,9 @@ def load_datasets():
     return train, test
 
 def remove_some_features(train, test):
-    removed_features = ['age_lg00', 'action_7_num_after_last_order', '2016_order_month_count', '2017_good_order_ratio',
-                        'age_lg60', 'pre_90days_order_city_count', 'last_time_order_now_has_paied_money',
-                        'histord_sum_cont5', 'gender_woman']
+    features_weights = pd.read_csv('0.97329_xgb_features_weights.csv')
+    removed_features = features_weights[features_weights['weights'] == 0]['feature'].values
 
-    
     train.drop(removed_features, axis=1, inplace=True)
     test.drop(removed_features, axis=1, inplace=True)
 
