@@ -18,15 +18,14 @@ import pandas as pd
 import xgboost as xgb
 from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import auc, roc_curve
-from model.get_datasets import load_datasets
+from conf.configure import Configure
 from optparse import OptionParser
 
 
 # 构建模型输入
 def pre_train():
-    train_all, test = load_datasets()
-    # train_all.fillna(-1,inplace=True)
-    # test.fillna(-1,inplace=True)
+    train_all = pd.read_csv(Configure.base_path + 'huang_lin/train_dataHL.csv')
+    test = pd.read_csv(Configure.base_path + 'huang_lin/test_dataHL.csv')
 
     y_train_all = train_all['orderType']
     id_train = train_all['userid']
@@ -117,19 +116,19 @@ def main(options):
     print("saving train predictions for ensemble")
     train_pred_df = pd.DataFrame({'userid': id_train})
     train_pred_df[predict_feature] = pred_train_full
-    train_pred_df.to_csv("./ensemble/xgb_roof{}_predict_train_cv{}_{}.csv".format(roof_flod, mean_cv_scores, predict_feature),
+    train_pred_df.to_csv("./ensemble/train/hl_xgb_roof{}_predict_train_cv{}_{}.csv".format(roof_flod, mean_cv_scores, predict_feature),
                          index=False, columns=['userid', predict_feature])
 
     print("saving test predictions for ensemble")
     pred_test_full = pred_test_full / float(roof_flod)
     test_pred_df = pd.DataFrame({'userid': id_test})
     test_pred_df[predict_feature] = pred_test_full
-    test_pred_df.to_csv("./ensemble/xgb_roof{}_predict_test_cv{}_{}.csv".format(roof_flod, mean_cv_scores, predict_feature),
+    test_pred_df.to_csv("./ensemble/test/hl_xgb_roof{}_predict_test_cv{}_{}.csv".format(roof_flod, mean_cv_scores, predict_feature),
                         index=False, columns=['userid', predict_feature])
 
 
 if __name__ == "__main__":
-    print("========== xgboost run out of fold ==========")
+    print("========== huang lin xgboost run out of fold ==========")
     parser = OptionParser()
 
     parser.add_option(
