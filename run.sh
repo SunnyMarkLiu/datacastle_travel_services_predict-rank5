@@ -5,7 +5,7 @@ cd features
 cd ../model/
 
 # single model
-#python xgboost_model.py
+python xgboost_model.py
 #python xgb_remove_feature.py
 #python xgb_feature_select.py
 #python huanglin_lightgbm_model.py
@@ -26,7 +26,7 @@ cd ../model/
 #python model_roof/lq_xgboost_roof.py -f 5 -e 0.017 -w 16 -c 0.49 -d 14 -p 0.75 -s 631
 #python model_roof/lq_xgboost_roof.py -f 5 -e 0.008 -w 15 -c 0.45 -d 15 -p 0.78 -s 977
 #python model_roof/lq_xgboost_roof.py -f 5 -e 0.009 -w 14 -c 0.52 -d 10 -p 0.76 -s 2017
-#
+
 #python model_roof/lq_lightgbm_roof.py --fl 5 --lr 0.010 --mw 1  --ff 0.9  --nl 64  --bf 0.7  --l1 0.5 --l2 0.5 --sd 3
 #python model_roof/lq_lightgbm_roof.py --fl 5 --lr 0.015 --mw 2  --ff 0.85 --nl 64  --bf 0.8  --l1 0.5 --l2 0.5 --sd 7
 #python model_roof/lq_lightgbm_roof.py --fl 5 --lr 0.013 --mw 4  --ff 0.91 --nl 128 --bf 0.75 --l1 0.5 --l2 0.5 --sd 47
@@ -48,7 +48,7 @@ cd ../model/
 #python model_roof/lq_rf_roof.py -f 5 -n 1240 -l 8 -t 10 -s 631
 #python model_roof/lq_rf_roof.py -f 5 -n 1220 -l 7 -t 55 -s 977
 #python model_roof/lq_rf_roof.py -f 5 -n 3500 -l 6 -t 60 -s 2017
-#
+
 #python model_roof/lq_et_roof.py -f 5 -n 3100 -l 1 -t 2 -s 10
 #python model_roof/lq_et_roof.py -f 5 -n 3120 -l 2 -t 4 -s 0
 #python model_roof/lq_et_roof.py -f 5 -n 3140 -l 3 -t 6 -s 45
@@ -94,7 +94,7 @@ cd ../model/
 #python model_roof/qian_guo_xgboost_roof.py -f 5 -e 0.017 -w 16 -c 0.49 -d 14 -p 0.75 -s 631
 #python model_roof/qian_guo_xgboost_roof.py -f 5 -e 0.008 -w 15 -c 0.45 -d 15 -p 0.78 -s 977
 #python model_roof/qian_guo_xgboost_roof.py -f 5 -e 0.009 -w 14 -c 0.52 -d 10 -p 0.76 -s 2017
-#
+
 #python model_roof/qian_guo_lightgbm_roof.py --fl 5 --lr 0.025 --ff 0.35 --nl 30 --bf 0.60  --l1 0 --l2 11.5 --sd 31
 #python model_roof/qian_guo_lightgbm_roof.py --fl 5 --lr 0.030 --ff 0.45 --nl 35 --bf 0.70  --l1 0 --l2 10.5 --sd 72
 #python model_roof/qian_guo_lightgbm_roof.py --fl 5 --lr 0.010 --ff 0.50 --nl 38 --bf 0.56  --l1 0 --l2 12.0 --sd 471

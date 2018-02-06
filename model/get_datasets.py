@@ -170,6 +170,11 @@ def load_datasets():
 
     # train, test = remove_some_features(train, test)
 
+    # with open('train_0.97329.pkl', "wb") as f:
+    #     cPickle.dump(train, f, -1)
+    # with open('test_0.97329.pkl', "wb") as f:
+    #     cPickle.dump(test, f, -1)
+    #
     return train, test
 
 def remove_some_features(train, test):
