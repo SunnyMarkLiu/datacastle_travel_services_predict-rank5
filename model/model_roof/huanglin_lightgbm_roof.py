@@ -102,14 +102,14 @@ def main(options):
     print("saving train predictions for ensemble")
     train_pred_df = pd.DataFrame({'userid': id_train})
     train_pred_df[predict_feature] = pred_train_full
-    train_pred_df.to_csv(Configure.base_path + "ensemble/train/hl_lgbm_roof{}_predict_train_cv{}_{}.csv".format(roof_flod, mean_cv_scores, predict_feature),
+    train_pred_df.to_csv("./ensemble/train/hl_lgbm_roof{}_predict_train_cv{}_{}.csv".format(roof_flod, mean_cv_scores, predict_feature),
                          index=False, columns=['userid', predict_feature])
 
     print("saving test predictions for ensemble")
     pred_test_full = pred_test_full / float(roof_flod)
     test_pred_df = pd.DataFrame({'userid': id_test})
     test_pred_df[predict_feature] = pred_test_full
-    test_pred_df.to_csv(Configure.base_path + "ensemble/test/hl_lgbm_roof{}_predict_test_cv{}_{}.csv".format(roof_flod, mean_cv_scores, predict_feature),
+    test_pred_df.to_csv("./ensemble/test/hl_lgbm_roof{}_predict_test_cv{}_{}.csv".format(roof_flod, mean_cv_scores, predict_feature),
                         index=False, columns=['userid', predict_feature])
 
 
