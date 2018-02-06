@@ -37,19 +37,12 @@ def main():
     test = pd.read_csv(Configure.base_path + 'sun_qian_guo/test.csv')
 
     submit_df = pd.DataFrame({'userid': test['userid']})
-    # submit_df['history_order_type_sum_lg0'] = test['history_order_type_sum_lg0']
-    #
-    # # 剔除规则筛选的类别为 1 和类别为 0 的训练集和测试集
-    # print('训练集规则过滤类别1：{}'.format(sum(train['history_order_type_sum_lg0'] == 1)))
-    # print('测试集规则过滤类别1：{}'.format(sum(test['history_order_type_sum_lg0'] == 1)))
-    #
-    # train = train[train['history_order_type_sum_lg0'] != 1]  # 2016_2017_first_last_ordertype = 1，则为类别 1
-    # del train['history_order_type_sum_lg0']
-    # del test['history_order_type_sum_lg0']
-
     y_train_all = train['orderType']
+    train.drop(['orderType', 'userid'], axis=1, inplace=True)
+    test.drop(['userid'], axis=1, inplace=True)
 
-    train.drop(['orderType'], axis=1, inplace=True)
+    train.columns = ['feature_{}'.format(i) for i in range(train.shape[1])]
+    test.columns = ['feature_{}'.format(i) for i in range(test.shape[1])]
 
     df_columns = train.columns.values
     print('train: {}, test: {}, feature count: {}, orderType 1:0 = {:.5f}'.format(
