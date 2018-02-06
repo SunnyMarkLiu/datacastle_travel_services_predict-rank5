@@ -37,9 +37,12 @@ def main():
     train = pd.read_csv(Configure.base_path + 'sun_qian_guo/train.csv')
     test = pd.read_csv(Configure.base_path + 'sun_qian_guo/test.csv')
 
+    submit_df = pd.DataFrame({'userid': test['userid']})
     y_train_all = train['orderType']
-    id_test = test['userid']
-    del train['orderType']
+    train.drop(['orderType'], axis=1, inplace=True)
+
+    train.columns = ['feature_{}'.format(i) for i in range(train.shape[1])]
+    test.columns = ['feature_{}'.format(i) for i in range(test.shape[1])]
 
     df_columns = train.columns.values
     print('===> feature count: {}'.format(len(df_columns)))
@@ -86,13 +89,13 @@ def main():
 
     print('predict submit...')
     y_pred = model.predict(test)
-    df_sub = pd.DataFrame({'userid': id_test, 'orderType': y_pred})
+    submit_df['orderType'] = y_pred
     submission_path = '../result/{}_submission_{}.csv'.format('lightgbm',
                                                                  time.strftime('%Y_%m_%d_%H_%M_%S',
                                                                                time.localtime(time.time())))
-    df_sub.to_csv(submission_path, index=False, columns=['userid', 'orderType'])
+    submit_df.to_csv(submission_path, index=False, columns=['userid', 'orderType'])
     print('-------- predict and valid check  ------')
-    print('test  count mean: {:.6f} , std: {:.6f}'.format(np.mean(df_sub['orderType']), np.std(df_sub['orderType'])))
+    print('test  count mean: {:.6f} , std: {:.6f}'.format(np.mean(submit_df['orderType']), np.std(submit_df['orderType'])))
     print('done.')
 
 

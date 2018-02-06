@@ -27,12 +27,14 @@ def pre_train():
     train_all = pd.read_csv(Configure.base_path + 'sun_qian_guo/train.csv')
     test = pd.read_csv(Configure.base_path + 'sun_qian_guo/test.csv')
 
-    y_train_all = train_all['orderType']
     id_train = train_all['userid']
+    id_test = test['userid']
+
+    y_train_all = train_all['orderType']
     train_all.drop(['orderType'], axis=1, inplace=True)
 
-    id_test = test['userid']
-    # test.drop(['userid'], axis=1, inplace=True)
+    train_all.columns = ['feature_{}'.format(i) for i in range(train_all.shape[1])]
+    test.columns = ['feature_{}'.format(i) for i in range(test.shape[1])]
 
     print("train_all: ({}), test: ({})".format(train_all.shape, test.shape))
     return train_all, y_train_all, id_train, test, id_test

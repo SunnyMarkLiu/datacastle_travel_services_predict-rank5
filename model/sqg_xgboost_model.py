@@ -38,8 +38,7 @@ def main():
 
     submit_df = pd.DataFrame({'userid': test['userid']})
     y_train_all = train['orderType']
-    train.drop(['orderType', 'userid'], axis=1, inplace=True)
-    test.drop(['userid'], axis=1, inplace=True)
+    train.drop(['orderType'], axis=1, inplace=True)
 
     train.columns = ['feature_{}'.format(i) for i in range(train.shape[1])]
     test.columns = ['feature_{}'.format(i) for i in range(test.shape[1])]
@@ -78,7 +77,7 @@ def main():
                        dtrain_all,
                        nfold=nfold,
                        stratified=True,
-                       num_boost_round=4000,
+                       num_boost_round=400,
                        early_stopping_rounds=100,
                        verbose_eval=100,
                        show_stdv=False,
