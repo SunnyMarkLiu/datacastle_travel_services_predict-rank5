@@ -95,14 +95,15 @@ python model_roof/qian_guo_xgboost_roof.py -f 5 -e 0.017 -w 16 -c 0.49 -d 14 -p 
 python model_roof/qian_guo_xgboost_roof.py -f 5 -e 0.008 -w 15 -c 0.45 -d 15 -p 0.78 -s 977
 python model_roof/qian_guo_xgboost_roof.py -f 5 -e 0.009 -w 14 -c 0.52 -d 10 -p 0.76 -s 2017
 
-python qian_guo_lightgbm_roof.py --fl 5 --lr 0.025 --mw 2   --ff 0.35 --nl 30 --bf 0.60  --l1 0.5 --l2 11.5 --sd 31
-python qian_guo_lightgbm_roof.py --fl 5 --lr 0.030 --mw 4   --ff 0.45 --nl 35 --bf 0.70  --l1 0.5 --l2 10.5 --sd 72
-python qian_guo_lightgbm_roof.py --fl 5 --lr 0.010 --mw 5   --ff 0.50 --nl 38 --bf 0.56  --l1 0.5 --l2 12.0 --sd 471
-python qian_guo_lightgbm_roof.py --fl 5 --lr 0.020 --mw 6   --ff 0.55 --nl 32 --bf 0.80  --l1 0.5 --l2 11.5 --sd 1233
-python qian_guo_lightgbm_roof.py --fl 5 --lr 0.040 --mw 8   --ff 0.60 --nl 40 --bf 0.70  --l1 0.5 --l2 12.5 --sd 2274
-python qian_guo_lightgbm_roof.py --fl 5 --lr 0.035 --mw 4   --ff 0.55 --nl 45 --bf 0.55  --l1 0.5 --l2 9.50 --sd 4515
-python qian_guo_lightgbm_roof.py --fl 5 --lr 0.037 --mw 7   --ff 0.40 --nl 46 --bf 0.50  --l1 0.5 --l2 10.5 --sd 10215
-python qian_guo_lightgbm_roof.py --fl 5 --lr 0.045 --mw 4   --ff 0.68 --nl 50 --bf 0.45  --l1 0.5 --l2 11.5 --sd 2013
-python qian_guo_lightgbm_roof.py --fl 5 --lr 0.015 --mw 10  --ff 0.70 --nl 38 --bf 0.78  --l1 0.5 --l2 13.5 --sd 2016
-python qian_guo_lightgbm_roof.py --fl 5 --lr 0.018 --mw 9   --ff 0.65 --nl 48 --bf 0.80  --l1 0.5 --l2 14.5 --sd 5210
+python model_roof/qian_guo_lightgbm_roof.py --fl 5 --lr 0.025 --ff 0.35 --nl 30 --bf 0.60  --l1 0 --l2 11.5 --sd 31
+python model_roof/qian_guo_lightgbm_roof.py --fl 5 --lr 0.030 --ff 0.45 --nl 35 --bf 0.70  --l1 0 --l2 10.5 --sd 72
+python model_roof/qian_guo_lightgbm_roof.py --fl 5 --lr 0.010 --ff 0.50 --nl 38 --bf 0.56  --l1 0 --l2 12.0 --sd 471
+python model_roof/qian_guo_lightgbm_roof.py --fl 5 --lr 0.020 --ff 0.55 --nl 32 --bf 0.68  --l1 0 --l2 11.5 --sd 1233
+python model_roof/qian_guo_lightgbm_roof.py --fl 5 --lr 0.040 --ff 0.60 --nl 40 --bf 0.70  --l1 0 --l2 12.5 --sd 2274
+python model_roof/qian_guo_lightgbm_roof.py --fl 5 --lr 0.035 --ff 0.55 --nl 45 --bf 0.55  --l1 0 --l2 9.50 --sd 4515
+python model_roof/qian_guo_lightgbm_roof.py --fl 5 --lr 0.037 --ff 0.40 --nl 46 --bf 0.50  --l1 0 --l2 10.5 --sd 10215
+python model_roof/qian_guo_lightgbm_roof.py --fl 5 --lr 0.045 --ff 0.68 --nl 50 --bf 0.45  --l1 0 --l2 11.5 --sd 2013
+python model_roof/qian_guo_lightgbm_roof.py --fl 5 --lr 0.015 --ff 0.70 --nl 38 --bf 0.78  --l1 0 --l2 13.5 --sd 2016
+python model_roof/qian_guo_lightgbm_roof.py --fl 5 --lr 0.018 --ff 0.65 --nl 48 --bf 0.80  --l1 0 --l2 14.5 --sd 5210
+
 ## level 2, lr model
