@@ -9,17 +9,16 @@ sys.path.append(module_path)
 
 import numpy as np
 import pandas as pd
-from sklearn.model_selection import StratifiedKFold, GridSearchCV
+from sklearn.model_selection import StratifiedKFold
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import auc, roc_curve
-from utils.data_utils import load_dataset
-from conf.configure import Configure
+from model.get_datasets import load_datasets
 from optparse import OptionParser
 
 
 # 构建模型输入
 def pre_train():
-    train_all, test = load_dataset(0)
+    train_all, test = load_datasets()
     train_all.fillna(-1, inplace=True)
     test.fillna(-1, inplace=True)
 
