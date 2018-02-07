@@ -85,13 +85,13 @@ def main(options):
         train_x, val_x = train_all.ix[dev_index], train_all.ix[val_index]
         train_y, val_y = y_train_all[dev_index], y_train_all[val_index]
 
-        model = cat.train(pool=Pool(train_x, train_y), params=cat_params, iterations=460, eval_set=(val_x, val_y))
+        model = cat.train(pool=Pool(train_x, train_y), params=cat_params, iterations=460, eval_set=(val_x, val_y), verbose=False)
 
         # predict validate
-        predict_valid = model.predict_proba(val_x.values)[:, 1]
+        predict_valid = model.predict(val_x.values, prediction_type='Probability')[:, 1]
         valid_auc = evaluate_score(predict_valid, val_y)
         # predict test
-        predict_test = model.predict_proba(test.values)[:, 1]
+        predict_test = model.predict(test.values, prediction_type='Probability')[:, 1]
 
         print('valid_auc = {}'.format(valid_auc))
         cv_scores.append(valid_auc)
@@ -130,29 +130,29 @@ if __name__ == "__main__":
     parser.add_option(
         "-r", "--learning_rate",
         dest="learning_rate",
-        default=0.01,
+        default=0.1,
         type='float'
     )
     parser.add_option(
         "-l", "--l2_leaf_reg",
         dest="l2_leaf_reg",
-        default=20,
+        default=5,
         type='int'
     )
     parser.add_option(
         "-s", "--subsample",
         dest="subsample",
-        default=0.5,
+        default=0.9,
         type='float'
     )
     parser.add_option(
         "-d", "--depth",
         dest="depth",
-        default=10,
+        default=8,
         type='int'
     )
     parser.add_option(
-        "-s", "--seed",
+        "-e", "--seed",
         dest="seed",
         default=0,
         type='int'
