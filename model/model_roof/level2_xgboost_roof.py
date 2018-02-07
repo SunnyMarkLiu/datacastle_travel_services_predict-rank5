@@ -23,9 +23,9 @@ from optparse import OptionParser
 
 # 构建模型输入
 def pre_train():
-    with open('../ensemble/level1_train.pkl', "rb") as f:
+    with open('./ensemble/level1_train.pkl', "rb") as f:
         train = cPickle.load(f)
-    with open('../ensemble/level1_test.pkl', "rb") as f:
+    with open('./ensemble/level1_test.pkl', "rb") as f:
         test = cPickle.load(f)
 
     y_train_all = train['orderType']
@@ -34,6 +34,8 @@ def pre_train():
 
     id_test = test['userid']
     test.drop(['userid'], axis=1, inplace=True)
+
+    train = train[test.columns.values]
 
     print("train_all: ({}), test: ({})".format(train.shape, test.shape))
     return train, y_train_all, id_train, test, id_test

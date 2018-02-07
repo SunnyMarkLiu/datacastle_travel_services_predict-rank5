@@ -30,6 +30,8 @@ def pre_train():
     id_test = test['userid']
     test.drop(['userid'], axis=1, inplace=True)
 
+    train = train[test.columns.values]
+
     print("train_all: ({}), test: ({})".format(train.shape, test.shape))
     return train, y_train_all, id_train, test, id_test
 
