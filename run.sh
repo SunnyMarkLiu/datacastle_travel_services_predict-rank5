@@ -38,16 +38,16 @@ cd ../model/
 #python model_roof/lq_lightgbm_roof.py --fl 3 --lr 0.016 --mw 6  --ff 0.9  --nl 64  --bf 0.76 --l1 0.5 --l2 0.5 --sd 207
 #python model_roof/lq_lightgbm_roof.py --fl 3 --lr 0.025 --mw 9  --ff 0.88 --nl 128 --bf 0.6  --l1 0.5 --l2 0.5 --sd 520
 
-python model_roof/lq_catboost_roof.py -f 5 -r 0.10 -l 5 -s 0.90 -d 8 -e 323
-python model_roof/lq_catboost_roof.py -f 5 -r 0.09 -l 8 -s 0.91 -d 7 -e 142
-python model_roof/lq_catboost_roof.py -f 5 -r 0.11 -l 7 -s 0.94 -d 6 -e 455
-python model_roof/lq_catboost_roof.py -f 5 -r 0.13 -l 3 -s 0.85 -d 10 -e 1467
-python model_roof/lq_catboost_roof.py -f 5 -r 0.14 -l 5 -s 0.86 -d 7 -e 2633
-python model_roof/lq_catboost_roof.py -f 5 -r 0.11 -l 4 -s 0.94 -d 8 -e 4793
-python model_roof/lq_catboost_roof.py -f 5 -r 0.10 -l 8 -s 0.88 -d 6 -e 5836
-python model_roof/lq_catboost_roof.py -f 5 -r 0.11 -l 6 -s 0.89 -d 9 -e 614
-python model_roof/lq_catboost_roof.py -f 5 -r 0.10 -l 5 -s 0.85 -d 8 -e 7766
-python model_roof/lq_catboost_roof.py -f 5 -r 0.09 -l 4 -s 0.92 -d 10 -e 2174
+#python model_roof/lq_catboost_roof.py -f 5 -r 0.10 -l 5 -s 0.90 -d 8 -e 323
+#python model_roof/lq_catboost_roof.py -f 5 -r 0.09 -l 8 -s 0.91 -d 7 -e 142
+#python model_roof/lq_catboost_roof.py -f 5 -r 0.11 -l 7 -s 0.94 -d 6 -e 455
+#python model_roof/lq_catboost_roof.py -f 5 -r 0.13 -l 3 -s 0.85 -d 10 -e 1467
+#python model_roof/lq_catboost_roof.py -f 5 -r 0.14 -l 5 -s 0.86 -d 7 -e 2633
+#python model_roof/lq_catboost_roof.py -f 5 -r 0.11 -l 4 -s 0.94 -d 8 -e 4793
+#python model_roof/lq_catboost_roof.py -f 5 -r 0.10 -l 8 -s 0.88 -d 6 -e 5836
+#python model_roof/lq_catboost_roof.py -f 5 -r 0.11 -l 6 -s 0.89 -d 9 -e 614
+#python model_roof/lq_catboost_roof.py -f 5 -r 0.10 -l 5 -s 0.85 -d 8 -e 7766
+#python model_roof/lq_catboost_roof.py -f 5 -r 0.09 -l 4 -s 0.92 -d 10 -e 2174
 
 #python model_roof/lq_rf_roof.py -f 5 -n 1300 -l 1 -t 50 -s 10
 #python model_roof/lq_rf_roof.py -f 5 -n 1320 -l 2 -t 45 -s 0
@@ -59,7 +59,7 @@ python model_roof/lq_catboost_roof.py -f 5 -r 0.09 -l 4 -s 0.92 -d 10 -e 2174
 #python model_roof/lq_rf_roof.py -f 5 -n 1240 -l 8 -t 10 -s 631
 #python model_roof/lq_rf_roof.py -f 5 -n 1220 -l 7 -t 55 -s 977
 #python model_roof/lq_rf_roof.py -f 5 -n 3500 -l 6 -t 60 -s 2017
-#
+
 #python model_roof/lq_et_roof.py -f 5 -n 3100 -l 1 -t 2 -s 10
 #python model_roof/lq_et_roof.py -f 5 -n 3120 -l 2 -t 4 -s 0
 #python model_roof/lq_et_roof.py -f 5 -n 3140 -l 3 -t 6 -s 45
@@ -82,7 +82,7 @@ python model_roof/lq_catboost_roof.py -f 5 -r 0.09 -l 4 -s 0.92 -d 10 -e 2174
 #python model_roof/huanglin_xgboost_roof.py -f 3 -e 0.017 -w 16 -c 0.49 -d 14 -p 0.75 -s 4631
 #python model_roof/huanglin_xgboost_roof.py -f 3 -e 0.008 -w 15 -c 0.45 -d 15 -p 0.78 -s 6977
 #python model_roof/huanglin_xgboost_roof.py -f 3 -e 0.009 -w 14 -c 0.52 -d 10 -p 0.76 -s 72017
-#
+
 #python model_roof/huanglin_lightgbm_roof.py --fl 3 --lr 0.025 --mw 2   --ff 0.30 --nl 30  --bf 0.50  --l1 0.5 --l2 1 --sd 53
 #python model_roof/huanglin_lightgbm_roof.py --fl 3 --lr 0.030 --mw 4   --ff 0.45 --nl 32  --bf 0.55  --l1 0.5 --l2 2 --sd 57
 #python model_roof/huanglin_lightgbm_roof.py --fl 3 --lr 0.010 --mw 5   --ff 0.30 --nl 34  --bf 0.56  --l1 0.5 --l2 3 --sd 447
@@ -93,6 +93,17 @@ python model_roof/lq_catboost_roof.py -f 5 -r 0.09 -l 4 -s 0.92 -d 10 -e 2174
 #python model_roof/huanglin_lightgbm_roof.py --fl 3 --lr 0.045 --mw 4   --ff 0.48 --nl 34  --bf 0.45  --l1 0.5 --l2 2 --sd 42017
 #python model_roof/huanglin_lightgbm_roof.py --fl 3 --lr 0.015 --mw 10  --ff 0.40 --nl 35  --bf 0.48  --l1 0.5 --l2 1 --sd 32018
 #python model_roof/huanglin_lightgbm_roof.py --fl 3 --lr 0.018 --mw 9   --ff 0.36 --nl 31  --bf 0.50  --l1 0.5 --l2 0.5 --sd 5521
+
+python model_roof/huanglin_catboost_roof.py -f 5 -r 0.10 -l 5 -s 0.90 -d 8 -e 323
+python model_roof/huanglin_catboost_roof.py -f 5 -r 0.09 -l 8 -s 0.91 -d 7 -e 142
+python model_roof/huanglin_catboost_roof.py -f 5 -r 0.11 -l 7 -s 0.94 -d 6 -e 455
+python model_roof/huanglin_catboost_roof.py -f 5 -r 0.13 -l 3 -s 0.85 -d 10 -e 1467
+python model_roof/huanglin_catboost_roof.py -f 5 -r 0.14 -l 5 -s 0.86 -d 7 -e 2633
+python model_roof/huanglin_catboost_roof.py -f 5 -r 0.11 -l 4 -s 0.94 -d 8 -e 4793
+python model_roof/huanglin_catboost_roof.py -f 5 -r 0.10 -l 8 -s 0.88 -d 6 -e 5836
+python model_roof/huanglin_catboost_roof.py -f 5 -r 0.11 -l 6 -s 0.89 -d 9 -e 614
+python model_roof/huanglin_catboost_roof.py -f 5 -r 0.10 -l 5 -s 0.85 -d 8 -e 7766
+python model_roof/huanglin_catboost_roof.py -f 5 -r 0.09 -l 4 -s 0.92 -d 10 -e 2174
 
 ### qian guo's datasets ###
 #python model_roof/qian_guo_xgboost_roof.py -f 3 -e 0.010 -w 20 -c 0.50 -d 10 -p 0.9  -s 70
@@ -105,7 +116,7 @@ python model_roof/lq_catboost_roof.py -f 5 -r 0.09 -l 4 -s 0.92 -d 10 -e 2174
 #python model_roof/qian_guo_xgboost_roof.py -f 3 -e 0.017 -w 16 -c 0.49 -d 14 -p 0.75 -s 6331
 #python model_roof/qian_guo_xgboost_roof.py -f 3 -e 0.008 -w 15 -c 0.45 -d 15 -p 0.78 -s 9787
 #python model_roof/qian_guo_xgboost_roof.py -f 3 -e 0.009 -w 14 -c 0.52 -d 10 -p 0.76 -s 20317
-#
+
 #python model_roof/qian_guo_lightgbm_roof.py --fl 3 --lr 0.025 --ff 0.35 --nl 30 --bf 0.60  --l1 0 --l2 11.5 --sd 315
 #python model_roof/qian_guo_lightgbm_roof.py --fl 3 --lr 0.030 --ff 0.45 --nl 35 --bf 0.70  --l1 0 --l2 10.5 --sd 732
 #python model_roof/qian_guo_lightgbm_roof.py --fl 3 --lr 0.010 --ff 0.50 --nl 38 --bf 0.56  --l1 0 --l2 12.0 --sd 4731
@@ -117,5 +128,15 @@ python model_roof/lq_catboost_roof.py -f 5 -r 0.09 -l 4 -s 0.92 -d 10 -e 2174
 #python model_roof/qian_guo_lightgbm_roof.py --fl 3 --lr 0.015 --ff 0.70 --nl 38 --bf 0.78  --l1 0 --l2 13.5 --sd 20146
 #python model_roof/qian_guo_lightgbm_roof.py --fl 3 --lr 0.018 --ff 0.65 --nl 48 --bf 0.80  --l1 0 --l2 14.5 --sd 52100
 
+#python model_roof/qian_guo_catboost_roof.py -f 5 -r 0.10 -l 5 -s 0.90 -d 8 -e 323
+#python model_roof/qian_guo_catboost_roof.py -f 5 -r 0.09 -l 8 -s 0.91 -d 7 -e 142
+#python model_roof/qian_guo_catboost_roof.py -f 5 -r 0.11 -l 7 -s 0.94 -d 6 -e 455
+#python model_roof/qian_guo_catboost_roof.py -f 5 -r 0.13 -l 3 -s 0.85 -d 10 -e 1467
+#python model_roof/qian_guo_catboost_roof.py -f 5 -r 0.14 -l 5 -s 0.86 -d 7 -e 2633
+#python model_roof/qian_guo_catboost_roof.py -f 5 -r 0.11 -l 4 -s 0.94 -d 8 -e 4793
+#python model_roof/qian_guo_catboost_roof.py -f 5 -r 0.10 -l 8 -s 0.88 -d 6 -e 5836
+#python model_roof/qian_guo_catboost_roof.py -f 5 -r 0.11 -l 6 -s 0.89 -d 9 -e 614
+#python model_roof/qian_guo_catboost_roof.py -f 5 -r 0.10 -l 5 -s 0.85 -d 8 -e 7766
+#python model_roof/qian_guo_catboost_roof.py -f 5 -r 0.09 -l 4 -s 0.92 -d 10 -e 2174
+
 ######## level 2, 50 models ########
-#python
