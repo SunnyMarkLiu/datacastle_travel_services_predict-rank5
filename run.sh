@@ -14,8 +14,8 @@ cd ../model/
 #python sqg_xgboost_model.py
 #python catboost_model.py
 
-######## stacking ########
-# level 1, run out of fold
+# stacking
+######## level 1, run out of fold ########
 #python model_roof/lq_xgboost_roof.py -f 3 -e 0.010 -w 20 -c 0.50 -d 10 -p 0.9  -s 325
 #python model_roof/lq_xgboost_roof.py -f 3 -e 0.011 -w 18 -c 0.61 -d 12 -p 0.8  -s 12
 #python model_roof/lq_xgboost_roof.py -f 3 -e 0.012 -w 17 -c 0.74 -d 9  -p 0.85 -s 45
@@ -117,4 +117,5 @@ python model_roof/lq_catboost_roof.py -f 5 -r 0.09 -l 4 -s 0.92 -d 10 -e 2174
 #python model_roof/qian_guo_lightgbm_roof.py --fl 3 --lr 0.015 --ff 0.70 --nl 38 --bf 0.78  --l1 0 --l2 13.5 --sd 20146
 #python model_roof/qian_guo_lightgbm_roof.py --fl 3 --lr 0.018 --ff 0.65 --nl 48 --bf 0.80  --l1 0 --l2 14.5 --sd 52100
 
-## level 2, lr model
+######## level 2, 50 models ########
+#python
