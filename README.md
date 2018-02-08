@@ -45,7 +45,7 @@ python catboost_model.py
 
 单模型和 stacking 结果保存到 `model/ensemble/average` 下，运行 `Weight_Average_Analyse.ipynb` 得到最终结果。
 
-## 特征工程
+## Feature Engineering
 
 1. User Profile: gen_user_features.py
 
@@ -112,7 +112,7 @@ python catboost_model.py
 
 特征工程运行时间较长，完整的特征文件下载传送门：[皇包车Rank5特征文件](https://pan.baidu.com/s/1ht7MjWg)
 
-## Stacking
+## Architecture
 ![](./architecture.png)
 
 ## License
