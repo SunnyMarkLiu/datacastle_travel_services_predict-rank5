@@ -97,4 +97,3 @@ input/*.pkl
 result/*.csv
 .idea
 .~*.xlsx
-todo_list.md
