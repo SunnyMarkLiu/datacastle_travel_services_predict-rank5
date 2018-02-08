@@ -53,7 +53,7 @@ python catboost_model.py
 - 用户所属省份进行 label encode
 - 年龄段是否缺失，年龄段 dummy code
 
-2. Order Comments
+2. Order Comments: gen_comment_features.py
 
 - 用户订单评分的统计特征
 - 用户打分比例，最后一次打分
