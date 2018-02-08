@@ -41,7 +41,7 @@ python catboost_model.py
 在 `model/ensemble` 下运行 `Stacking_Xgb_Param_Fine_Tuning.ipynb` 和 `Stacking.ipynb` 完成模型的 Stacking
 
 4. 执行 Average
-单模型最好成绩和 stacking 结果保存到 `model/ensemble/average` 下，运行 `Weight_Average_Analyse.ipynb` 得到最终结果。
+单模型和 stacking 结果保存到 `model/ensemble/average` 下，运行 `Weight_Average_Analyse.ipynb` 得到最终结果。
 
 ## 特征工程
 
