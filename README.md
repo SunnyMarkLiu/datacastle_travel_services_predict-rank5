@@ -1,6 +1,6 @@
 # Datacastle_Travel_Services_Predict
 
-DataCastle 第二届智慧中国杯精品旅行服务成单预测解决方案：
+DataCastle 第二届智慧中国杯精品旅行服务成单预测解决方案。
 
 - 单模型: xgboost A 榜 0.97329
 - Stacking 和 Average: A 榜 0.97460 Rank7, B榜 0.97539 Rank 5
@@ -17,7 +17,7 @@ features_path = base_path + 'features/'
 # 生成的模型可训练和预测的数据集
 datasets_path = base_path + 'datasets/'
 ``` 
-设置存放数据的根目录，并创建数据清洗、生成的特征和可训练预测的数据集的相应目录。
+设置存放数据的根目录，并创建数据清洗 cleaned、生成的特征 features 和可训练预测的数据集 datasets 目录。
 
 2. 执行根目录下的 `run.sh`
 ```bash
