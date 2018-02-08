@@ -139,25 +139,25 @@ cd ../model/
 #python model_roof/qian_guo_catboost_roof.py -f 5 -r 0.10 -l 5 -s 0.85 -d 8 -e 7766
 #python model_roof/qian_guo_catboost_roof.py -f 5 -r 0.09 -l 4 -s 0.92 -d 10 -e 2174
 
-######## level 2, 50 models ########
-python model_roof/level2_xgboost_roof.py -f 3 -e 0.010 -w 20 -c 0.50 -d 10 -p 0.9  -s 325
-python model_roof/level2_xgboost_roof.py -f 3 -e 0.011 -w 18 -c 0.61 -d 12 -p 0.8  -s 12
-python model_roof/level2_xgboost_roof.py -f 3 -e 0.012 -w 17 -c 0.74 -d 9  -p 0.85 -s 45
-python model_roof/level2_xgboost_roof.py -f 3 -e 0.013 -w 21 -c 0.55 -d 15 -p 0.91 -s 147
-python model_roof/level2_xgboost_roof.py -f 3 -e 0.014 -w 22 -c 0.66 -d 10 -p 0.84 -s 263
-python model_roof/level2_xgboost_roof.py -f 3 -e 0.015 -w 20 -c 0.64 -d 9  -p 0.81 -s 479
-python model_roof/level2_xgboost_roof.py -f 3 -e 0.016 -w 19 -c 0.58 -d 12 -p 0.83 -s 583
-python model_roof/level2_xgboost_roof.py -f 3 -e 0.017 -w 16 -c 0.49 -d 14 -p 0.75 -s 61
-python model_roof/level2_xgboost_roof.py -f 3 -e 0.008 -w 15 -c 0.45 -d 15 -p 0.78 -s 77
-python model_roof/level2_xgboost_roof.py -f 3 -e 0.009 -w 14 -c 0.52 -d 10 -p 0.76 -s 217
-
-python model_roof/level2_lightgbm_roof.py -f 3 -e 0.010 -w 20 -c 0.50 -d 10 -p 0.9  -s 325
-python model_roof/level2_lightgbm_roof.py -f 3 -e 0.011 -w 18 -c 0.61 -d 12 -p 0.8  -s 12
-python model_roof/level2_lightgbm_roof.py -f 3 -e 0.012 -w 17 -c 0.74 -d 9  -p 0.85 -s 45
-python model_roof/level2_lightgbm_roof.py -f 3 -e 0.013 -w 21 -c 0.55 -d 15 -p 0.91 -s 147
-python model_roof/level2_lightgbm_roof.py -f 3 -e 0.014 -w 22 -c 0.66 -d 10 -p 0.84 -s 263
-python model_roof/level2_lightgbm_roof.py -f 3 -e 0.015 -w 20 -c 0.64 -d 9  -p 0.81 -s 479
-python model_roof/level2_lightgbm_roof.py -f 3 -e 0.016 -w 19 -c 0.58 -d 12 -p 0.83 -s 583
-python model_roof/level2_lightgbm_roof.py -f 3 -e 0.017 -w 16 -c 0.49 -d 14 -p 0.75 -s 61
-python model_roof/level2_lightgbm_roof.py -f 3 -e 0.008 -w 15 -c 0.45 -d 15 -p 0.78 -s 77
-python model_roof/level2_lightgbm_roof.py -f 3 -e 0.009 -w 14 -c 0.52 -d 10 -p 0.76 -s 217
+######## level 2, 50 models，didn't use! ########
+#python model_roof/level2_xgboost_roof.py -f 3 -e 0.010 -w 20 -c 0.50 -d 10 -p 0.9  -s 325
+#python model_roof/level2_xgboost_roof.py -f 3 -e 0.011 -w 18 -c 0.61 -d 12 -p 0.8  -s 12
+#python model_roof/level2_xgboost_roof.py -f 3 -e 0.012 -w 17 -c 0.74 -d 9  -p 0.85 -s 45
+#python model_roof/level2_xgboost_roof.py -f 3 -e 0.013 -w 21 -c 0.55 -d 15 -p 0.91 -s 147
+#python model_roof/level2_xgboost_roof.py -f 3 -e 0.014 -w 22 -c 0.66 -d 10 -p 0.84 -s 263
+#python model_roof/level2_xgboost_roof.py -f 3 -e 0.015 -w 20 -c 0.64 -d 9  -p 0.81 -s 479
+#python model_roof/level2_xgboost_roof.py -f 3 -e 0.016 -w 19 -c 0.58 -d 12 -p 0.83 -s 583
+#python model_roof/level2_xgboost_roof.py -f 3 -e 0.017 -w 16 -c 0.49 -d 14 -p 0.75 -s 61
+#python model_roof/level2_xgboost_roof.py -f 3 -e 0.008 -w 15 -c 0.45 -d 15 -p 0.78 -s 77
+#python model_roof/level2_xgboost_roof.py -f 3 -e 0.009 -w 14 -c 0.52 -d 10 -p 0.76 -s 217
+#
+#python model_roof/level2_lightgbm_roof.py -f 3 -e 0.010 -w 20 -c 0.50 -d 10 -p 0.9  -s 325
+#python model_roof/level2_lightgbm_roof.py -f 3 -e 0.011 -w 18 -c 0.61 -d 12 -p 0.8  -s 12
+#python model_roof/level2_lightgbm_roof.py -f 3 -e 0.012 -w 17 -c 0.74 -d 9  -p 0.85 -s 45
+#python model_roof/level2_lightgbm_roof.py -f 3 -e 0.013 -w 21 -c 0.55 -d 15 -p 0.91 -s 147
+#python model_roof/level2_lightgbm_roof.py -f 3 -e 0.014 -w 22 -c 0.66 -d 10 -p 0.84 -s 263
+#python model_roof/level2_lightgbm_roof.py -f 3 -e 0.015 -w 20 -c 0.64 -d 9  -p 0.81 -s 479
+#python model_roof/level2_lightgbm_roof.py -f 3 -e 0.016 -w 19 -c 0.58 -d 12 -p 0.83 -s 583
+#python model_roof/level2_lightgbm_roof.py -f 3 -e 0.017 -w 16 -c 0.49 -d 14 -p 0.75 -s 61
+#python model_roof/level2_lightgbm_roof.py -f 3 -e 0.008 -w 15 -c 0.45 -d 15 -p 0.78 -s 77
+#python model_roof/level2_lightgbm_roof.py -f 3 -e 0.009 -w 14 -c 0.52 -d 10 -p 0.76 -s 217
