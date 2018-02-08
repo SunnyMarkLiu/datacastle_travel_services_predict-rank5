@@ -4,6 +4,36 @@ DataCastle Competition: 第二届智慧中国杯首数据科学竞赛，首发�
 
 ## How to run
 
+1. 配置 Configure 文件
+```python
+base_path = '/d_2t/lq/competitions/data_castle/Datacastle_Travel_Services_Predict/'
+# 数据清洗后的路径
+cleaned_path = base_path + 'cleaned/'
+# 生成的特征的路径
+features_path = base_path + 'features/'
+# 生成的模型可训练和预测的数据集
+datasets_path = base_path + 'datasets/'
+``` 
+设置存放数据的根目录，并创建数据清洗、生成的特征和可训练预测的数据集的相应目录。
+
+2. 执行根目录下的 `run.sh`
+```bash
+#!/usr/bin/env bash
+
+# feature engineering
+cd features
+sh run.sh
+cd ../model/
+
+# run single model
+python xgboost_model.py
+python lightgbm_model.py
+python catboost_model.py
+
+# run model stacking
+# ...
+```
+
 ## 特征工程
 
 1. User Profile: gen_user_features.py
