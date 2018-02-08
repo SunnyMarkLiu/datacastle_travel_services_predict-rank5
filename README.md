@@ -1,6 +1,9 @@
 # Datacastle_Travel_Services_Predict
 
-DataCastle Competition: 第二届智慧中国杯首数据科学竞赛，首发皇包车（HI GUIDES）精品旅行服务成单预测竞赛.
+DataCastle 第二届智慧中国杯精品旅行服务成单预测解决方案：
+
+- 单模型: xgboost A 榜 0.97329
+- Stacking 和 Average: A 榜 0.97460 Rank7, B榜 0.97539 Rank 5
 
 ## How to run
 
@@ -33,6 +36,12 @@ python catboost_model.py
 # run model stacking
 # ...
 ```
+
+3. 执行 Stacking 
+在 `model/ensemble` 下运行 `Stacking_Xgb_Param_Fine_Tuning.ipynb` 和 `Stacking.ipynb` 完成模型的 Stacking
+
+4. 执行 Average
+单模型最好成绩和 stacking 结果保存到 `model/ensemble/average` 下，运行 `Weight_Average_Analyse.ipynb` 得到最终结果。
 
 ## 特征工程
 
