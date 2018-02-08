@@ -108,10 +108,12 @@ python catboost_model.py
 - 3-gram 方式统计 5~9 先后出现的次数、比例和最后一次出现的时间，如：123, 234, 345, 等
 - 2-gram 方式统计某种组合的时间统计特征，如：23, 34, 45, 等
 - 3-gram 方式统计某种组合的时间统计特征，如：123, 234, 345, 等
+- 用户actiontype序列转移的时间间隔，用户action序列1 3 5 2 7 4，计算1-3，3-5，5-2，7-4的时间转移间隔
 
 特征工程运行时间较长，完整的特征文件下载传送门：[皇包车Rank5特征文件](https://pan.baidu.com/s/1ht7MjWg)
 
 ## Stacking
+![](./architecture.png)
 
 ## License
 
