@@ -38,9 +38,11 @@ python catboost_model.py
 ```
 
 3. 执行 Stacking 
+
 在 `model/ensemble` 下运行 `Stacking_Xgb_Param_Fine_Tuning.ipynb` 和 `Stacking.ipynb` 完成模型的 Stacking
 
 4. 执行 Average
+
 单模型和 stacking 结果保存到 `model/ensemble/average` 下，运行 `Weight_Average_Analyse.ipynb` 得到最终结果。
 
 ## 特征工程
@@ -106,6 +108,8 @@ python catboost_model.py
 - 3-gram 方式统计 5~9 先后出现的次数、比例和最后一次出现的时间，如：123, 234, 345, 等
 - 2-gram 方式统计某种组合的时间统计特征，如：23, 34, 45, 等
 - 3-gram 方式统计某种组合的时间统计特征，如：123, 234, 345, 等
+
+特征工程运行时间较长，完整的特征文件下载传送门：[皇包车Rank5特征文件](https://pan.baidu.com/s/1ht7MjWg)
 
 ## Stacking
 
