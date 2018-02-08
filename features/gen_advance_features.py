@@ -21,7 +21,6 @@ warnings.filterwarnings('ignore')
 import time
 import datetime
 import numpy as np
-import cPickle
 import pandas as pd
 from conf.configure import Configure
 from utils import data_utils

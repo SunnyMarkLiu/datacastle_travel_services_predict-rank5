@@ -17,7 +17,7 @@ import datetime
 class Configure(object):
     base_path = '/d_2t/lq/competitions/data_castle/Datacastle_Travel_Services_Predict/'
 
-    # 数据清晰后的路径
+    # 数据清洗后的路径
     cleaned_path = base_path + 'cleaned/'
     # 生成的特征的路径
     features_path = base_path + 'features/'
@@ -46,7 +46,6 @@ class Configure(object):
         'action_history_features11'   : {'on': 'userid', 'how': 'left'},
         # 'action_history_features12'   : {'on': 'userid', 'how': 'left'},
         # 'baseline_features'          : {'on': 'userid', 'how': 'left'},
-        # 'word2vec_features'          : {'on': 'userid', 'how': 'left'},
         'wxr_features'                : {'on': 'userid', 'how': 'left'},
     }
 
@@ -64,14 +63,6 @@ class Configure(object):
         'action_order_features2'            : {'on': 'userid', 'how': 'left'},
         # 'action_order_features3'            : {'on': 'userid', 'how': 'left'},
     }
-
-    # 特征选择后各模型最佳特征保存路径
-    xgboost_best_subfeatures = '../model/xgboost_best_subfeatures/'
-    lightgbm_best_subfeatures = '../model/lightgbm_best_subfeatures/'
-    catboost_best_subfeatures = '../model/catboost_best_subfeatures/'
-
-    # 特征选择后各模型最佳特征保存路径
-    xgboost_removed_subfeatures = '../model/xgboost_removed_subfeatures/'
 
     submit_result_path = '../result/'
 

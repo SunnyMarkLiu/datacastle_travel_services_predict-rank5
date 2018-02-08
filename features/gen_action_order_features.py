@@ -240,7 +240,7 @@ def build_action_order_features2(df, action_grouped):
     features['two_gram_89_last_time'] = features['two_gram_time_statistic'].map(lambda x: x[4])
     del features['two_gram_time_statistic']
 
-    # 2-gram 方式统计某种组合的时间统计特征
+    # 3-gram 方式统计某种组合的时间统计特征
     print('three_gram_time_statistic')
     features['three_gram_time_statistic'] = features.apply(lambda row: three_gram_time_statistic(row['userid'], action_grouped, 1, 2, 3), axis=1)
     features['three_gram_123_time_mean'] = features['three_gram_time_statistic'].map(lambda x: x[0])
@@ -305,7 +305,7 @@ def generate_new_action(action, history):
     return action
 
 
-def diff_action_type_time_delta(uid, action_grouped, actiontypeA, actiontypeB):
+def diff_action_type_time_delta2(uid, action_grouped, actiontypeA, actiontypeB):
 
     df_action_of_userid = action_grouped[uid]
 
@@ -339,68 +339,68 @@ def build_action_order_features3(df, action_grouped):
 
     actiontypeA = 6; actiontypeB = 8
     print(actiontypeA, actiontypeB)
-    features['diff_action_type_time_delta'] = features.apply(lambda row: diff_action_type_time_delta(row['userid'], action_grouped, actiontypeA, actiontypeB), axis=1)
-    features['action_type_{}_time_delta_min'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta'].map(lambda x: x[0])
-    features['action_type_{}_time_delta_max'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta'].map(lambda x: x[1])
-    features['action_type_{}_time_delta_mean'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta'].map(lambda x: x[2])
-    features['action_type_{}_time_delta_std'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta'].map(lambda x: x[3])
-    features['action_type_{}_time_delta_last2'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta'].map(lambda x: x[4])
-    features['action_type_{}_time_delta_last3'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta'].map(lambda x: x[5])
+    features['diff_action_type_time_delta2'] = features.apply(lambda row: diff_action_type_time_delta2(row['userid'], action_grouped, actiontypeA, actiontypeB), axis=1)
+    features['action_type_{}_time_delta_min'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta2'].map(lambda x: x[0])
+    features['action_type_{}_time_delta_max'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta2'].map(lambda x: x[1])
+    features['action_type_{}_time_delta_mean'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta2'].map(lambda x: x[2])
+    features['action_type_{}_time_delta_std'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta2'].map(lambda x: x[3])
+    features['action_type_{}_time_delta_last2'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta2'].map(lambda x: x[4])
+    features['action_type_{}_time_delta_last3'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta2'].map(lambda x: x[5])
 
     actiontypeA = 2; actiontypeB = 7
     print(actiontypeA, actiontypeB)
-    features['diff_action_type_time_delta'] = features.apply(lambda row: diff_action_type_time_delta(row['userid'], action_grouped, actiontypeA, actiontypeB), axis=1)
-    features['action_type_{}_time_delta_min'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta'].map(lambda x: x[0])
-    features['action_type_{}_time_delta_max'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta'].map(lambda x: x[1])
-    features['action_type_{}_time_delta_mean'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta'].map(lambda x: x[2])
-    features['action_type_{}_time_delta_std'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta'].map(lambda x: x[3])
-    features['action_type_{}_time_delta_last2'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta'].map(lambda x: x[4])
-    features['action_type_{}_time_delta_last3'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta'].map(lambda x: x[5])
+    features['diff_action_type_time_delta2'] = features.apply(lambda row: diff_action_type_time_delta2(row['userid'], action_grouped, actiontypeA, actiontypeB), axis=1)
+    features['action_type_{}_time_delta_min'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta2'].map(lambda x: x[0])
+    features['action_type_{}_time_delta_max'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta2'].map(lambda x: x[1])
+    features['action_type_{}_time_delta_mean'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta2'].map(lambda x: x[2])
+    features['action_type_{}_time_delta_std'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta2'].map(lambda x: x[3])
+    features['action_type_{}_time_delta_last2'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta2'].map(lambda x: x[4])
+    features['action_type_{}_time_delta_last3'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta2'].map(lambda x: x[5])
 
     actiontypeAs = [2, 3]
     actiontypeB = 6
     for actiontypeA in actiontypeAs:
         print(actiontypeA, actiontypeB)
-        features['diff_action_type_time_delta'] = features.apply(lambda row: diff_action_type_time_delta(row['userid'], action_grouped, actiontypeA, actiontypeB), axis=1)
-        features['action_type_{}_time_delta_min'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta'].map(lambda x: x[0])
-        features['action_type_{}_time_delta_max'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta'].map(lambda x: x[1])
-        features['action_type_{}_time_delta_mean'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta'].map(lambda x: x[2])
-        features['action_type_{}_time_delta_std'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta'].map(lambda x: x[3])
-        features['action_type_{}_time_delta_last2'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta'].map(lambda x: x[4])
-        features['action_type_{}_time_delta_last3'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta'].map(lambda x: x[5])
+        features['diff_action_type_time_delta2'] = features.apply(lambda row: diff_action_type_time_delta2(row['userid'], action_grouped, actiontypeA, actiontypeB), axis=1)
+        features['action_type_{}_time_delta_min'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta2'].map(lambda x: x[0])
+        features['action_type_{}_time_delta_max'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta2'].map(lambda x: x[1])
+        features['action_type_{}_time_delta_mean'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta2'].map(lambda x: x[2])
+        features['action_type_{}_time_delta_std'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta2'].map(lambda x: x[3])
+        features['action_type_{}_time_delta_last2'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta2'].map(lambda x: x[4])
+        features['action_type_{}_time_delta_last3'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta2'].map(lambda x: x[5])
 
     actiontypeA = 1; actiontypeB = 5
     print(actiontypeA, actiontypeB)
-    features['diff_action_type_time_delta'] = features.apply(lambda row: diff_action_type_time_delta(row['userid'], action_grouped, actiontypeA, actiontypeB), axis=1)
-    features['action_type_{}_time_delta_min'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta'].map(lambda x: x[0])
-    features['action_type_{}_time_delta_max'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta'].map(lambda x: x[1])
-    features['action_type_{}_time_delta_mean'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta'].map(lambda x: x[2])
-    features['action_type_{}_time_delta_std'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta'].map(lambda x: x[3])
-    features['action_type_{}_time_delta_last2'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta'].map(lambda x: x[4])
-    features['action_type_{}_time_delta_last3'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta'].map(lambda x: x[5])
+    features['diff_action_type_time_delta2'] = features.apply(lambda row: diff_action_type_time_delta2(row['userid'], action_grouped, actiontypeA, actiontypeB), axis=1)
+    features['action_type_{}_time_delta_min'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta2'].map(lambda x: x[0])
+    features['action_type_{}_time_delta_max'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta2'].map(lambda x: x[1])
+    features['action_type_{}_time_delta_mean'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta2'].map(lambda x: x[2])
+    features['action_type_{}_time_delta_std'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta2'].map(lambda x: x[3])
+    features['action_type_{}_time_delta_last2'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta2'].map(lambda x: x[4])
+    features['action_type_{}_time_delta_last3'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta2'].map(lambda x: x[5])
 
     actiontypeA = 1; actiontypeB = 4
     print(actiontypeA, actiontypeB)
-    features['diff_action_type_time_delta'] = features.apply(lambda row: diff_action_type_time_delta(row['userid'], action_grouped, actiontypeA, actiontypeB), axis=1)
-    features['action_type_{}_time_delta_min'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta'].map(lambda x: x[0])
-    features['action_type_{}_time_delta_max'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta'].map(lambda x: x[1])
-    features['action_type_{}_time_delta_mean'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta'].map(lambda x: x[2])
-    features['action_type_{}_time_delta_std'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta'].map(lambda x: x[3])
-    features['action_type_{}_time_delta_last2'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta'].map(lambda x: x[4])
-    features['action_type_{}_time_delta_last3'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta'].map(lambda x: x[5])
+    features['diff_action_type_time_delta2'] = features.apply(lambda row: diff_action_type_time_delta2(row['userid'], action_grouped, actiontypeA, actiontypeB), axis=1)
+    features['action_type_{}_time_delta_min'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta2'].map(lambda x: x[0])
+    features['action_type_{}_time_delta_max'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta2'].map(lambda x: x[1])
+    features['action_type_{}_time_delta_mean'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta2'].map(lambda x: x[2])
+    features['action_type_{}_time_delta_std'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta2'].map(lambda x: x[3])
+    features['action_type_{}_time_delta_last2'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta2'].map(lambda x: x[4])
+    features['action_type_{}_time_delta_last3'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta2'].map(lambda x: x[5])
 
     actiontypeA = 1; actiontypeB = 3
     print(actiontypeA, actiontypeB)
-    features['diff_action_type_time_delta'] = features.apply(lambda row: diff_action_type_time_delta(row['userid'], action_grouped, actiontypeA, actiontypeB), axis=1)
-    features['action_type_{}_time_delta_min'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta'].map(lambda x: x[0])
-    features['action_type_{}_time_delta_max'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta'].map(lambda x: x[1])
-    features['action_type_{}_time_delta_mean'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta'].map(lambda x: x[2])
-    features['action_type_{}_time_delta_std'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta'].map(lambda x: x[3])
-    features['action_type_{}_time_delta_last2'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta'].map(lambda x: x[4])
-    features['action_type_{}_time_delta_last3'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta'].map(lambda x: x[5])
+    features['diff_action_type_time_delta2'] = features.apply(lambda row: diff_action_type_time_delta2(row['userid'], action_grouped, actiontypeA, actiontypeB), axis=1)
+    features['action_type_{}_time_delta_min'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta2'].map(lambda x: x[0])
+    features['action_type_{}_time_delta_max'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta2'].map(lambda x: x[1])
+    features['action_type_{}_time_delta_mean'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta2'].map(lambda x: x[2])
+    features['action_type_{}_time_delta_std'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta2'].map(lambda x: x[3])
+    features['action_type_{}_time_delta_last2'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta2'].map(lambda x: x[4])
+    features['action_type_{}_time_delta_last3'.format(actiontypeA, actiontypeB)] = features['diff_action_type_time_delta2'].map(lambda x: x[5])
 
 
-    del features['diff_action_type_time_delta']
+    del features['diff_action_type_time_delta2']
     return features
 
 
