@@ -124,7 +124,7 @@ python catboost_model.py
 - [SunnyMarkLiu](https://github.com/SunnyMarkLiu)
 - [heartR](https://github.com/heartR)
 - [QianguoSun](https://github.com/QianguoSun)
-- [HuangLin]()
+- [HuangLin](https://github.com/huanglin6385)
 
 ## License
 
