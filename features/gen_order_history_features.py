@@ -25,6 +25,7 @@ from pypinyin import lazy_pinyin
 from sklearn.preprocessing import LabelEncoder
 from conf.configure import Configure
 from utils import data_utils
+from tqdm import tqdm
 
 
 def check_last_time_order_info(uid, userid_grouped, flag, check_name, last_time=1):
@@ -234,6 +235,27 @@ def build_order_history_features(df, history):
 
     return features
 
+def order_last_num(order):
+    """ 按时间倒序对订单排序 """
+    users = list(set(order['userid']))
+    order_c = order.copy()
+    order_c['order_number'] = 1
+    for i in tqdm(range(len(users))):
+        slit_df = order_c[order_c['userid'] == users[i]]
+        order_c.loc[slit_df.index, 'order_number'] = range(slit_df.shape[0],0,-1)
+    return order_c
+
+def days_since_prior_order(order):
+    """ 用户两次订单之间的时间间隔 """
+    users = list(set(order['userid']))
+    order_c = order.copy()
+    order_c['days_since_prior_order'] = np.nan
+    for i in tqdm(range(len(users))):
+        slit_df = order_c[order_c['userid'] == users[i]]
+        time_shift = slit_df['orderTime'].shift(1)
+        time_series = pd.Series(slit_df['orderTime'].values - time_shift.values).map(lambda x: x/np.timedelta64(1, 's'))/(24*3600.0)
+        order_c.loc[slit_df.index, 'days_since_prior_order'] = time_series.values
+    return order_c
 
 def build_time_category_encode(history):
     history['orderTime'] = pd.to_datetime(history['orderTime'], unit='s')
@@ -253,6 +275,9 @@ def build_time_category_encode(history):
     history['order_week_hour'] = history['order_weekday'] * 24 + history['order_hour']
     # 按照时间排序
     history = history.sort_values(by='orderTime')
+    history.reset_index(drop=True, inplace=True)
+    history = order_last_num(history)
+    history = days_since_prior_order(history)
 
     history['continent'] = history['continent'].map(lambda c: '_'.join(lazy_pinyin(c)) if c == c else 'None')
     history['country'] = history['country'].map(lambda c: '_'.join(lazy_pinyin(c)) if c == c else 'None')
@@ -448,6 +473,125 @@ def build_order_history_features4(df, history):
     del features['has_history_flag']
     return features
 
+def city_info(df):
+    """ 城市订单特征 """
+    df_select = df.groupby(['city']).size().reset_index()
+    df_select.columns = ['city', 'city_order_num']
+    df_select['city_order_ratio'] = df_select['city_order_num'] / (1.0 * df.shape[0])
+    df_select_1 = df[df['orderType'] == 1].groupby(['city']).size().reset_index()
+    df_select_1.columns = ['city', 'city_high_order_num']
+    df_select = pd.merge(df_select, df_select_1, on='city', how='left')
+    df_select['city_high_order_num'] = df_select['city_high_order_num'].fillna(0).astype(int)
+    df_select['city_high_order_ratio'] = df_select['city_high_order_num'] / (1.0 * df_select['city_order_num'])
+
+    del df_select_1
+    return df_select
+
+
+def country_info(df):
+    """ 国家订单特征 """
+    df_select = df.groupby(['country']).size().reset_index()
+    df_select.columns = ['country', 'country_order_num']
+    df_select['country_order_ratio'] = df_select['country_order_num'] / (1.0 * df.shape[0])
+    df_select_1 = df[df['orderType'] == 1].groupby(['country']).size().reset_index()
+    df_select_1.columns = ['country', 'country_high_order_num']
+    df_select = pd.merge(df_select, df_select_1, on='country', how='left')
+    df_select['country_high_order_num'] = df_select['country_high_order_num'].fillna(0).astype(int)
+    df_select['country_high_order_ratio'] = df_select['country_high_order_num'] / (1.0 * df_select['country_order_num'])
+
+    del df_select_1
+    return df_select
+
+def user_city_info(feature, df, info):
+    """ 根据城市对用户富裕程度打分 """
+    feature_c = feature.copy()
+    #feature_c['city_popular'] = np.nan
+    feature_c['city_rich'] = 0
+    feature_c['city_avg_rich'] = 0
+    for i in tqdm(range(feature_c.shape[0])):
+        df_select = df[df['userid'] == feature_c.loc[i,'userid']].reset_index(drop=True)
+        num = df_select.shape[0]
+        #popular = 0
+        rich = 0
+        if num > 0:
+            for j in range(num):
+                info_select = info[info['city'] == df_select.loc[j,'city']]
+                #popular += info_select['city_order_ratio'].values
+                rich += (1-info_select['city_high_order_ratio'].values) if df_select.loc[j,'orderType'] == 1 else -1*info_select['city_high_order_ratio'].values
+            #feature_c.loc[i, 'city_popular'] = popular/(1.0*num)
+            feature_c.loc[i, 'city_rich'] = rich
+            feature_c.loc[i, 'city_avg_rich'] = rich/(1.0*num)
+        del df_select
+    return feature_c
+
+def user_country_info(feature, df, info):
+    """ 根据国家对用户富裕程度打分 """
+    feature_c = feature.copy()
+    #feature_c['country_popular'] = np.nan
+    feature_c['country_rich'] = 0
+    feature_c['country_avg_rich'] = 0
+    for i in tqdm(range(feature_c.shape[0])):
+        df_select = df[df['userid'] == feature_c.loc[i,'userid']].reset_index(drop=True)
+        num = df_select.shape[0]
+        #popular = 0
+        rich = 0
+        if num > 0:
+            for j in range(num):
+                info_select = info[info['country'] == df_select.loc[j,'country']]
+                #popular += info_select['country_order_ratio'].values
+                rich += (1-info_select['country_high_order_ratio'].values) if df_select.loc[j,'orderType'] == 1 else -1*info_select['country_high_order_ratio'].values
+            #feature_c.loc[i, 'country_popular'] = popular/(1.0*num)
+            feature_c.loc[i, 'country_rich'] = rich
+            feature_c.loc[i, 'country_avg_rich'] = rich/(1.0*num)
+        del df_select
+    return feature_c
+
+def build_order_history_features_wxr(df, orderHistory, history):
+    features = pd.DataFrame({'userid': df['userid']})
+
+    #用户平均每次旅行间隔
+    predict_time = pd.to_datetime(datetime.datetime(2017, 9, 12))
+    features['days_since_last_order'] = -1
+    for i in tqdm(range(features.shape[0])):
+        df = history[(history['userid'] == features.loc[i, 'userid']) & (history['order_number'] == 1)]
+        if df.shape[0] > 0:
+            features.loc[i, 'days_since_last_order'] = ((predict_time - df['orderTime'].values[0]) / np.timedelta64(1,'s')) / (24 * 3600.0)
+    history_s = history.groupby(['userid'])['days_since_prior_order'].mean().reset_index()
+    history_s.columns = ['userid', 'avg_days_between_order']
+    features = pd.merge(features, history_s, on='userid', how='left')
+    features['days_ratio_since_last_order'] = features['days_since_last_order'] / features[
+        'avg_days_between_order']
+    features['avg_days_between_order'] = features['avg_days_between_order'].fillna(-1)
+    features['days_ratio_since_last_order'] = features['days_ratio_since_last_order'].fillna(-1)
+    features.loc[features[features['avg_days_between_order'] == 0].index, 'days_ratio_since_last_order'] = 0
+    del features['days_since_last_order']
+
+    #用户去过的城市、国家、大陆数
+    history_s = history.groupby(['userid', 'city']).size().reset_index()
+    history_s = history_s.groupby(['userid']).size().reset_index()
+    history_s.columns = ['userid', 'city_num']
+    features = pd.merge(features, history_s, on='userid', how='left')
+    features['city_num'] = features['city_num'].fillna(0).astype(int)
+
+    history_s = history.groupby(['userid', 'country']).size().reset_index()
+    history_s = history_s.groupby(['userid']).size().reset_index()
+    history_s.columns = ['userid', 'country_num']
+    features = pd.merge(features, history_s, on='userid', how='left')
+    features['country_num'] = features['country_num'].fillna(0).astype(int)
+
+    history_s = history.groupby(['userid', 'continent']).size().reset_index()
+    history_s = history_s.groupby(['userid']).size().reset_index()
+    history_s.columns = ['userid', 'continent_num']
+    features = pd.merge(features, history_s, on='userid', how='left')
+    features['continent_num'] = features['continent_num'].fillna(0).astype(int)
+
+    #根据用户去的城市、国家给用户的富裕程度打分
+    city_df = city_info(orderHistory)
+    country_df = country_info(orderHistory)
+    features = user_city_info(features, history, city_df)
+    features = user_country_info(features, history, country_df)
+
+    return features
 
 def main():
     # 待预测订单的数据 （原始训练集和测试集）
@@ -496,6 +640,16 @@ def main():
         train_features = build_order_history_features4(train, orderHistory_train)
         print('build test user_order_history_features4')
         test_features = build_order_history_features4(test, orderHistory_test)
+        print('save ', feature_name)
+        data_utils.save_features(train_features, test_features, feature_name)
+
+    feature_name = 'user_order_history_features_wxr'
+    if not data_utils.is_feature_created(feature_name):
+        orderHistory = pd.concat([orderHistory_train, orderHistory_test])
+        print('build train user_order_history_features3')
+        train_features = build_order_history_features_wxr(train, orderHistory, orderHistory_train)
+        print('build test user_order_history_features3')
+        test_features = build_order_history_features_wxr(test, orderHistory, orderHistory_test)
         print('save ', feature_name)
         data_utils.save_features(train_features, test_features, feature_name)
 

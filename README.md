@@ -58,10 +58,14 @@ python catboost_model.py
 - 用户订单评分的统计特征
 - 用户打分比例，最后一次打分
 - 标签的基本统计特征
+- 用户全部订单平均分，普通订单平均分，精品订单平均分
+- 将用户打的标签分为正面、负面标签，统计用户订单标签得分
+- 对用户评论进行情感分析，统计用户订单评论得分
 
 3. Order History: gen_order_history_features.py
 
 - 最近的一次交易的 days_from_now, order_year, order_month, order_day, order_weekofyear, order_weekday
+- 根据用户去过的城市、国家和总体上城市、国家的精品率对用户富裕程度打分
 - 往前 90days 的计数特征，订单数量，去的城市的数量等
 - 2016年和2017年去的城市数量，月份数量
 - 用户总订单数、精品订单数以及精品订单比例
@@ -75,7 +79,8 @@ python catboost_model.py
 
 - 用户不同操作的购买率 × 9
 - 每个月的 action 情况，最清闲的在几月，以及 action 的次数
-- 最后一次 order 距离现在的 action 操作的次数
+- 用户最后一次订单之后每个actionType的次数
+- 用户最后一次订单之后打开APP次数、平均每次浏览操作次数、平均每次订单操作次数
 - 最后一次订单之后是否有支付操作和提交订单操作
 - 距离最近的 action type 的时间距离 × 9
 - 距离最近的倒数第二次 action type 的时间距离 × 9
@@ -114,6 +119,12 @@ python catboost_model.py
 
 ## Architecture
 ![](./architecture.png)
+
+## Teamates
+- [SunnyMarkLiu](https://github.com/SunnyMarkLiu)
+- [heartR](https://github.com/heartR)
+- [QianguoSun](https://github.com/QianguoSun)
+- [HuangLin]()
 
 ## License
 

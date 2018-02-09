@@ -1412,6 +1412,68 @@ def build_action_history_features11(df, action, history):
     return features
 
 
+def action_belong_to_order(order, action):
+    """action属于哪次订单"""
+    action_c = action.copy()
+    action_c['orderid'] = -1
+    for i in range(order.shape[0]):
+        order_number = order.loc[i, 'order_number']
+        user_id = order.loc[i, 'userid']
+        order_time = order.loc[i, 'orderTime']
+        if order_number == 1:
+            slit_df = action[(action['userid'] == user_id) & (action['actionTime'] > order_time)]
+            if slit_df.shape[0] > 0:
+                action_c.loc[slit_df.index, 'orderid'] = 0
+
+        last_order_time = order[(order['order_number'] == order_number + 1) & (order['userid'] == user_id)][
+            'orderTime'].values
+        if len(last_order_time) > 0:
+            slit_df = action[(action['userid'] == user_id) & (action['actionTime'] <= order_time) & (
+            action['actionTime'] > last_order_time[0])]
+        else:
+            slit_df = action[(action['userid'] == user_id) & (action['actionTime'] <= order_time)]
+        if slit_df.shape[0] > 0:
+            action_c.loc[slit_df.index, 'orderid'] = order.loc[i, 'orderid']
+    return action_c
+
+
+def action_after_last_order(feature, df):
+    """ 用户最后一次订单之后打开APP次数、平均每次浏览操作次数、平均每次订单操作次数
+用户最后一次订单之后浏览操作总数、订单操作总数 """
+    feature_c = feature.copy()
+    df_select = df[(df['actionType'] == 1) & (df['orderid'] == 0)]
+    df_feature = df_select.groupby(['userid']).size().reset_index()
+    df_feature.columns = ['userid', 'open_num_after_last_order']
+    feature_c = pd.merge(feature_c, df_feature, on='userid', how='left')
+
+    df_select = df[(df['actionType'] > 1) & (df['orderid'] == 0) & (df['actionType'] < 5)]
+    df_feature = df_select.groupby(['userid']).size().reset_index()
+    df_feature.columns = ['userid', 'browse_num_after_last_order']
+    feature_c = pd.merge(feature_c, df_feature, on='userid', how='left')
+    feature_c['avg_browse_num_after_last_order'] = feature_c['browse_num_after_last_order'] / feature_c['open_num_after_last_order']
+
+    df_select = df[(df['actionType'] > 4) & (df['orderid'] == 0)]
+    df_feature = df_select.groupby(['userid']).size().reset_index()
+    df_feature.columns = ['userid', 'operate_num_after_last_order']
+    feature_c = pd.merge(feature_c, df_feature, on='userid', how='left')
+    feature_c['avg_operate_num_after_last_order'] = feature_c['operate_num_after_last_order'] / feature_c['open_num_after_last_order']
+    feature_c['open_num_after_last_order'] = feature_c['open_num_after_last_order'].fillna(0).astype(int)
+    feature_c['browse_num_after_last_order'] = feature_c['browse_num_after_last_order'].fillna(0).astype(int)
+    feature_c['avg_browse_num_after_last_order'] = feature_c['avg_browse_num_after_last_order'].fillna(0)
+    feature_c['operate_num_after_last_order'] = feature_c['operate_num_after_last_order'].fillna(0).astype(int)
+    feature_c['avg_operate_num_after_last_order'] = feature_c['avg_operate_num_after_last_order'].fillna(0)
+    del df_select, df_feature
+    return feature_c
+
+
+def build_action_history_features_wxr(df, action):
+    features = pd.DataFrame({'userid': df['userid']})
+    # 用户最后一次订单之后打开APP次数、平均每次浏览操作次数、平均每次订单操作次数、用户最后一次订单之后浏览操作总数、订单操作总数
+    features = action_after_last_order(features, action)
+    features = action_num_after_last_order(features, action)
+    return features
+
+
 def main():
 
     train = pd.read_csv(Configure.base_path + 'train/orderFuture_train.csv', encoding='utf8')
@@ -1558,6 +1620,14 @@ def main():
         print('save ', feature_name)
         data_utils.save_features(train_features, test_features, feature_name)
 
+    feature_name = 'action_history_features_wxr'
+    if not data_utils.is_feature_created(feature_name):
+        print('build train action history features11')
+        train_features = build_action_history_features_wxr(train, action_train)
+        print('build test action history features11')
+        test_features = build_action_history_features_wxr(test, action_test)
+        print('save ', feature_name)
+        data_utils.save_features(train_features, test_features, feature_name)
 
 if __name__ == "__main__":
     print("========== 结合 action、 history 和 comment 提取历史特征 ==========")

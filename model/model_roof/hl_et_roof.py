@@ -12,13 +12,14 @@ import pandas as pd
 from sklearn.model_selection import StratifiedKFold
 from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.metrics import auc, roc_curve
-from model.get_datasets import load_datasets
+from conf.configure import Configure
 from optparse import OptionParser
 
 
 # 构建模型输入
 def pre_train():
-    train_all, test = load_datasets()
+    train_all = pd.read_csv(Configure.base_path + 'huang_lin/train_dataHL.csv')
+    test = pd.read_csv(Configure.base_path + 'huang_lin/test_dataHL.csv')
     train_all.fillna(-1, inplace=True)
     test.fillna(-1, inplace=True)
 
@@ -45,7 +46,7 @@ def main(options):
     print("load train test datasets")
     train_all, y_train_all, id_train, test, id_test = pre_train()
 
-    predict_feature = 'lq_et_predict_roof_fold{}_n_estimators{}_min_samples_leaf{}_min_samples_split{}_seed{}'.format(
+    predict_feature = 'hl_et_predict_roof_fold{}_n_estimators{}_min_samples_leaf{}_min_samples_split{}_seed{}'.format(
         options.roof_flod, options.n_estimators, options.min_samples_leaf, options.min_samples_split, options.seed)
 
     print('params info:', predict_feature)
@@ -98,14 +99,14 @@ def main(options):
     print("saving train predictions for ensemble")
     train_pred_df = pd.DataFrame({'userid': id_train})
     train_pred_df[predict_feature] = pred_train_full
-    train_pred_df.to_csv("./ensemble/train/lq_et_roof{}_predict_train_cv{}_{}.csv".format(roof_flod, mean_cv_scores, predict_feature), index=False,
+    train_pred_df.to_csv("./ensemble/train/hl_et_roof{}_predict_train_cv{}_{}.csv".format(roof_flod, mean_cv_scores, predict_feature), index=False,
                          columns=['userid', predict_feature])
 
     print("saving test predictions for ensemble")
     pred_test_full = pred_test_full / float(roof_flod)
     test_pred_df = pd.DataFrame({'userid': id_test})
     test_pred_df[predict_feature] = pred_test_full
-    test_pred_df.to_csv("./ensemble/test/lq_et_roof{}_predict_test_cv{}_{}.csv".format(roof_flod, mean_cv_scores, predict_feature), index=False,
+    test_pred_df.to_csv("./ensemble/test/hl_et_roof{}_predict_test_cv{}_{}.csv".format(roof_flod, mean_cv_scores, predict_feature), index=False,
                         columns=['userid', predict_feature])
 
 

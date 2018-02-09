@@ -24,10 +24,12 @@ def pre_train():
 
     y_train_all = train_all['orderType']
     id_train = train_all['userid']
-    train_all.drop(['orderType'], axis=1, inplace=True)
+    train_all.drop(['orderType', 'userid'], axis=1, inplace=True)
 
     id_test = test['userid']
-    #test.drop(['userid'], axis=1, inplace=True)
+    test.drop(['userid'], axis=1, inplace=True)
+
+    train_all = train_all[test.columns.values]
 
     print("train_all: ({}), test: ({})".format(train_all.shape, test.shape))
     return train_all, y_train_all, id_train, test, id_test
@@ -44,7 +46,7 @@ def main(options):
     print("load train test datasets")
     train_all, y_train_all, id_train, test, id_test = pre_train()
 
-    predict_feature = 'rf_predict_roof_fold{}_n_estimators{}_min_samples_leaf{}_min_samples_split{}_seed{}'.format(
+    predict_feature = 'lq_rf_predict_roof_fold{}_n_estimators{}_min_samples_leaf{}_min_samples_split{}_seed{}'.format(
         options.roof_flod, options.n_estimators, options.min_samples_leaf, options.min_samples_split, options.seed)
 
     print('params info:', predict_feature)
@@ -97,15 +99,18 @@ def main(options):
     print("saving train predictions for ensemble")
     train_pred_df = pd.DataFrame({'userid': id_train})
     train_pred_df[predict_feature] = pred_train_full
-    train_pred_df.to_csv("./ensemble/train/rf_roof{}_predict_train_cv{}_{}.csv".format(roof_flod, mean_cv_scores, predict_feature), index=False,
-                         columns=['userid', predict_feature])
+    train_pred_df.to_csv("./ensemble/train/lq_rf_roof{}_predict_train_cv{}_{}.csv".format(roof_flod, mean_cv_scores,predict_feature),
+        index=False,
+        columns=['userid', predict_feature])
 
     print("saving test predictions for ensemble")
     pred_test_full = pred_test_full / float(roof_flod)
     test_pred_df = pd.DataFrame({'userid': id_test})
     test_pred_df[predict_feature] = pred_test_full
-    test_pred_df.to_csv("./ensemble/test/rf_roof{}_predict_test_cv{}_{}.csv".format(roof_flod, mean_cv_scores, predict_feature), index=False,
-                        columns=['userid', predict_feature])
+    test_pred_df.to_csv("./ensemble/test/lq_rf_roof{}_predict_test_cv{}_{}.csv".format(roof_flod,mean_cv_scores,predict_feature),
+        index=False,
+        columns=['userid', predict_feature])
+
 
 if __name__ == "__main__":
     print("========== rf run out of fold ==========")
@@ -141,5 +146,5 @@ if __name__ == "__main__":
         default=10,
         type='int'
     )
-    options, _ = parser.parse_args()
-    main(options)
+    ops, _ = parser.parse_args()
+    main(ops)

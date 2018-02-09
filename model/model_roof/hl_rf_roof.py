@@ -10,15 +10,16 @@ sys.path.append(module_path)
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import StratifiedKFold
-from sklearn.ensemble import ExtraTreesClassifier
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import auc, roc_curve
-from model.get_datasets import load_datasets
+from conf.configure import Configure
 from optparse import OptionParser
 
 
 # 构建模型输入
 def pre_train():
-    train_all, test = load_datasets()
+    train_all = pd.read_csv(Configure.base_path + 'huang_lin/train_dataHL.csv')
+    test = pd.read_csv(Configure.base_path + 'huang_lin/test_dataHL.csv')
     train_all.fillna(-1, inplace=True)
     test.fillna(-1, inplace=True)
 
@@ -34,6 +35,7 @@ def pre_train():
     print("train_all: ({}), test: ({})".format(train_all.shape, test.shape))
     return train_all, y_train_all, id_train, test, id_test
 
+
 # 评估函数
 def evaluate_score(predict, y_true):
     false_positive_rate, true_positive_rate, thresholds = roc_curve(y_true, predict, pos_label=1)
@@ -45,7 +47,7 @@ def main(options):
     print("load train test datasets")
     train_all, y_train_all, id_train, test, id_test = pre_train()
 
-    predict_feature = 'lq_et_predict_roof_fold{}_n_estimators{}_min_samples_leaf{}_min_samples_split{}_seed{}'.format(
+    predict_feature = 'hl_rf_predict_roof_fold{}_n_estimators{}_min_samples_leaf{}_min_samples_split{}_seed{}'.format(
         options.roof_flod, options.n_estimators, options.min_samples_leaf, options.min_samples_split, options.seed)
 
     print('params info:', predict_feature)
@@ -69,11 +71,11 @@ def main(options):
         train_x, val_x = train_all.ix[dev_index], train_all.ix[val_index]
         train_y, val_y = y_train_all[dev_index], y_train_all[val_index]
 
-        model = ExtraTreesClassifier(n_estimators=model_params['n_estimators'], random_state=options.seed, n_jobs=-1,
-                                     max_depth=model_params['max_depth'],
-                                     max_features=model_params['max_features'],
-                                     min_samples_leaf=model_params['min_samples_leaf'],
-                                     min_samples_split=model_params['min_samples_split'])
+        model = RandomForestClassifier(n_estimators=model_params['n_estimators'], random_state=options.seed, n_jobs=-1,
+                                       oob_score=True, max_depth=model_params['max_depth'],
+                                       max_features=model_params['max_features'],
+                                       min_samples_leaf=model_params['min_samples_leaf'],
+                                       min_samples_split=model_params['min_samples_split'])
         model.fit(train_x, train_y)
 
         # predict train
@@ -98,19 +100,21 @@ def main(options):
     print("saving train predictions for ensemble")
     train_pred_df = pd.DataFrame({'userid': id_train})
     train_pred_df[predict_feature] = pred_train_full
-    train_pred_df.to_csv("./ensemble/train/lq_et_roof{}_predict_train_cv{}_{}.csv".format(roof_flod, mean_cv_scores, predict_feature), index=False,
-                         columns=['userid', predict_feature])
+    train_pred_df.to_csv("./ensemble/train/hl_rf_roof{}_predict_train_cv{}_{}.csv".format(roof_flod, mean_cv_scores,predict_feature),
+        index=False,
+        columns=['userid', predict_feature])
 
     print("saving test predictions for ensemble")
     pred_test_full = pred_test_full / float(roof_flod)
     test_pred_df = pd.DataFrame({'userid': id_test})
     test_pred_df[predict_feature] = pred_test_full
-    test_pred_df.to_csv("./ensemble/test/lq_et_roof{}_predict_test_cv{}_{}.csv".format(roof_flod, mean_cv_scores, predict_feature), index=False,
-                        columns=['userid', predict_feature])
+    test_pred_df.to_csv("./ensemble/test/hl_rf_roof{}_predict_test_cv{}_{}.csv".format(roof_flod,mean_cv_scores,predict_feature),
+        index=False,
+        columns=['userid', predict_feature])
 
 
 if __name__ == "__main__":
-    print("========== et run out of fold ==========")
+    print("========== rf run out of fold ==========")
     parser = OptionParser()
 
     parser.add_option(
@@ -122,7 +126,7 @@ if __name__ == "__main__":
     parser.add_option(
         "-n", "--n_estimators",
         dest="n_estimators",
-        default=3100,
+        default=1300,
         type='int'
     )
     parser.add_option(
@@ -134,7 +138,7 @@ if __name__ == "__main__":
     parser.add_option(
         "-t", "--min_samples_split",
         dest="min_samples_split",
-        default=2,
+        default=50,
         type='int'
     )
     parser.add_option(
@@ -143,5 +147,5 @@ if __name__ == "__main__":
         default=10,
         type='int'
     )
-    ops, _ = parser.parse_args()
-    main(ops)
+    options, _ = parser.parse_args()
+    main(options)

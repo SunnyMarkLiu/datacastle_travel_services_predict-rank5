@@ -19,8 +19,12 @@ import warnings
 warnings.filterwarnings('ignore')
 
 import pandas as pd
+import numpy as np
 from conf.configure import Configure
 from utils import data_utils
+import json
+from qcloudapi3 import QcloudApi
+from tqdm import tqdm
 
 
 def user_rating_sattistic(uid, userid_grouped, flag):
@@ -139,6 +143,67 @@ def comment_has_jingxi(uid, userid_grouped, flag):
     return result
 
 
+def commentKey_score(df):
+    """使用百度文智情感分析API对用户评论打分，QcloudApi为百度文智SDK"""
+    module = 'wenzhi'
+    action = 'TextSentiment'
+    config = {
+        'Region': 'bj',
+        'secretId': '',
+        'secretKey': '',
+        'method': 'get'
+    }
+    df_c = df.copy()
+    df_c['commentsKeyWords_score'] = np.nan
+    df_select_index = df_c[pd.notnull(df_c['commentsKeyWords'])].index
+    service = QcloudApi(module, config)
+    for i in xrange(len(df_select_index)):
+        comment_str = df_c.loc[df_select_index[i], 'commentsKeyWords']
+        params = {
+            'content': comment_str
+        }
+        try:
+            # 调用接口，发起请求
+            res = json.loads(service.call(action, params))
+            df_c.loc[df_select_index[i], 'commentsKeyWords_score'] = res['positive']
+        except Exception, e:
+            print
+            'exception:', e
+    return df_c
+
+def tag_score(df):
+    """分正面、负面统计tag"""
+    positive_tags = []
+    negative_tags = []
+    f = open('./tags.txt', 'r')
+    for line in f:
+        arr = line.decode('utf8').split()
+        if arr[1] == '1':
+            positive_tags.append(arr[0])
+        else:
+            negative_tags.append(arr[0])
+    f.close()
+    print (len(positive_tags), len(negative_tags))
+    df_c = df.copy()
+    df_c['positive_tags'] = 0
+    df_c['negative_tags'] = 0
+    for i in tqdm(xrange(df_c.shape[0])):
+        tag_str = df_c.loc[i, 'tags']
+        if tag_str == tag_str:
+            tag_arr = tag_str.split(u'|')
+            p_num = 0
+            n_num = 0
+            for tag in tag_arr:
+                if tag in positive_tags:
+                    p_num += 1
+                elif tag in negative_tags:
+                    n_num += 1
+            df_c.loc[i, 'positive_tags'] = p_num
+            df_c.loc[i, 'negative_tags'] = n_num
+    df_c['tags_score'] = df_c['positive_tags'] - df_c['negative_tags']
+    return df_c
+
+
 def built_comment_features(df, comments):
     features = pd.DataFrame({'userid': df['userid']})
 
@@ -208,6 +273,98 @@ def built_comment_features(df, comments):
     return features
 
 
+def avg_rating(feature, comment):
+    """用户全部订单平均分，普通订单平均分，精品订单平均分"""
+    feature_c = feature.copy()
+    df = comment.groupby(['userid'])['rating'].mean().reset_index()
+    df.columns = ['userid', 'avg_rating']
+    feature_c = pd.merge(feature_c, df, on='userid', how='left')
+    feature_c['avg_rating'] = feature_c['avg_rating'].fillna(0)
+
+    comment_c = comment[comment['orderType'] == 0]
+    df = comment_c.groupby(['userid'])['rating'].mean().reset_index()
+    df.columns = ['userid', 'avg_rating_type0']
+    feature_c = pd.merge(feature_c, df, on='userid', how='left')
+    feature_c['avg_rating_type0'] = feature_c['avg_rating_type0'].fillna(0)
+
+    comment_c = comment[comment['orderType'] == 1]
+    df = comment_c.groupby(['userid'])['rating'].mean().reset_index()
+    df.columns = ['userid', 'avg_rating_type1']
+    feature_c = pd.merge(feature_c, df, on='userid', how='left')
+    feature_c['avg_rating_type1'] = feature_c['avg_rating_type1'].fillna(0)
+    del df, comment_c
+    return feature_c
+
+def rating_last_order(feature, comment, order):
+    """用户最近一次订单打分"""
+    feature_c = feature.copy()
+    feature_c['rating_last_order'] = 0
+    for i in xrange(feature_c.shape[0]):
+        userid = feature.loc[i,'userid']
+        df = order[(order['userid'] == userid) & (order['order_number'] == 1)]
+        if df.shape[0]>0:
+            comment_df = comment[comment['orderid'] == df['orderid'].values[0]]
+            if comment_df.shape[0]>0:
+                feature_c.loc[i,'rating_last_order'] = comment_df['rating'].values[0]
+    return feature_c
+
+def user_tag_score(feature, df):
+    """用户全部订单tag平均分"""
+    feature_c = feature.copy()
+    df_select = df.groupby(['userid'])['tags_score'].mean().reset_index()
+    df_select.columns = ['userid','tags_score']
+    feature_c = pd.merge(feature_c, df_select, on = 'userid', how = 'left')
+    feature_c['tags_score'] = feature_c['tags_score'].fillna(0)
+    del df_select
+    return feature_c
+
+def tag_last_order(feature, comment, order):
+    """用户最近一次订单tag打分"""
+    feature_c = feature.copy()
+    feature_c['tags_score_last_order'] = 0
+    for i in tqdm(xrange(feature_c.shape[0])):
+        userid = feature.loc[i,'userid']
+        df = order[(order['userid'] == userid) & (order['order_number'] == 1)]
+        if df.shape[0]>0:
+            comment_df = comment[comment['orderid'] == df['orderid'].values[0]]
+            if comment_df.shape[0]>0:
+                feature_c.loc[i,'tags_score_last_order'] = comment_df['tags_score'].values[0]
+    return feature_c
+
+def user_comment_score(feature, df):
+    """用户全部commentkey平均分"""
+    feature_c = feature.copy()
+    df_select = df.groupby(['userid'])['commentsKeyWords_score'].mean().reset_index()
+    df_select.columns = ['userid','commentsKeyWords_score']
+    feature_c = pd.merge(feature_c, df_select, on = 'userid', how = 'left')
+    feature_c['commentsKeyWords_score'] = feature_c['commentsKeyWords_score'].fillna(-1)
+    del df_select
+    return feature_c
+
+
+def comment_last_order(feature, comment, order):
+    """用户最近一次订单comment打分"""
+    feature_c = feature.copy()
+    feature_c['commentsKeyWords_score_last_order'] = -1
+    for i in tqdm(xrange(feature_c.shape[0])):
+        userid = feature.loc[i,'userid']
+        df = order[(order['userid'] == userid) & (order['order_number'] == 1)]
+        if df.shape[0]>0:
+            comment_df = comment[comment['orderid'] == df['orderid'].values[0]]
+            if comment_df.shape[0]>0:
+                feature_c.loc[i,'commentsKeyWords_score_last_order'] = comment_df['commentsKeyWords_score'].values[0]
+    return feature_c
+
+def built_comment_features_wxr(df, comments, order):
+    features = pd.DataFrame({'userid': df['userid']})
+    features = avg_rating(features,comments)
+    features = rating_last_order(features, comments, order)
+    features = user_tag_score(features, comments)
+    features = tag_last_order(features, comments, order)
+    features = user_comment_score(features, comments)
+    features = comment_last_order(features, comments, order)
+    return features
+
 def main():
     feature_name = 'user_order_comment_features'
     if data_utils.is_feature_created(feature_name):
@@ -226,6 +383,14 @@ def main():
     userComment_train['rating'] = userComment_train['rating'].astype(int)
     userComment_test['rating'] = userComment_test['rating'].astype(int)
 
+    orderHistory_train = pd.read_csv(Configure.cleaned_path + 'cleaned_orderHistory_train.csv', encoding='utf8')
+    orderHistory_test = pd.read_csv(Configure.cleaned_path + 'cleaned_orderHistory_test.csv', encoding='utf8')
+    userComment_train = pd.merge(userComment_train, orderHistory_train[['orderid', 'orderType']], on='orderid', how='left')
+    userComment_test = pd.merge(userComment_test, orderHistory_test[['orderid', 'orderType']], on='orderid', how='left')
+    userComment_train = commentKey_score(userComment_train)
+    userComment_test = commentKey_score(userComment_test)
+    userComment_train = tag_score(userComment_train)
+    userComment_test = tag_score(userComment_test)
     print('save cleaned datasets')
     userComment_train.to_csv(Configure.cleaned_path + 'cleaned_userComment_train.csv', index=False, columns=userComment_train.columns, encoding='utf8')
     userComment_test.to_csv(Configure.cleaned_path + 'cleaned_userComment_test.csv', index=False, columns=userComment_test.columns, encoding='utf8')
@@ -234,9 +399,18 @@ def main():
     train_features = built_comment_features(train, userComment_train)
     print('build test features')
     test_features = built_comment_features(test, userComment_test)
-
     print('save ', feature_name)
     data_utils.save_features(train_features, test_features, feature_name)
+
+    print('build wxr features')
+    feature_name = 'user_order_comment_features_wxr'
+    if not data_utils.is_feature_created(feature_name):
+        print('build train action history features11')
+        train_features = built_comment_features_wxr(train, userComment_train,orderHistory_train)
+        print('build test action history features11')
+        test_features = built_comment_features_wxr(test, userComment_test,orderHistory_test)
+        print('save ', feature_name)
+        data_utils.save_features(train_features, test_features, feature_name)
 
 
 if __name__ == "__main__":
